@@ -1,4 +1,4 @@
-# Brainstorm Individual – [Numele Tău]
+# Brainstorm Individual – Tuțu Cristian
 
 **Facultate:** Automatică și Calculatoare – Informatică Aplicată, UTCB (2023–2027)
 ---
