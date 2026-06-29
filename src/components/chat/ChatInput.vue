@@ -1,0 +1,282 @@
+<script setup lang="ts">
+import { ref, computed, nextTick, watch } from 'vue'
+import { storeToRefs } from 'pinia'
+import { useChatStore } from '@/stores/chat.store'
+import { useSettingsStore } from '@/stores/settings.store'
+import { useAttachments } from '@/composables/useAttachments'
+import { useKeyboard } from '@/composables/useKeyboard'
+import Button from '@/components/ui/Button.vue'
+
+defineProps<{
+  conversationId: string
+}>()
+
+const emit = defineEmits<{
+  send: [content: string, attachments: any[]]
+  abort: []
+}>()
+
+const chatStore = useChatStore()
+const settingsStore = useSettingsStore()
+
+const { isStreaming } = storeToRefs(chatStore)
+const { current: settings } = storeToRefs(settingsStore)
+
+const {
+  pendingAttachments,
+  hasAttachments,
+  isDragging,
+  handleDrop,
+  handleDragOver,
+  handleDragLeave,
+  handleFileInput,
+  removeAttachment,
+  clearAttachments,
+} = useAttachments()
+
+const textareaRef = ref<HTMLTextAreaElement | null>(null)
+const input = ref('')
+const rows = ref(1)
+
+const canSend = computed(() => (input.value.trim().length > 0 || hasAttachments.value) && !isStreaming.value)
+
+function autoResize() {
+  const el = textareaRef.value
+  if (!el) return
+  el.style.height = 'auto'
+  const newRows = Math.min(Math.max(Math.ceil(el.scrollHeight / 24), 1), 10)
+  rows.value = newRows
+  el.style.height = `${el.scrollHeight}px`
+}
+
+watch(input, () => nextTick(autoResize))
+
+function handleKeydown(event: KeyboardEvent) {
+  const sendOnEnter = settings.value.sendOnEnter
+
+  if (sendOnEnter) {
+    // Enter sends, Shift+Enter newline
+    if (event.key === 'Enter' && !event.shiftKey && !event.ctrlKey) {
+      event.preventDefault()
+      if (canSend.value) submit()
+      return
+    }
+  } else {
+    // Ctrl+Enter sends
+    if (event.key === 'Enter' && (event.ctrlKey || event.metaKey)) {
+      event.preventDefault()
+      if (canSend.value) submit()
+      return
+    }
+  }
+}
+
+function submit() {
+  if (!canSend.value) return
+  const content = input.value.trim()
+  const attachmentsCopy = [...pendingAttachments.value]
+  input.value = ''
+  rows.value = 1
+  if (textareaRef.value) textareaRef.value.style.height = 'auto'
+  emit('send', content, attachmentsCopy)
+  clearAttachments()
+}
+
+useKeyboard([
+  {
+    combo: 'ctrl+shift+o',
+    handler: () => {
+      input.value = ''
+    },
+    prevent: true,
+  },
+])
+
+function openFilePicker() {
+  const input = document.createElement('input')
+  input.type = 'file'
+  input.multiple = true
+  input.accept = 'image/*,.pdf,.txt,.md,.json'
+  input.onchange = handleFileInput
+  input.click()
+}
+</script>
+
+<template>
+  <div class="input-area">
+    <!-- Drop zone overlay -->
+    <Transition name="fade">
+      <div v-if="isDragging" class="drop-overlay">
+        <div class="drop-content">
+          <svg width="32" height="32" viewBox="0 0 32 32" fill="none" aria-hidden="true">
+            <path d="M16 8v12M10 14l6-6 6 6M8 22h16" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+          </svg>
+          <p>Drop files to attach</p>
+        </div>
+      </div>
+    </Transition>
+
+    <div
+      class="input-wrapper"
+      @dragover.prevent="handleDragOver"
+      @dragleave="handleDragLeave"
+      @drop.prevent="handleDrop"
+    >
+      <!-- Attachment previews -->
+      <div v-if="hasAttachments" class="attachment-strip">
+        <div
+          v-for="att in pendingAttachments"
+          :key="att.id"
+          class="attachment-chip"
+        >
+          <img v-if="att.type === 'image' && att.previewUrl" :src="att.previewUrl" :alt="att.file.name" class="attachment-thumb" />
+          <svg v-else width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
+            <rect x="2" y="1" width="10" height="12" rx="1.5" stroke="currentColor" stroke-width="1.2" />
+            <path d="M4 4.5h6M4 7h6M4 9.5h4" stroke="currentColor" stroke-width="1.1" stroke-linecap="round" />
+          </svg>
+          <span class="attachment-name">{{ att.file.name }}</span>
+          <button :aria-label="`Remove ${att.file.name}`" class="attachment-remove" @click="removeAttachment(att.id)">✕</button>
+        </div>
+      </div>
+
+      <!-- Textarea -->
+      <textarea
+        id="chat-input"
+        ref="textareaRef"
+        v-model="input"
+        :rows="rows"
+        placeholder="Message NeuralChat…"
+        class="chat-textarea"
+        :disabled="false"
+        aria-label="Message input"
+        @keydown="handleKeydown"
+      />
+
+      <!-- Toolbar -->
+      <div class="input-toolbar">
+        <!-- Attach button -->
+        <button
+          id="attach-file-btn"
+          class="toolbar-btn"
+          aria-label="Attach file"
+          title="Attach file"
+          type="button"
+          @click="openFilePicker"
+        >
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+            <path d="M13.5 8.5l-6 6a4 4 0 0 1-5.66-5.66l7-7a2.5 2.5 0 0 1 3.54 3.54l-7 7a1 1 0 0 1-1.41-1.41l6-6" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" />
+          </svg>
+        </button>
+
+        <span class="toolbar-hint">
+          {{ settings.sendOnEnter ? 'Enter to send · Shift+Enter for newline' : 'Ctrl+Enter to send' }}
+        </span>
+
+        <!-- Abort / Send -->
+        <Button
+          v-if="isStreaming"
+          id="abort-btn"
+          variant="secondary"
+          size="sm"
+          aria-label="Stop generation"
+          @click="emit('abort')"
+        >
+          <svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true">
+            <rect x="2" y="2" width="8" height="8" rx="1.5" fill="currentColor" />
+          </svg>
+          Stop
+        </Button>
+        <Button
+          v-else
+          id="send-btn"
+          variant="primary"
+          size="sm"
+          :disabled="!canSend"
+          aria-label="Send message"
+          @click="submit"
+        >
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
+            <path d="M12 7H2M7 2l5 5-5 5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
+          </svg>
+          Send
+        </Button>
+      </div>
+    </div>
+  </div>
+</template>
+
+<style scoped>
+.input-area {
+  @apply relative px-4 pb-4 pt-2 flex-shrink-0;
+}
+
+.drop-overlay {
+  @apply absolute inset-0 z-20 flex items-center justify-center
+         bg-surface-100/90 dark:bg-surface-50/90 backdrop-blur-sm
+         border-2 border-dashed border-accent-500 rounded-2xl m-2;
+}
+
+.drop-content {
+  @apply flex flex-col items-center gap-3 text-accent-400 font-medium;
+}
+
+.input-wrapper {
+  @apply max-w-3xl mx-auto
+         bg-surface-100 dark:bg-surface-100
+         border border-surface-300 dark:border-surface-300
+         rounded-2xl shadow-inner-glow
+         flex flex-col overflow-hidden
+         focus-within:ring-1 focus-within:ring-accent-500/50
+         transition-all duration-150;
+}
+
+.attachment-strip {
+  @apply flex flex-wrap gap-2 px-4 pt-3;
+}
+
+.attachment-chip {
+  @apply flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-xs
+         bg-surface-200 dark:bg-surface-200
+         text-surface-800 dark:text-surface-900 max-w-40;
+}
+
+.attachment-thumb {
+  @apply w-6 h-6 rounded object-cover flex-shrink-0;
+}
+
+.attachment-name {
+  @apply truncate flex-1;
+}
+
+.attachment-remove {
+  @apply text-surface-600 hover:text-red-400 flex-shrink-0 text-xs;
+}
+
+.chat-textarea {
+  @apply w-full resize-none bg-transparent
+         px-4 py-3 text-sm leading-6
+         text-surface-950 dark:text-surface-950
+         placeholder:text-surface-600 dark:placeholder:text-surface-600
+         focus:outline-none min-h-12 max-h-64;
+}
+
+.input-toolbar {
+  @apply flex items-center gap-2 px-3 py-2.5 border-t border-surface-200 dark:border-surface-200;
+}
+
+.toolbar-btn {
+  @apply flex items-center justify-center w-7 h-7 rounded-lg
+         text-surface-600 dark:text-surface-600
+         hover:bg-surface-200 dark:hover:bg-surface-200
+         hover:text-surface-950 dark:hover:text-surface-950
+         transition-colors duration-150;
+}
+
+.toolbar-hint {
+  @apply flex-1 text-xs text-surface-500 dark:text-surface-500 hidden sm:block;
+}
+
+/* Fade */
+.fade-enter-active, .fade-leave-active { @apply transition-opacity duration-200; }
+.fade-enter-from, .fade-leave-to { @apply opacity-0; }
+</style>
