@@ -96,7 +96,7 @@ function openFilePicker() {
   const input = document.createElement('input')
   input.type = 'file'
   input.multiple = true
-  input.accept = 'image/*,.pdf,.txt,.md,.json'
+  input.accept = 'image/*,audio/*,.pdf,.txt,.md,.json,.js,.ts,.py,.html,.css,.csv,.xml,.yaml,.yml'
   input.onchange = handleFileInput
   input.click()
 }

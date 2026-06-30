@@ -13,13 +13,14 @@ import { uploadAttachment } from '@/services/supabase/attachments'
 import { supabase } from '@/services/supabase/client'
 import type { PendingAttachment } from '@/composables/useAttachments'
 import { extractTextFromPdf } from '@/utils/pdf'
+import { transcribeAudio } from '@/utils/audio'
 
 export function useChat() {
   const chatStore = useChatStore()
   const conversationStore = useConversationStore()
   const settingsStore = useSettingsStore()
   const providerStore = useProviderStore()
-  const { error: toastError } = useToast()
+  const toast = useToast()
 
   const sending = ref(false)
 
@@ -127,12 +128,30 @@ export function useChat() {
                          file.name.endsWith('.yaml') ||
                          file.name.endsWith('.yml')
 
+          const isAudio = file.type.startsWith('audio/') || 
+                          file.name.endsWith('.mp3') || 
+                          file.name.endsWith('.wav') || 
+                          file.name.endsWith('.m4a') || 
+                          file.name.endsWith('.ogg') || 
+                          file.name.endsWith('.flac') ||
+                          file.name.endsWith('.webm')
+
           if (isPdf) {
             try {
               const fileText = await extractTextFromPdf(file)
               fileTexts += `\n\n[Attached PDF: ${file.name}]\n${fileText}`
             } catch (err) {
               console.error('Failed to extract text from PDF', err)
+            }
+          } else if (isAudio) {
+            try {
+              toast.info('Transcribing audio file...', file.name)
+              const fileText = await transcribeAudio(file)
+              fileTexts += `\n\n[Transcription of Audio: ${file.name}]\n${fileText}`
+              toast.success('Audio transcribed successfully!', file.name)
+            } catch (err) {
+              console.error('Failed to transcribe audio', err)
+              toast.error('Failed to transcribe audio', (err as Error).message)
             }
           } else if (isText) {
             try {
@@ -168,7 +187,7 @@ export function useChat() {
       chatStore.replaceOptimisticMessage(optimisticUserMsg.id, savedUserMsg)
     } catch (err) {
       chatStore.updateMessage(optimisticUserMsg.id, { status: 'error' })
-      toastError('Failed to send message', (err as Error).message)
+      toast.error('Failed to send message', (err as Error).message)
       sending.value = false
       return
     }
@@ -250,7 +269,7 @@ export function useChat() {
               content: `⚠️ ${err.message}`,
             })
             chatStore.stopStreaming()
-            toastError('AI error', err.message)
+            toast.error('AI error', err.message)
           },
         }
       )
@@ -287,7 +306,7 @@ export function useChat() {
           content: `⚠️ ${(err as Error).message}`,
         })
         chatStore.stopStreaming()
-        toastError('AI error', (err as Error).message)
+        toast.error('AI error', (err as Error).message)
       }
     }
   }

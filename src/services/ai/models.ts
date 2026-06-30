@@ -90,6 +90,18 @@ export const NVIDIA_MODELS: ModelMeta[] = [
     tags: ['google', 'efficient'],
   },
   {
+    id: 'google/gemma-4-31b-it',
+    name: 'Gemma 4 31B IT',
+    provider: 'nvidia',
+    contextWindow: 256000,
+    maxOutputTokens: 4096,
+    supportsVision: true,
+    supportsReasoning: true,
+    supportsSystemPrompt: true,
+    description: 'Google\'s advanced Gemma 4 model supporting reasoning, multimodal inputs, and 256k context window',
+    tags: ['google', 'multimodal', 'reasoning', 'popular'],
+  },
+  {
     id: 'z-ai/glm-5.1',
     name: 'GLM 5.1',
     provider: 'nvidia',
