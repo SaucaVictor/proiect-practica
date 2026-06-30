@@ -33,8 +33,20 @@ export function useAttachments() {
   const hasImages = computed(() => pendingAttachments.value.some(a => a.type === 'image'))
 
   function validateFile(file: File): boolean {
-    if (!ALLOWED_TYPES.includes(file.type)) {
-      warning('Unsupported file type', `${file.type} is not supported`)
+    const extension = file.name.substring(file.name.lastIndexOf('.')).toLowerCase()
+    const supportedExtensions = [
+      '.jpg', '.jpeg', '.png', '.gif', '.webp', '.svg',
+      '.pdf', '.txt', '.md', '.json', '.js', '.ts', '.py',
+      '.html', '.css', '.csv', '.xml', '.yaml', '.yml',
+      '.mp3', '.wav', '.m4a', '.ogg', '.flac', '.webm'
+    ]
+    const isSupportedExt = supportedExtensions.includes(extension)
+    const isSupportedMime = ALLOWED_TYPES.includes(file.type) || 
+                            file.type.startsWith('audio/') || 
+                            file.type.startsWith('text/')
+
+    if (!isSupportedMime && !isSupportedExt) {
+      warning('Unsupported file type', `${file.name} is not supported`)
       return false
     }
     if (file.size > MAX_SIZE_BYTES) {

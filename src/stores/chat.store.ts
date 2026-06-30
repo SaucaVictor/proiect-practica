@@ -15,6 +15,12 @@ export const useChatStore = defineStore('chat', () => {
   const hasMoreMessages = ref(true)
   const page = ref(0)
   const error = ref<string | null>(null)
+  const asrMode = ref<'cloud' | 'local'>((localStorage.getItem('asrMode') as 'cloud' | 'local') || 'cloud')
+
+  function toggleAsrMode() {
+    asrMode.value = asrMode.value === 'cloud' ? 'local' : 'cloud'
+    localStorage.setItem('asrMode', asrMode.value)
+  }
 
   // ─── Getters ────────────────────────────────────────────────────────────────
 
@@ -164,6 +170,8 @@ export const useChatStore = defineStore('chat', () => {
     abortStreaming,
     clearConversation,
     setError,
+    asrMode,
+    toggleAsrMode,
   }
 })
 
