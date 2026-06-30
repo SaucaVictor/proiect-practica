@@ -1,0 +1,41 @@
+{
+  "name": "neuralchat",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vue-tsc -b && vite build",
+    "preview": "vite preview",
+    "type-check": "vue-tsc --noEmit",
+    "lint": "eslint . --ext .vue,.ts,.tsx"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.45.4",
+    "@vueuse/core": "^11.1.0",
+    "dompurify": "^3.1.7",
+    "katex": "^0.16.11",
+    "marked": "^11.0.0",
+    "marked-katex-extension": "^4.0.4",
+    "mermaid": "^11.3.0",
+    "pdfjs-dist": "^5.6.205",
+    "pinia": "^2.2.2",
+    "shiki": "^1.21.0",
+    "vue": "^3.5.12",
+    "vue-router": "^4.4.5"
+  },
+  "devDependencies": {
+    "@tailwindcss/typography": "^0.5.15",
+    "@types/dompurify": "^3.0.5",
+    "@types/katex": "^0.16.7",
+    "@types/node": "^22.7.5",
+    "@vitejs/plugin-vue": "^5.1.4",
+    "@vue/tsconfig": "^0.9.1",
+    "autoprefixer": "^10.4.20",
+    "postcss": "^8.4.47",
+    "tailwindcss": "^3.4.13",
+    "typescript": "^5.6.3",
+    "vite": "^5.4.8",
+    "vue-tsc": "^2.1.6"
+  }
+}
