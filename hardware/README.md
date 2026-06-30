@@ -15,7 +15,7 @@ hardware/
 
 ## Responsabil
 
-**Tuțu Cristian** — hardware/embedded
+**Tuțu Cristian, Bucura Ion-Bogdan** — hardware/embedded
 
 ## Resurse
 
