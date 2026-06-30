@@ -2,32 +2,36 @@
  * Transcribes an audio file.
  * Supports:
  * 1. Custom local ASR endpoint (e.g. local Python server running in whispered project)
- *    defined by VITE_ASR_ENDPOINT in `.env`.
+ *    defined by VITE_ASR_ENDPOINT in `.env` (defaults to http://localhost:8000/transcribe).
  * 2. Hugging Face Serverless Inference API (using openai/whisper-large-v3),
  *    optionally authenticated with VITE_HF_TOKEN or VITE_HF_API_KEY.
  */
-export async function transcribeAudio(file: File): Promise<string> {
-  const customAsrEndpoint = import.meta.env.VITE_ASR_ENDPOINT
+export async function transcribeAudio(file: File, mode: 'cloud' | 'local' = 'cloud'): Promise<string> {
+  const customAsrEndpoint = import.meta.env.VITE_ASR_ENDPOINT || 'http://localhost:8000/transcribe'
   const hfToken = import.meta.env.VITE_HF_TOKEN || import.meta.env.VITE_HF_API_KEY
 
-  // ─── 1. Custom ASR Server Endpoint (Local Python Flask/FastAPI etc.) ─────────
-  if (customAsrEndpoint) {
-    console.log(`Sending audio to custom ASR endpoint: ${customAsrEndpoint}`)
+  // ─── 1. Custom Local ASR Server Endpoint ──────────────────────────────────
+  if (mode === 'local') {
+    console.log(`Sending audio to local ASR endpoint: ${customAsrEndpoint}`)
     const formData = new FormData()
     formData.append('file', file)
 
-    const response = await fetch(customAsrEndpoint, {
-      method: 'POST',
-      body: formData
-    })
+    try {
+      const response = await fetch(customAsrEndpoint, {
+        method: 'POST',
+        body: formData
+      })
 
-    if (!response.ok) {
-      const errText = await response.text()
-      throw new Error(`Custom ASR failed: ${response.status} - ${errText}`)
+      if (!response.ok) {
+        const errText = await response.text()
+        throw new Error(`Local ASR failed: ${response.status} - ${errText}`)
+      }
+
+      const data = await response.json()
+      return data.text || data.transcription || data.transcript || ''
+    } catch (err) {
+      throw new Error(`Failed to connect to local ASR server at ${customAsrEndpoint}. Make sure your local Python server is running! Details: ${(err as Error).message}`)
     }
-
-    const data = await response.json()
-    return data.text || data.transcription || data.transcript || ''
   }
 
   // ─── 2. Hugging Face Serverless Inference API ────────────────────────────────
@@ -48,7 +52,7 @@ export async function transcribeAudio(file: File): Promise<string> {
 
   if (!response.ok) {
     if (response.status === 401) {
-      throw new Error('Hugging Face requires a free Access Token. Please add VITE_HF_TOKEN=hf_... to your .env file, or configure VITE_ASR_ENDPOINT to use your local whispered project server.')
+      throw new Error('Hugging Face requires a free Access Token. Please add VITE_HF_TOKEN=hf_... to your .env file, or switch to ASR: Local.')
     }
     const errText = await response.text()
     let cleanErr = errText

@@ -19,7 +19,8 @@ const emit = defineEmits<{
 const chatStore = useChatStore()
 const settingsStore = useSettingsStore()
 
-const { isStreaming } = storeToRefs(chatStore)
+const { isStreaming, asrMode } = storeToRefs(chatStore)
+const toggleAsrMode = () => chatStore.toggleAsrMode()
 const { current: settings } = storeToRefs(settingsStore)
 
 const {
@@ -168,6 +169,25 @@ function openFilePicker() {
           </svg>
         </button>
 
+        <!-- ASR Mode Toggle -->
+        <button
+          class="toolbar-btn asr-toggle-btn"
+          :class="{ 'local-mode': asrMode === 'local' }"
+          :title="asrMode === 'local' ? 'Speech-to-Text: Local Server (FastAPI)' : 'Speech-to-Text: Hugging Face Cloud'"
+          type="button"
+          @click="toggleAsrMode"
+        >
+          <svg v-if="asrMode === 'local'" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="2" y="3" width="20" height="14" rx="2" ry="2" />
+            <line x1="8" y1="21" x2="16" y2="21" />
+            <line x1="12" y1="17" x2="12" y2="21" />
+          </svg>
+          <svg v-else width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z" />
+          </svg>
+          <span class="asr-badge-text">{{ asrMode === 'local' ? 'ASR: Local' : 'ASR: Cloud' }}</span>
+        </button>
+
         <span class="toolbar-hint">
           {{ settings.sendOnEnter ? 'Enter to send · Shift+Enter for newline' : 'Ctrl+Enter to send' }}
         </span>
@@ -266,10 +286,23 @@ function openFilePicker() {
 
 .toolbar-btn {
   @apply flex items-center justify-center w-7 h-7 rounded-lg
-         text-surface-600 dark:text-surface-600
-         hover:bg-surface-200 dark:hover:bg-surface-200
-         hover:text-surface-950 dark:hover:text-surface-950
-         transition-colors duration-150;
+  text-surface-600 dark:text-surface-600
+  hover:bg-surface-200 dark:hover:bg-surface-200
+  hover:text-surface-950 dark:hover:text-surface-950
+  transition-colors duration-150;
+}
+
+.asr-toggle-btn {
+  @apply gap-1 px-2 w-auto h-7 text-xs font-semibold rounded-lg border border-transparent;
+}
+.asr-toggle-btn.local-mode {
+  @apply bg-amber-500/10 text-amber-500 hover:bg-amber-500/20 hover:text-amber-600;
+}
+.asr-toggle-btn:not(.local-mode) {
+  @apply bg-sky-500/10 text-sky-500 hover:bg-sky-500/20 hover:text-sky-600;
+}
+.asr-badge-text {
+  @apply uppercase tracking-wider text-[10px] font-bold ml-0.5;
 }
 
 .toolbar-hint {

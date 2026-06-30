@@ -146,7 +146,7 @@ export function useChat() {
           } else if (isAudio) {
             try {
               toast.info('Transcribing audio file...', file.name)
-              const fileText = await transcribeAudio(file)
+              const fileText = await transcribeAudio(file, chatStore.asrMode)
               fileTexts += `\n\n[Transcription of Audio: ${file.name}]\n${fileText}`
               toast.success('Audio transcribed successfully!', file.name)
             } catch (err) {
