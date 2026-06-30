@@ -10,3 +10,14 @@ Acest proiect este dezvoltat ca parte a programului de practică.
 
 ## Instalare și Rulare
 Instrucțiunile de instalare și configurare vor fi adăugate pe măsură ce proiectul se dezvoltă.
+
+---
+
+## Branch-uri
+
+### `interface`
+Acest branch este dedicat dezvoltării **interfeței utilizator**.
+
+👤 **Responsabili:**
+- Tudor Constantin
+- Trocea David
