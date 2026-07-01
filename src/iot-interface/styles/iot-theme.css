@@ -1,0 +1,16 @@
+:root {
+  --anthropic-tan: #D4A27F;
+  --anthropic-dark: #191919;
+  --anthropic-light: #FFFFFF;
+  --anthropic-secondary: #E8E0D8;
+
+  --iot-accent: var(--anthropic-tan);
+  --iot-accent-hover: #c3926f;
+  --iot-bg: var(--anthropic-dark);
+  --iot-bg-subtle: #222222;
+  --iot-card-bg: #292929;
+  --iot-text: var(--anthropic-light);
+  --iot-text-muted: #a3a3a3;
+  --iot-border: rgba(255, 255, 255, 0.08);
+  --iot-border-hover: rgba(255, 255, 255, 0.16);
+}
