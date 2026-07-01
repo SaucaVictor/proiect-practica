@@ -181,7 +181,7 @@ function formatTime(time: string): string {
             <div
               v-for="entry in entriesByDay[day]"
               :key="entry.id"
-              class="entry-card"
+              class="entry-card group"
             >
               <div class="entry-time">
                 <span class="time-badge">{{ formatTime(entry.startTime) }}</span>
@@ -320,7 +320,7 @@ function formatTime(time: string): string {
          border-b border-surface-200/50 dark:border-surface-200/50
          last:border-b-0
          hover:bg-surface-200/40 dark:hover:bg-surface-200/40
-         transition-colors duration-100 group;
+         transition-colors duration-100;
 }
 
 .entry-time {
