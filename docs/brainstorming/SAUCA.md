@@ -13,10 +13,10 @@ Pasionat de tehnologie și dezvoltare software, cu experiență reală în produ
 
 ## Experiență profesională
 
-**Software Developer – StepWise Tech** *(Apr 2025 – Iun 2026, Part-Time, Hibrid, București)*  
+**Software Developer – StepWise Tech** _(Apr 2025 – Iun 2026, Part-Time, Hibrid, București)_  
 Dezvoltarea și mentenanța aplicațiilor web pentru administratori și clienți ai unei companii de organizare evenimente, folosind TypeScript, Vue și Firebase. Colaborare în echipă internațională, participare la planificarea proiectelor cu practici moderne de dezvoltare.
 
-**Operator Inventariere – OMS Prüfservice GmbH** *(Iun–Iul 2020–2023, Sezonier, Elveția & Austria)*
+**Operator Inventariere – OMS Prüfservice GmbH** _(Iun–Iul 2020–2023, Sezonier, Elveția & Austria)_
 
 ---
 
