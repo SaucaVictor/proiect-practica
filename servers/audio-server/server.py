@@ -133,9 +133,6 @@ async def stop_recording_internal():
             wav_file.setframerate(16000)
             wav_file.writeframes(recording_state["buffer"])
         print(f"Saved recording locally: {filename}")
-        
-        # Trigger upload and transcription in a background task
-        asyncio.create_task(upload_and_transcribe_task(filename))
         return {"status": "stopped", "file": filename}
     except Exception as e:
         print(f"Failed to save recording file: {e}")
@@ -159,21 +156,30 @@ async def upload_and_transcribe_task(filename):
     # Read the file
     if not os.path.exists(filename):
         print(f"Error: Recording file {filename} not found.")
-        return
+        return {
+            "transcription": "",
+            "audio_uploaded": False,
+            "transcript_uploaded": False,
+            "error": "File not found"
+        }
         
     with open(filename, "rb") as f:
         file_bytes = f.read()
 
     # 1. Upload audio to Supabase Storage
+    audio_uploaded = False
     print("Uploading audio to Supabase Storage...")
     try:
         async with httpx.AsyncClient() as client:
             res = await client.post(storage_url, content=file_bytes, headers=headers)
             if res.status_code == 200:
                 print(f"Successfully uploaded audio at: {audio_path}")
-            elif res.status_code == 400 and "AlreadyExists" in res.text:
-                await client.put(storage_url, content=file_bytes, headers=headers)
-                print("Successfully updated audio in Supabase Storage.")
+                audio_uploaded = True
+            elif res.status_code == 400 and ("AlreadyExists" in res.text or "Duplicate" in res.text or "exists" in res.text):
+                res_put = await client.put(storage_url, content=file_bytes, headers=headers)
+                if res_put.status_code == 200:
+                    print("Successfully updated audio in Supabase Storage.")
+                    audio_uploaded = True
             else:
                 print(f"Error uploading audio: {res.status_code} - {res.text}")
     except Exception as e:
@@ -197,6 +203,7 @@ async def upload_and_transcribe_task(filename):
         print(f"Failed to connect to ASR server on port 8000: {e}")
 
     # 3. Upload transcript to Supabase Storage
+    transcript_uploaded = False
     if transcription_text:
         print("Uploading transcript to Supabase Storage...")
         text_path = f"{course_name}/{course_date}/transcript.txt"
@@ -207,9 +214,12 @@ async def upload_and_transcribe_task(filename):
                 res = await client.post(text_url, content=transcription_text.encode("utf-8"), headers=headers)
                 if res.status_code == 200:
                     print(f"Successfully uploaded transcript at: {text_path}")
-                elif res.status_code == 400 and "AlreadyExists" in res.text:
-                    await client.put(text_url, content=transcription_text.encode("utf-8"), headers=headers)
-                    print("Successfully updated transcript in Supabase Storage.")
+                    transcript_uploaded = True
+                elif res.status_code == 400 and ("AlreadyExists" in res.text or "Duplicate" in res.text or "exists" in res.text):
+                    res_put = await client.put(text_url, content=transcription_text.encode("utf-8"), headers=headers)
+                    if res_put.status_code == 200:
+                        print("Successfully updated transcript in Supabase Storage.")
+                        transcript_uploaded = True
         except Exception as e:
             print(f"Failed to upload transcript: {e}")
             
@@ -221,6 +231,12 @@ async def upload_and_transcribe_task(filename):
     except Exception as e:
         print(f"Failed cleaning up file: {e}")
 
+    return {
+        "transcription": transcription_text,
+        "audio_uploaded": audio_uploaded,
+        "transcript_uploaded": transcript_uploaded
+    }
+
 # ─── HTTP Endpoints to Control Recording ───
 @app.post("/record/start")
 async def record_start():
@@ -228,7 +244,17 @@ async def record_start():
 
 @app.post("/record/stop")
 async def record_stop():
-    return await stop_recording_internal()
+    res = await stop_recording_internal()
+    if res["status"] == "stopped":
+        results = await upload_and_transcribe_task(res["file"])
+        return {
+            "status": "completed",
+            "file": res["file"],
+            "transcription": results["transcription"],
+            "audio_uploaded": results["audio_uploaded"],
+            "transcript_uploaded": results["transcript_uploaded"]
+        }
+    return res
 
 # ─── ESP32 WebSocket Endpoint ───
 @app.websocket("/ws/audio")
@@ -255,7 +281,9 @@ async def websocket_endpoint(websocket: WebSocket):
                 if text_cmd == "RECORD_START":
                     await start_recording_internal()
                 elif text_cmd == "RECORD_STOP":
-                    await stop_recording_internal()
+                    res = await stop_recording_internal()
+                    if res["status"] == "stopped":
+                        asyncio.create_task(upload_and_transcribe_task(res["file"]))
                     
     except WebSocketDisconnect:
         print("ESP32 microcontroler s-a deconectat.")

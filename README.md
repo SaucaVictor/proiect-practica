@@ -91,14 +91,24 @@ Pentru a testa fluxurile fără a avea plăcile Wemos D1 ESP32 conectate fizic, 
    *(Acesta va simula microfonul Wemos trimițând fișierul audio-test.mp3 în buclă).*
 3. În site, deschide pagina **Live Audio (icoana căști)** din sidebar și apasă **Conectare la Curs**.
 
-### B. Testare Înregistrare & Transcriere (Supabase Storage)
+### B. Testare Rapidă Transcriere & Încărcare Directă
 1. Asigură-te că serverul ASR rulează pe portul `8000`: `python servers/speech-to-text/server.py`
-2. Asigură-te că ai creat bucket-ul `courses` în Supabase (vezi migration `005_storage_courses.sql`).
+2. Asigură-te că ai creat bucket-ul `courses` în Supabase (vezi migrarea `005_storage_courses.sql`).
 3. Pornește scriptul de test: 
    ```bash
    python scripts/test_transcribe_flow.py
    ```
-   *(Acesta va trimite fișierul audio-test.mp3 la serverul ASR local pentru transcriere, iar apoi va încărca înregistrarea și textul obținut direct în bucket-ul Supabase).*
+   _(Acesta va trimite fișierul audio-test.mp3 la serverul ASR local, îl va transcrie și le va urca pe ambele în bucket-ul Supabase)._
+
+### C. Testare Flow Înregistrare complet în Timp Real
+Acesta simulează înregistrarea stream-ului în timp real de pe server, urmată de salvare, ASR și upload:
+1. Porneste ambele servere local: `npm run servers` (ASR pe 8000 și Audio pe 8001)
+2. Porneste stream-ul de test: `python scripts/test_audio_stream.py` (pentru a simula hardware-ul care trimite sunet live)
+3. Rulează scriptul de control:
+   ```bash
+   python scripts/test_recording_flow.py
+   ```
+   _(Acesta va trimite comanda de start înregistrare către Audio Server, va înregistra timp de 30 de secunde din stream-ul activ, va opri înregistrarea, o va salva local ca `recording.wav`, o va încărca în storage, o va trimite la serverul ASR pe portul 8000, iar apoi va încărca transcrierea obținută în Supabase)._
 
 ---
 
