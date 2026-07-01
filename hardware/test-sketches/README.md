@@ -20,6 +20,8 @@ test-sketches/
 │   └── test_senzor_curent.ino
 ├── test_senzor_lumina/
 │   └── test_senzor_lumina.ino
+├── test_microfon_websocket/
+│   └── test_microfon_websocket.ino
 ```
 
 ## Reguli de dezvoltare pentru teste
