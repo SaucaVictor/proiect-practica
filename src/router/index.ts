@@ -75,6 +75,13 @@ const router = createRouter({
       beforeEnter: requireAuth,
       meta: { layout: 'app' },
     },
+    {
+      path: '/audio-call',
+      name: 'audio-call',
+      component: () => import('@/pages/AudioCallPage.vue'),
+      beforeEnter: requireAuth,
+      meta: { layout: 'app' },
+    },
     // ── 404 ──────────────────────────────────────────────────────────────────
     {
       path: '/:pathMatch(.*)*',
