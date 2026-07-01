@@ -82,6 +82,13 @@ const router = createRouter({
       beforeEnter: requireAuth,
       meta: { layout: 'app' },
     },
+    {
+      path: '/schedule',
+      name: 'schedule',
+      component: () => import('@/pages/SchedulePage.vue'),
+      beforeEnter: requireAuth,
+      meta: { layout: 'app' },
+    },
     // ── 404 ──────────────────────────────────────────────────────────────────
     {
       path: '/:pathMatch(.*)*',
