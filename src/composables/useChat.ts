@@ -144,14 +144,31 @@ export function useChat() {
               console.error('Failed to extract text from PDF', err)
             }
           } else if (isAudio) {
+            let timer: any = null
             try {
               toast.info('Transcribing audio file...', file.name)
+              chatStore.setProcessing(true, 'transcribing', file.name)
+              
+              let fakePercent = 5
+              timer = setInterval(() => {
+                if (fakePercent < 92) {
+                  fakePercent += Math.floor(Math.random() * 6) + 3
+                  chatStore.setProcessingProgress(Math.min(fakePercent, 92))
+                }
+              }, 400)
+
               const fileText = await transcribeAudio(file, chatStore.asrMode)
+              if (timer) clearInterval(timer)
+              chatStore.setProcessingProgress(100)
+              
               fileTexts += `\n\n[Transcription of Audio: ${file.name}]\n${fileText}`
               toast.success('Audio transcribed successfully!', file.name)
             } catch (err) {
+              if (timer) clearInterval(timer)
               console.error('Failed to transcribe audio', err)
               toast.error('Failed to transcribe audio', (err as Error).message)
+            } finally {
+              chatStore.setProcessing(false)
             }
           } else if (isText) {
             try {
@@ -177,15 +194,43 @@ export function useChat() {
         const { data: userData } = await supabase.auth.getUser()
         const userId = userData.user?.id
         if (userId) {
+          const totalAttachments = attachments.length
+          const progressMap = new Map<string, number>()
+
+          const updateAggregatedProgress = () => {
+            let sum = 0
+            progressMap.forEach(val => sum += val)
+            const aggregated = Math.round(sum / totalAttachments)
+            chatStore.setProcessingProgress(aggregated)
+          }
+
+          chatStore.setProcessing(true, 'uploading', totalAttachments === 1 ? attachments[0].file.name : `${totalAttachments} files`)
+
           const uploaded = await Promise.all(
-            attachments.map(att => uploadAttachment(att.file, savedUserMsg.id, userId))
+            attachments.map(async (att) => {
+              progressMap.set(att.id, 0)
+              const res = await uploadAttachment(
+                att.file,
+                savedUserMsg.id,
+                userId,
+                (percent) => {
+                  progressMap.set(att.id, percent)
+                  updateAggregatedProgress()
+                }
+              )
+              progressMap.set(att.id, 100)
+              updateAggregatedProgress()
+              return res
+            })
           )
+          chatStore.setProcessing(false)
           savedUserMsg.attachments = uploaded
         }
       }
 
       chatStore.replaceOptimisticMessage(optimisticUserMsg.id, savedUserMsg)
     } catch (err) {
+      chatStore.setProcessing(false)
       chatStore.updateMessage(optimisticUserMsg.id, { status: 'error' })
       toast.error('Failed to send message', (err as Error).message)
       sending.value = false
