@@ -52,8 +52,8 @@ async function deleteSensor() {
 
 <template>
   <div 
-    class="relative bg-[var(--iot-card-bg)] border border-[var(--iot-border)] rounded-2xl p-5.5 transition-all duration-300 hover:-translate-y-0.5 hover:border-[var(--iot-accent)]/55 hover:shadow-[0_4px_20px_rgba(212,162,127,0.12)]"
-    :class="[pulse ? 'border-[var(--iot-accent)] shadow-[0_0_12px_rgba(212,162,127,0.25)]' : '', isStale ? 'border-red-500/20 opacity-75' : '']"
+    class="relative bg-[var(--iot-card-bg)] border border-[var(--iot-border)] rounded-2xl p-5.5 transition-all duration-300 hover:-translate-y-0.5 hover:border-[var(--iot-accent)]/55 hover:shadow-[0_4px_20px_rgba(92,114,243,0.12)]"
+    :class="[pulse ? 'border-[var(--iot-accent)] shadow-[0_0_12px_rgba(92,114,243,0.25)]' : '', isStale ? 'border-red-500/20 opacity-75' : '']"
   >
     <!-- Delete Button -->
     <button 

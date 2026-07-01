@@ -167,7 +167,7 @@ async function send(msg: string) {
           spellcheck="false" 
           @keydown.enter="send(rawCmd)" 
         />
-        <button class="px-5 py-2.5 rounded-xl border-0 bg-gradient-to-r from-[var(--iot-accent)] to-[#c3926f] text-white text-xs font-semibold cursor-pointer transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[0_4px_12px_rgba(212,162,127,0.3)]" @click="send(rawCmd)">Trimite</button>
+        <button class="px-5 py-2.5 rounded-xl border-0 bg-gradient-to-r from-[var(--iot-accent)] to-[#4453e7] text-white text-xs font-semibold cursor-pointer transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[0_4px_12px_rgba(92,114,243,0.3)]" @click="send(rawCmd)">Trimite</button>
       </div>
     </div>
 
