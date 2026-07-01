@@ -34,33 +34,78 @@ Acest depozit conține codul sursă pentru interfața web (Vue 3, Vite, Tailwind
 
 ---
 
-## 🎙️ Ghid de Pornire și Rulare (ASR Local)
+## 🎙️ Servere Locale și Ghid de Pornire
 
-Pentru a folosi transcrierea locală în loc de serviciul cloud, poți rula serverul integrat FastAPI din folderul `speech-to-text`.
+Proiectul ClassMonitor folosește servere locale pentru a procesa media în timp real, a rula ASR (Speech-to-Text) offline și a face legătura cu hardware-ul din clasă.
 
-### 1. Instalare Dependențe Python
-Deschide un terminal în root-ul proiectului și rulează:
+### 1. Serverul Speech-to-Text (ASR) Local (`servers/speech-to-text`)
+
+Acest server FastAPI rulează Whisper pentru a asigura transcrieri locale rapide, offline și de dimensiuni nelimitate, folosite direct în chat-ul AI al site-ului.
+
+### Pornire Rapidă (Ambele Servere)
+Dacă rulezi pe Windows, poți porni ambele servere simultan, fiecare în propria fereastră de terminal, folosind comanda:
 ```bash
-pip install faster-whisper fastapi uvicorn python-multipart
+npm run servers
 ```
 
-*Notă: `faster-whisper` este o implementare reimplementată și optimizată a modelului Whisper de la OpenAI, fiind de până la 4 ori mai rapidă și consumând mult mai puțină memorie.*
+### Pornire Individuală
+Dacă dorești să le pornești manual:
+1. **Serverul ASR**:
+   ```bash
+   python servers/speech-to-text/server.py
+   ```
+   *(Pornit pe portul `8000` pentru interfața de chat)*
 
-### 2. Pornire Server Local
-Rulează scriptul de pornire din folderul `speech-to-text`:
+2. **Serverul Audio**:
+   ```bash
+   python servers/audio-server/server.py
+   ```
+   *(Pornit pe portul `8001` pentru WebSocket/WebRTC)*
+
+#### Instalare Dependențe Python
+Deschide un terminal în root-ul proiectului și instalează bibliotecile necesare:
 ```bash
-python speech-to-text/server.py
+pip install faster-whisper fastapi uvicorn python-multipart aiortc av numpy httpx websockets
 ```
-Serverul va fi pornit automat pe `http://localhost:8000`.
 
-### 3. Utilizare în Interfață
-1. Deschide aplicația web în browser.
-2. În bara de mesaje (Chat Input), dă click pe butonul **ASR: Cloud** pentru a-l schimba în **ASR: Local**.
-3. Atașează orice fișier audio și trimite mesajul — transcrierea se va efectua acum complet local pe calculatorul tău!
+---
+
+### 3. Serverul pentru Senzori & Bridge MQTT (În Curând / Soon)
+
+Acest al treilea server local va gestiona:
+* **Preluare Telemetrie**: Ascultă brokerul MQTT public pentru date de la senzorii DHT11, LDR, ACS712 trimiși de Wemos D1 R32 și le salvează în Supabase.
+* **Transmitere Comenzi**: Ascultă tabela `iot_settings` din Supabase și trimite în timp real comenzile de control (ventilator, LED, PTC) înapoi pe MQTT către microcontroler.
+
+---
+
+## 🧪 Ghid de Testare Manuală (Fără Hardware)
+
+Pentru a testa fluxurile fără a avea plăcile Wemos D1 ESP32 conectate fizic, poți folosi fișierul audio de test preconfigurat: **`scripts/audio-test.mp3`**.
+
+### A. Testare Streaming Live (WebRTC)
+1. Asigură-te că serverul audio rulează pe portul `8001`: `python servers/audio-server/server.py`
+2. Porneste stream-ul de test: 
+   ```bash
+   python scripts/test_audio_stream.py
+   ```
+   *(Acesta va simula microfonul Wemos trimițând fișierul audio-test.mp3 în buclă).*
+3. În site, deschide pagina **Live Audio (icoana căști)** din sidebar și apasă **Conectare la Curs**.
+
+### B. Testare Înregistrare & Transcriere (Supabase Storage)
+1. Asigură-te că serverul ASR rulează pe portul `8000`: `python servers/speech-to-text/server.py`
+2. Asigură-te că ai creat bucket-ul `courses` în Supabase (vezi migration `005_storage_courses.sql`).
+3. Pornește scriptul de test: 
+   ```bash
+   python scripts/test_transcribe_flow.py
+   ```
+   *(Acesta va trimite fișierul audio-test.mp3 la serverul ASR local pentru transcriere, iar apoi va încărca înregistrarea și textul obținut direct în bucket-ul Supabase).*
 
 ---
 
 ## ⚙️ Variabile de Mediu (.env)
-Aplicația folosește următoarele variabile cheie pentru controlul ASR:
-* `VITE_HF_TOKEN`: Token Hugging Face pentru API-ul cloud.
+
+Aplicația folosește următoarele variabile cheie pentru controlul ASR și bazei de date:
+* `VITE_SUPABASE_URL`: URL-ul proiectului tău Supabase.
+* `VITE_SUPABASE_ANON_KEY`: Anon key-ul proiectului Supabase (necesar pentru semnalizarea WebRTC).
+* `VITE_HF_TOKEN`: Token Hugging Face pentru API-ul cloud (dacă se folosește transcrierea cloud).
 * `VITE_ASR_ENDPOINT`: URL-ul către serverul local de transcriere (implicit `http://localhost:8000/transcribe`).
