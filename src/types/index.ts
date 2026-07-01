@@ -3,4 +3,6 @@ export type { MessageRole, MessageStatus, Attachment, Message, Conversation, Con
 export type { ProviderName, ProviderConfig, AIModel, AIRequestMessage, AIContentPart, AIRequest, AIResponse, StreamChunk, IProvider, StreamCallbacks, MessagesToAIMessages } from './ai'
 export type { Theme, AccentColor, ModelConfig, ThemeConfig, UserSettings } from './settings'
 export { DEFAULT_SETTINGS } from './settings'
-export type { DbProfile, DbWorkspace, DbConversation, DbMessage, DbAttachment, DbSettings, DbProvider, DbFavorite } from './database'
+export type { DbProfile, DbWorkspace, DbConversation, DbMessage, DbAttachment, DbSettings, DbProvider, DbFavorite, DbScheduleEntry } from './database'
+export type { ScheduleEntry } from './schedule'
+export { DAY_NAMES, DAY_LIST } from './schedule'

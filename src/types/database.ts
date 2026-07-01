@@ -91,3 +91,13 @@ export interface DbFavorite {
   message_id: string
   created_at: string
 }
+
+export interface DbScheduleEntry {
+  id: string
+  day_of_week: number
+  start_time: string
+  end_time: string
+  subject_name: string
+  created_at: string
+  updated_at: string
+}
