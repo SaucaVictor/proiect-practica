@@ -15,6 +15,29 @@ export const useChatStore = defineStore('chat', () => {
   const hasMoreMessages = ref(true)
   const page = ref(0)
   const error = ref<string | null>(null)
+  const asrMode = ref<'cloud' | 'local'>((localStorage.getItem('asrMode') as 'cloud' | 'local') || 'cloud')
+
+  function toggleAsrMode() {
+    asrMode.value = asrMode.value === 'cloud' ? 'local' : 'cloud'
+    localStorage.setItem('asrMode', asrMode.value)
+  }
+
+  // ─── File Processing & Upload Progress State ───────────────────────────────
+  const processing = ref(false)
+  const processingStatus = ref<'transcribing' | 'uploading' | 'idle'>('idle')
+  const processingProgress = ref(0)
+  const processingFileName = ref('')
+
+  function setProcessing(active: boolean, status: 'transcribing' | 'uploading' | 'idle' = 'idle', filename = '') {
+    processing.value = active
+    processingStatus.value = status
+    processingFileName.value = filename
+    processingProgress.value = 0
+  }
+
+  function setProcessingProgress(val: number) {
+    processingProgress.value = val
+  }
 
   // ─── Getters ────────────────────────────────────────────────────────────────
 
@@ -164,6 +187,14 @@ export const useChatStore = defineStore('chat', () => {
     abortStreaming,
     clearConversation,
     setError,
+    asrMode,
+    toggleAsrMode,
+    processing,
+    processingStatus,
+    processingProgress,
+    processingFileName,
+    setProcessing,
+    setProcessingProgress,
   }
 })
 

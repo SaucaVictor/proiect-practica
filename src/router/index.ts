@@ -68,6 +68,27 @@ const router = createRouter({
       beforeEnter: requireAuth,
       meta: { layout: 'app' },
     },
+    {
+      path: '/iot',
+      name: 'iot',
+      component: () => import('@/pages/IoTPage.vue'),
+      beforeEnter: requireAuth,
+      meta: { layout: 'app' },
+    },
+    {
+      path: '/audio-call',
+      name: 'audio-call',
+      component: () => import('@/pages/AudioCallPage.vue'),
+      beforeEnter: requireAuth,
+      meta: { layout: 'app' },
+    },
+    {
+      path: '/schedule',
+      name: 'schedule',
+      component: () => import('@/pages/SchedulePage.vue'),
+      beforeEnter: requireAuth,
+      meta: { layout: 'app' },
+    },
     // ── 404 ──────────────────────────────────────────────────────────────────
     {
       path: '/:pathMatch(.*)*',

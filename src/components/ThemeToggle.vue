@@ -2,6 +2,8 @@
 import { useThemeStore } from '@/stores/theme.store'
 import { storeToRefs } from 'pinia'
 
+const props = withDefaults(defineProps<{ compact?: boolean }>(), { compact: false })
+
 const themeStore = useThemeStore()
 const { isDark } = storeToRefs(themeStore)
 
@@ -13,7 +15,7 @@ function toggle() {
 <template>
   <button
     id="theme-toggle"
-    class="theme-toggle"
+    :class="['theme-toggle', { 'theme-toggle--compact': props.compact }]"
     :aria-label="isDark ? 'Switch to light mode' : 'Switch to dark mode'"
     :title="isDark ? 'Light mode' : 'Dark mode'"
     @click="toggle"
@@ -37,5 +39,9 @@ function toggle() {
          hover:bg-surface-200 dark:hover:bg-surface-200
          hover:text-surface-950 dark:hover:text-surface-950
          transition-colors duration-150;
+}
+
+.theme-toggle--compact {
+  @apply w-full;
 }
 </style>

@@ -8,11 +8,13 @@
     "build": "vue-tsc -b && vite build",
     "preview": "vite preview",
     "type-check": "vue-tsc --noEmit",
-    "lint": "eslint . --ext .vue,.ts,.tsx"
+    "lint": "eslint . --ext .vue,.ts,.tsx",
+    "servers": "start cmd /k \"python servers/speech-to-text/server.py\" && start cmd /k \"python servers/audio-server/server.py\""
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.45.4",
     "@vueuse/core": "^11.1.0",
+    "chart.js": "^4.5.1",
     "dompurify": "^3.1.7",
     "katex": "^0.16.11",
     "marked": "^11.0.0",

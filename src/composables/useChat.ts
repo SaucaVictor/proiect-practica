@@ -13,13 +13,14 @@ import { uploadAttachment } from '@/services/supabase/attachments'
 import { supabase } from '@/services/supabase/client'
 import type { PendingAttachment } from '@/composables/useAttachments'
 import { extractTextFromPdf } from '@/utils/pdf'
+import { transcribeAudio } from '@/utils/audio'
 
 export function useChat() {
   const chatStore = useChatStore()
   const conversationStore = useConversationStore()
   const settingsStore = useSettingsStore()
   const providerStore = useProviderStore()
-  const { error: toastError } = useToast()
+  const toast = useToast()
 
   const sending = ref(false)
 
@@ -31,12 +32,39 @@ export function useChat() {
 
       let contentVal: string | any[] = m.content
 
+      // Prepend references if present in metadata
+      if (m.role === 'user' && m.metadata?.references) {
+        const refs = m.metadata.references as any[]
+        if (refs.length > 0) {
+          const blocks = refs.map((r: any) => {
+            let header = `[Reference: ${r.label}]`
+            if (r.refType === 'pdf-page') {
+              header += ` — Page ${r.pageNumber}`
+            }
+            if (r.refType === 'text-selection' && r.selectedText) {
+              return `${header}\n"${r.selectedText}"`
+            }
+            if (r.refType === 'whole-file') {
+              return `${header}\n${r.extractedText || '(empty whole file content)'}`
+            }
+            if (r.refType === 'pdf-page' && r.extractedText) {
+              return `${header}\n${r.extractedText}`
+            }
+            return header
+          })
+          const refString = blocks.join('\n\n') + '\n\n---\n\n'
+          contentVal = refString + m.content
+        }
+      }
+
       if (m.role === 'user' && m.attachments && m.attachments.length > 0) {
         const hasImages = m.attachments.some(a => a.mimeType.startsWith('image/'))
         const activeModelSupportsVision = providerStore.activeModel?.supportsVision
 
         if (hasImages && activeModelSupportsVision) {
-          const cleanText = m.content.replace(/<!-- FILES_CONTENT_START -->[\s\S]*<!-- FILES_CONTENT_END -->/, '').trim()
+          const cleanText = (typeof contentVal === 'string' ? contentVal : m.content)
+            .replace(/<!-- FILES_CONTENT_START -->[\s\S]*<!-- FILES_CONTENT_END -->/, '')
+            .trim()
           const parts: any[] = [{ type: 'text', text: cleanText }]
           for (const att of m.attachments) {
             if (att.mimeType.startsWith('image/') && att.url) {
@@ -72,7 +100,8 @@ export function useChat() {
   async function sendMessage(
     content: string,
     conversationId: string,
-    attachments?: PendingAttachment[]
+    attachments?: PendingAttachment[],
+    metadata?: Record<string, any>
   ): Promise<void> {
     const hasPending = attachments && attachments.length > 0
     if ((!content.trim() && !hasPending) || chatStore.isStreaming) return
@@ -92,6 +121,7 @@ export function useChat() {
       status: 'sending',
       createdAt: new Date().toISOString(),
       optimistic: true,
+      metadata: metadata ?? undefined,
       attachments: attachments ? attachments.map(a => ({
         id: a.id,
         messageId: '',
@@ -127,12 +157,47 @@ export function useChat() {
                          file.name.endsWith('.yaml') ||
                          file.name.endsWith('.yml')
 
+          const isAudio = file.type.startsWith('audio/') || 
+                          file.name.endsWith('.mp3') || 
+                          file.name.endsWith('.wav') || 
+                          file.name.endsWith('.m4a') || 
+                          file.name.endsWith('.ogg') || 
+                          file.name.endsWith('.flac') ||
+                          file.name.endsWith('.webm')
+
           if (isPdf) {
             try {
               const fileText = await extractTextFromPdf(file)
               fileTexts += `\n\n[Attached PDF: ${file.name}]\n${fileText}`
             } catch (err) {
               console.error('Failed to extract text from PDF', err)
+            }
+          } else if (isAudio) {
+            let timer: any = null
+            try {
+              toast.info('Transcribing audio file...', file.name)
+              chatStore.setProcessing(true, 'transcribing', file.name)
+              
+              let fakePercent = 5
+              timer = setInterval(() => {
+                if (fakePercent < 92) {
+                  fakePercent += Math.floor(Math.random() * 6) + 3
+                  chatStore.setProcessingProgress(Math.min(fakePercent, 92))
+                }
+              }, 400)
+
+              const fileText = await transcribeAudio(file, chatStore.asrMode)
+              if (timer) clearInterval(timer)
+              chatStore.setProcessingProgress(100)
+              
+              fileTexts += `\n\n[Transcription of Audio: ${file.name}]\n${fileText}`
+              toast.success('Audio transcribed successfully!', file.name)
+            } catch (err) {
+              if (timer) clearInterval(timer)
+              console.error('Failed to transcribe audio', err)
+              toast.error('Failed to transcribe audio', (err as Error).message)
+            } finally {
+              chatStore.setProcessing(false)
             }
           } else if (isText) {
             try {
@@ -152,23 +217,52 @@ export function useChat() {
         conversationId,
         role: 'user',
         content: dbContent,
+        metadata: metadata ?? undefined,
       })
 
       if (attachments && attachments.length > 0) {
         const { data: userData } = await supabase.auth.getUser()
         const userId = userData.user?.id
         if (userId) {
+          const totalAttachments = attachments.length
+          const progressMap = new Map<string, number>()
+
+          const updateAggregatedProgress = () => {
+            let sum = 0
+            progressMap.forEach(val => sum += val)
+            const aggregated = Math.round(sum / totalAttachments)
+            chatStore.setProcessingProgress(aggregated)
+          }
+
+          chatStore.setProcessing(true, 'uploading', totalAttachments === 1 ? attachments[0].file.name : `${totalAttachments} files`)
+
           const uploaded = await Promise.all(
-            attachments.map(att => uploadAttachment(att.file, savedUserMsg.id, userId))
+            attachments.map(async (att) => {
+              progressMap.set(att.id, 0)
+              const res = await uploadAttachment(
+                att.file,
+                savedUserMsg.id,
+                userId,
+                (percent) => {
+                  progressMap.set(att.id, percent)
+                  updateAggregatedProgress()
+                }
+              )
+              progressMap.set(att.id, 100)
+              updateAggregatedProgress()
+              return res
+            })
           )
+          chatStore.setProcessing(false)
           savedUserMsg.attachments = uploaded
         }
       }
 
       chatStore.replaceOptimisticMessage(optimisticUserMsg.id, savedUserMsg)
     } catch (err) {
+      chatStore.setProcessing(false)
       chatStore.updateMessage(optimisticUserMsg.id, { status: 'error' })
-      toastError('Failed to send message', (err as Error).message)
+      toast.error('Failed to send message', (err as Error).message)
       sending.value = false
       return
     }
@@ -250,7 +344,7 @@ export function useChat() {
               content: `⚠️ ${err.message}`,
             })
             chatStore.stopStreaming()
-            toastError('AI error', err.message)
+            toast.error('AI error', err.message)
           },
         }
       )
@@ -287,7 +381,7 @@ export function useChat() {
           content: `⚠️ ${(err as Error).message}`,
         })
         chatStore.stopStreaming()
-        toastError('AI error', (err as Error).message)
+        toast.error('AI error', (err as Error).message)
       }
     }
   }
