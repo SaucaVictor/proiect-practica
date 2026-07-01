@@ -9,6 +9,7 @@ hardware/
 ├── BOM.md              # Bill of Materials — lista completă de piese
 ├── schematic.fzz       # Schema Fritzing (de adăugat)
 ├── schematic-preview.png  # Export PNG schemă (de adăugat)
+├── test-sketches/      # Coduri Arduino (.ino) pentru testarea componentelor/senzorilor
 ├── photos/             # Poze machetă / montaj (de adăugat)
 └── notes.md            # Note tehnice din testare
 ```

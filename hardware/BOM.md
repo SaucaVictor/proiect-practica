@@ -60,6 +60,7 @@
 |---|---|---|---|
 | Rezistență | 10 kΩ | 3 | Divizor de tensiune ACS712 (ieșire 5V → 3.3V pentru ADC ESP32) |
 | Rezistență | 10 kΩ | 1 | Pull-down LDR (divizor de tensiune cu fotorezistorul) |
+| Potențiometru | 10 kΩ (sau similar) | 1 | Folosit pentru testare manuală semnale PWM (LED/Ventilator) |
 
 ---
 
@@ -101,6 +102,7 @@
 | GPIO35 | Analog IN | ACS712 OUT (input-only) |
 | GPIO5 | Digital IN | IR Senzor 1 |
 | GPIO23 | Digital IN | IR Senzor 2 |
+| GPIO34 | Analog IN | Potențiometru (pentru testare / debug) |
 | **Actuatori — MOSFET IR540N** | | |
 | GPIO26 | PWM OUT | CH1 — Bandă LED |
 | GPIO25 | PWM OUT | CH2 — Ventilatoare (2x în paralel) |
