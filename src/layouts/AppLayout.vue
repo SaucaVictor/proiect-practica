@@ -1,43 +1,27 @@
 <script setup lang="ts">
 import { ref } from 'vue'
-import Sidebar from '@/components/layout/Sidebar.vue'
+import AppRail from '@/components/layout/AppRail.vue'
+import ConversationDrawer from '@/components/layout/ConversationDrawer.vue'
 import ToastContainer from '@/components/ui/ToastContainer.vue'
 
-const sidebarOpen = ref(true)
-const mobileSidebarOpen = ref(false)
+const drawerOpen = ref(false)
 
-function toggleSidebar() {
-  sidebarOpen.value = !sidebarOpen.value
-}
-
-function toggleMobileSidebar() {
-  mobileSidebarOpen.value = !mobileSidebarOpen.value
+function toggleDrawer() {
+  drawerOpen.value = !drawerOpen.value
 }
 </script>
 
 <template>
   <div class="app-layout">
-    <!-- Mobile sidebar overlay -->
-    <Transition name="fade">
-      <div
-        v-if="mobileSidebarOpen"
-        class="mobile-overlay"
-        aria-hidden="true"
-        @click="mobileSidebarOpen = false"
-      />
-    </Transition>
+    <!-- Permanent icon rail -->
+    <AppRail @toggle-chat-drawer="toggleDrawer" />
 
-    <!-- Sidebar -->
-    <Transition name="slide-sidebar">
-      <Sidebar
-        :class="['app-sidebar', { 'app-sidebar--collapsed': !sidebarOpen }]"
-        @close="mobileSidebarOpen = false"
-      />
-    </Transition>
+    <!-- Conversation drawer (slides in over content) -->
+    <ConversationDrawer :open="drawerOpen" @close="drawerOpen = false" />
 
-    <!-- Main -->
+    <!-- Main content area -->
     <main class="app-main">
-      <slot :toggle-sidebar="toggleSidebar" :toggle-mobile-sidebar="toggleMobileSidebar" />
+      <slot :toggle-drawer="toggleDrawer" />
     </main>
 
     <!-- Toast notifications -->
@@ -50,29 +34,7 @@ function toggleMobileSidebar() {
   @apply flex h-screen w-screen overflow-hidden bg-surface-50 dark:bg-surface-0;
 }
 
-.mobile-overlay {
-  @apply fixed inset-0 bg-black/50 z-20 lg:hidden;
-}
-
-.app-sidebar {
-  @apply flex-shrink-0 w-64 transition-all duration-300 ease-in-out;
-}
-
-.app-sidebar--collapsed {
-  @apply w-0 overflow-hidden;
-}
-
 .app-main {
   @apply flex-1 flex flex-col min-w-0 overflow-hidden;
-}
-
-.fade-enter-active,
-.fade-leave-active {
-  transition: opacity 0.2s ease;
-}
-
-.fade-enter-from,
-.fade-leave-to {
-  opacity: 0;
 }
 </style>

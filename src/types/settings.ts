@@ -50,7 +50,7 @@ export const DEFAULT_SETTINGS: Omit<UserSettings, 'userId' | 'updatedAt'> = {
   fontSize: 'md',
   compactMode: false,
   defaultProvider: 'nvidia',
-  defaultModel: 'meta/llama-3.1-70b-instruct',
+  defaultModel: 'z-ai/glm-5.1',
   systemPrompt: '',
   temperature: 0.7,
   topP: 1,

@@ -50,6 +50,11 @@ watch(
   }
 )
 
+const emit = defineEmits<{
+  'edit-message': [id: string]
+  'regenerate': []
+}>()
+
 async function handleDeleteMessage(id: string) {
   try {
     await deleteMessage(id)
@@ -75,13 +80,15 @@ async function handleDeleteMessage(id: string) {
     <!-- Messages -->
     <TransitionGroup v-else tag="div" name="message" class="messages-list">
       <MessageItem
-        v-for="message in messages"
+        v-for="(message, index) in messages"
         :key="message.id"
         :message="message"
         :show-timestamps="settings.showTimestamps"
+        :is-last-assistant="message.role === 'assistant' && index === messages.length - 1"
         class="group"
         @delete="handleDeleteMessage"
-        @edit="(id) => $emit('edit-message', id)"
+        @edit="(id) => emit('edit-message', id)"
+        @regenerate="emit('regenerate')"
       />
     </TransitionGroup>
 

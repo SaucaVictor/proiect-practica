@@ -4,34 +4,80 @@ import type { Message } from '@/types'
 import MarkdownRenderer from '@/components/markdown/MarkdownRenderer.vue'
 import { useClipboard } from '@/composables/useClipboard'
 import { formatTime, formatFileSize } from '@/utils/format'
+import { useReferencesStore } from '@/stores/references.store'
 
 interface Props {
   message: Message
   showTimestamps?: boolean
+  isLastAssistant?: boolean
 }
 
 const props = withDefaults(defineProps<Props>(), {
   showTimestamps: true,
+  isLastAssistant: false,
 })
 
 const emit = defineEmits<{
   delete: [id: string]
   edit: [id: string]
   copy: [content: string]
+  regenerate: []
 }>()
 
 const { copy } = useClipboard()
 const showReasoning = ref(false)
+const refStore = useReferencesStore()
 
 const isUser = computed(() => props.message.role === 'user')
 const isError = computed(() => props.message.role === 'error' || props.message.status === 'error')
 const isStreaming = computed(() => props.message.status === 'streaming')
 const hasReasoning = computed(() => !!props.message.reasoning)
 
+const references = computed(() => (props.message.metadata?.references as any[]) || [])
+
+function clickRef(r: any) {
+  refStore.focusReference(r)
+}
+
+function refChipIcon(type: string) {
+  if (type === 'whole-file') return '📎'
+  if (type === 'text-selection') return '✍️'
+  if (type === 'pdf-page') return '📄'
+  return '🔗'
+}
+
+function refChipLabel(r: any) {
+  const parts = r.label.split(' › ')
+  const file = parts[parts.length - 1]
+  if (r.refType === 'pdf-page') return `${file} · p.${r.pageNumber}`
+  if (r.refType === 'text-selection') return `"${r.selectedText?.slice(0, 30) || ''}…"`
+  return file
+}
+
+const isTeachAI = computed(() => {
+  if (props.message.metadata?.isTeachAI) return true
+  return props.message.content.includes('Ești un asistent de predare expert, specializat în materia')
+})
+
+const teachAISubject = computed(() => {
+  if (props.message.metadata?.subject) return props.message.metadata.subject as string
+  const match = props.message.content.match(/materia "([^"]+)"/)
+  return match ? match[1] : 'Curs'
+})
+
+const teachAIDate = computed(() => {
+  if (props.message.metadata?.date) return props.message.metadata.date as string
+  const match = props.message.content.match(/înregistrată pe ([0-9-]{10})/)
+  return match ? match[1] : ''
+})
+
 const displayContent = computed(() => {
+  if (isTeachAI.value) return ''
   const raw = props.message.content
   if (!raw) return ''
-  return raw.replace(/<!-- FILES_CONTENT_START -->[\s\S]*<!-- FILES_CONTENT_END -->/, '').trim()
+  let clean = raw.replace(/<!-- FILES_CONTENT_START -->[\s\S]*<!-- FILES_CONTENT_END -->/, '')
+  clean = clean.replace(/^\[Reference: [\s\S]*?\n\n---\n\n/, '')
+  return clean.trim()
 })
 </script>
 
@@ -43,6 +89,37 @@ const displayContent = computed(() => {
     <!-- User message -->
     <div v-if="isUser" class="message-user">
       <div class="message-user-bubble">
+        <!-- Message References -->
+        <div v-if="references && references.length > 0" class="msg-references">
+          <button
+            v-for="r in references"
+            :key="r.id"
+            class="msg-ref-badge"
+            :title="`Click to open referenced section: ${r.label}`"
+            @click="clickRef(r)"
+          >
+            <span class="ref-badge-icon">{{ refChipIcon(r.refType) }}</span>
+            <span class="ref-badge-label">{{ refChipLabel(r) }}</span>
+          </button>
+        </div>
+
+        <!-- Teach AI custom card UI -->
+        <div v-if="isTeachAI" class="teach-ai-bubble-card">
+          <div class="teach-ai-bubble-icon">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true">
+              <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" />
+            </svg>
+          </div>
+          <div class="teach-ai-bubble-details">
+            <div class="teach-ai-bubble-title">Taught AI on Course Session</div>
+            <div class="teach-ai-bubble-meta">
+              <span class="teach-ai-bubble-subject">{{ teachAISubject }}</span>
+              <span class="teach-ai-bubble-sep">/</span>
+              <span class="teach-ai-bubble-date">{{ teachAIDate }}</span>
+            </div>
+          </div>
+        </div>
+
         <p v-if="displayContent" class="message-user-text">{{ displayContent }}</p>
 
         <!-- Attachment list -->
@@ -137,6 +214,18 @@ const displayContent = computed(() => {
             <svg width="13" height="13" viewBox="0 0 13 13" fill="none" aria-hidden="true">
               <rect x="4" y="4" width="7" height="7" rx="1.2" stroke="currentColor" stroke-width="1.1" />
               <path d="M2 9V2.5A.5.5 0 0 1 2.5 2H9" stroke="currentColor" stroke-width="1.1" stroke-linecap="round" />
+            </svg>
+          </button>
+          <button
+            v-if="isLastAssistant"
+            class="msg-action"
+            aria-label="Regenerate response"
+            title="Regenerate"
+            @click="emit('regenerate')"
+          >
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M23 4v6h-6M1 20v-6h6" />
+              <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15" />
             </svg>
           </button>
           <button
@@ -295,5 +384,59 @@ const displayContent = computed(() => {
 
 .msg-attachment-card-size {
   @apply text-[10px] text-white/60;
+}
+
+/* References styling in user bubble */
+.msg-references {
+  @apply flex flex-wrap gap-1.5 mb-2.5 pb-2 border-b border-white/10;
+}
+
+.msg-ref-badge {
+  @apply flex items-center gap-1.5 px-2 py-1 rounded-md text-xs font-semibold
+         bg-white/10 hover:bg-white/20 text-white/90 hover:text-white
+         border border-white/10 transition-colors duration-100 cursor-pointer max-w-[240px];
+  text-decoration: none;
+}
+
+.ref-badge-icon {
+  @apply flex-shrink-0 text-sm leading-none;
+}
+
+.ref-badge-label {
+  @apply truncate flex-1 text-left font-sans;
+}
+
+/* Teach AI Bubble Card styling */
+.teach-ai-bubble-card {
+  @apply flex items-center gap-3 p-3 rounded-xl bg-white/10 border border-white/15
+         text-white max-w-sm shadow-md;
+}
+
+.teach-ai-bubble-icon {
+  @apply flex items-center justify-center w-8 h-8 rounded-lg bg-accent-500/30 text-accent-300;
+}
+
+.teach-ai-bubble-details {
+  @apply flex flex-col min-w-0;
+}
+
+.teach-ai-bubble-title {
+  @apply text-xs font-bold text-white/95 uppercase tracking-wide;
+}
+
+.teach-ai-bubble-meta {
+  @apply flex items-center gap-1.5 mt-0.5 text-xs text-white/70 font-mono truncate;
+}
+
+.teach-ai-bubble-subject {
+  @apply font-semibold text-accent-100 truncate max-w-[150px];
+}
+
+.teach-ai-bubble-sep {
+  @apply text-white/40;
+}
+
+.teach-ai-bubble-date {
+  @apply text-white/60;
 }
 </style>
