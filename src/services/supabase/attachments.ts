@@ -23,17 +23,53 @@ function mapAttachment(row: DbAttachment, url: string): Attachment {
 export async function uploadAttachment(
   file: File,
   messageId: string,
-  userId: string
+  userId: string,
+  onProgress?: (percent: number) => void
 ): Promise<Attachment> {
   const ext = file.name.split('.').pop() ?? 'bin'
   const storagePath = `${userId}/${messageId}/${crypto.randomUUID()}.${ext}`
 
-  // Upload file to storage
-  const { error: uploadError } = await supabase.storage
-    .from(BUCKET)
-    .upload(storagePath, file, { contentType: file.type, upsert: false })
+  const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
+  const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY
 
-  if (uploadError) throw uploadError
+  if (onProgress && supabaseUrl && supabaseAnonKey) {
+    const uploadUrl = `${supabaseUrl}/storage/v1/object/${BUCKET}/${storagePath}`
+    const { data: sessionData } = await supabase.auth.getSession()
+    const token = sessionData.session?.access_token ?? supabaseAnonKey
+
+    await new Promise<void>((resolve, reject) => {
+      const xhr = new XMLHttpRequest()
+      xhr.open('POST', uploadUrl, true)
+      xhr.setRequestHeader('Authorization', `Bearer ${token}`)
+      xhr.setRequestHeader('apikey', supabaseAnonKey)
+      xhr.setRequestHeader('Content-Type', file.type)
+
+      xhr.upload.onprogress = (event) => {
+        if (event.lengthComputable) {
+          const percent = Math.round((event.loaded / event.total) * 100)
+          onProgress(percent)
+        }
+      }
+
+      xhr.onload = () => {
+        if (xhr.status >= 200 && xhr.status < 300) {
+          resolve()
+        } else {
+          reject(new Error(`Upload failed with status ${xhr.status}: ${xhr.responseText || xhr.statusText}`))
+        }
+      }
+
+      xhr.onerror = () => reject(new Error('Network error during upload'))
+      xhr.send(file)
+    })
+  } else {
+    // Upload file to storage
+    const { error: uploadError } = await supabase.storage
+      .from(BUCKET)
+      .upload(storagePath, file, { contentType: file.type, upsert: false })
+
+    if (uploadError) throw uploadError
+  }
 
   // Get signed URL (valid 1 hour)
   const { data: signedData } = await supabase.storage

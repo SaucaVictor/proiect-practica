@@ -84,6 +84,20 @@ async function startNewChat() {
       <ThemeToggle />
 
       <router-link
+        :to="{ name: 'iot' }"
+        class="sidebar-footer-link"
+        title="IoT Dashboard"
+        aria-label="IoT Dashboard"
+      >
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="4" y="4" width="6" height="6" rx="1" />
+          <rect x="14" y="4" width="6" height="6" rx="1" />
+          <rect x="4" y="14" width="6" height="6" rx="1" />
+          <rect x="14" y="14" width="6" height="6" rx="1" />
+        </svg>
+      </router-link>
+
+      <router-link
         :to="{ name: 'settings' }"
         class="sidebar-footer-link"
         title="Settings"
