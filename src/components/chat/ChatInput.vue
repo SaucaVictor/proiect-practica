@@ -19,7 +19,14 @@ const emit = defineEmits<{
 const chatStore = useChatStore()
 const settingsStore = useSettingsStore()
 
-const { isStreaming, asrMode } = storeToRefs(chatStore)
+const {
+  isStreaming,
+  asrMode,
+  processing,
+  processingStatus,
+  processingProgress,
+  processingFileName,
+} = storeToRefs(chatStore)
 const toggleAsrMode = () => chatStore.toggleAsrMode()
 const { current: settings } = storeToRefs(settingsStore)
 
@@ -113,6 +120,28 @@ function openFilePicker() {
             <path d="M16 8v12M10 14l6-6 6 6M8 22h16" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
           </svg>
           <p>Drop files to attach</p>
+        </div>
+      </div>
+    </Transition>
+
+    <!-- Progress Indicator Bar -->
+    <Transition name="fade">
+      <div v-if="processing" class="progress-bar-container">
+        <div class="progress-info">
+          <span class="progress-status">
+            <svg v-if="processingStatus === 'transcribing'" class="animate-spin" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+              <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83" />
+            </svg>
+            <svg v-else class="animate-bounce-custom" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M12 19V5M5 12l7-7 7 7" stroke-linecap="round" stroke-linejoin="round" />
+            </svg>
+            <span class="capitalize font-semibold">{{ processingStatus }}</span>
+            <span class="progress-file truncate">({{ processingFileName }})</span>
+          </span>
+          <span class="progress-percent font-bold">{{ processingProgress }}%</span>
+        </div>
+        <div class="progress-track">
+          <div class="progress-fill" :style="{ width: `${processingProgress}%` }"></div>
         </div>
       </div>
     </Transition>
@@ -307,6 +336,64 @@ function openFilePicker() {
 
 .toolbar-hint {
   @apply flex-1 text-xs text-surface-500 dark:text-surface-500 hidden sm:block;
+}
+
+/* Progress Bar */
+.progress-bar-container {
+  @apply max-w-3xl mx-auto mb-2 p-3 rounded-xl
+         bg-surface-50 dark:bg-surface-50
+         border border-surface-200 dark:border-surface-200
+         flex flex-col gap-2 shadow-sm;
+}
+
+.progress-info {
+  @apply flex items-center justify-between text-xs text-surface-800 dark:text-surface-800;
+}
+
+.progress-status {
+  @apply flex items-center gap-2 min-w-0;
+}
+
+.progress-file {
+  @apply text-surface-500 dark:text-surface-500 truncate;
+}
+
+.progress-percent {
+  @apply text-accent-500 dark:text-accent-500 font-bold tabular-nums;
+}
+
+.progress-track {
+  @apply w-full h-1.5 rounded-full bg-surface-200 dark:bg-surface-200 overflow-hidden;
+}
+
+.progress-fill {
+  @apply h-full rounded-full transition-all duration-300 ease-out;
+  background: linear-gradient(90deg, var(--color-accent-400, #3b82f6) 0%, var(--color-accent-600, #2563eb) 50%, var(--color-accent-400, #3b82f6) 100%);
+  background-size: 200% 100%;
+  animation: shimmer-progress 1.5s infinite linear;
+}
+
+@keyframes shimmer-progress {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+.animate-spin {
+  animation: spin 1.2s linear infinite;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.animate-bounce-custom {
+  animation: bounce-custom 1s infinite alternate;
+}
+
+@keyframes bounce-custom {
+  0% { transform: translateY(0); }
+  100% { transform: translateY(-4px); }
 }
 
 /* Fade */
