@@ -60,7 +60,7 @@ CREATE TABLE IF NOT EXISTS public.settings (
   font_size         TEXT NOT NULL DEFAULT 'md',
   compact_mode      BOOLEAN NOT NULL DEFAULT FALSE,
   default_provider  TEXT NOT NULL DEFAULT 'nvidia',
-  default_model     TEXT NOT NULL DEFAULT 'meta/llama-3.1-70b-instruct',
+  default_model     TEXT NOT NULL DEFAULT 'z-ai/glm-5.1',
   system_prompt     TEXT NOT NULL DEFAULT '',
   temperature       NUMERIC(4,3) NOT NULL DEFAULT 0.700,
   top_p             NUMERIC(4,3) NOT NULL DEFAULT 1.000,

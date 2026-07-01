@@ -32,12 +32,39 @@ export function useChat() {
 
       let contentVal: string | any[] = m.content
 
+      // Prepend references if present in metadata
+      if (m.role === 'user' && m.metadata?.references) {
+        const refs = m.metadata.references as any[]
+        if (refs.length > 0) {
+          const blocks = refs.map((r: any) => {
+            let header = `[Reference: ${r.label}]`
+            if (r.refType === 'pdf-page') {
+              header += ` — Page ${r.pageNumber}`
+            }
+            if (r.refType === 'text-selection' && r.selectedText) {
+              return `${header}\n"${r.selectedText}"`
+            }
+            if (r.refType === 'whole-file') {
+              return `${header}\n${r.extractedText || '(empty whole file content)'}`
+            }
+            if (r.refType === 'pdf-page' && r.extractedText) {
+              return `${header}\n${r.extractedText}`
+            }
+            return header
+          })
+          const refString = blocks.join('\n\n') + '\n\n---\n\n'
+          contentVal = refString + m.content
+        }
+      }
+
       if (m.role === 'user' && m.attachments && m.attachments.length > 0) {
         const hasImages = m.attachments.some(a => a.mimeType.startsWith('image/'))
         const activeModelSupportsVision = providerStore.activeModel?.supportsVision
 
         if (hasImages && activeModelSupportsVision) {
-          const cleanText = m.content.replace(/<!-- FILES_CONTENT_START -->[\s\S]*<!-- FILES_CONTENT_END -->/, '').trim()
+          const cleanText = (typeof contentVal === 'string' ? contentVal : m.content)
+            .replace(/<!-- FILES_CONTENT_START -->[\s\S]*<!-- FILES_CONTENT_END -->/, '')
+            .trim()
           const parts: any[] = [{ type: 'text', text: cleanText }]
           for (const att of m.attachments) {
             if (att.mimeType.startsWith('image/') && att.url) {
@@ -73,7 +100,8 @@ export function useChat() {
   async function sendMessage(
     content: string,
     conversationId: string,
-    attachments?: PendingAttachment[]
+    attachments?: PendingAttachment[],
+    metadata?: Record<string, any>
   ): Promise<void> {
     const hasPending = attachments && attachments.length > 0
     if ((!content.trim() && !hasPending) || chatStore.isStreaming) return
@@ -93,6 +121,7 @@ export function useChat() {
       status: 'sending',
       createdAt: new Date().toISOString(),
       optimistic: true,
+      metadata: metadata ?? undefined,
       attachments: attachments ? attachments.map(a => ({
         id: a.id,
         messageId: '',
@@ -188,6 +217,7 @@ export function useChat() {
         conversationId,
         role: 'user',
         content: dbContent,
+        metadata: metadata ?? undefined,
       })
 
       if (attachments && attachments.length > 0) {

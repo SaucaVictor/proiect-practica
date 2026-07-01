@@ -3,21 +3,23 @@ import { ref, computed, nextTick, watch } from 'vue'
 import { storeToRefs } from 'pinia'
 import { useChatStore } from '@/stores/chat.store'
 import { useSettingsStore } from '@/stores/settings.store'
+import { useReferencesStore } from '@/stores/references.store'
 import { useAttachments } from '@/composables/useAttachments'
 import { useKeyboard } from '@/composables/useKeyboard'
 import Button from '@/components/ui/Button.vue'
 
-defineProps<{
+const props = defineProps<{
   conversationId: string
 }>()
 
 const emit = defineEmits<{
-  send: [content: string, attachments: any[]]
+  send: [content: string, attachments: any[], metadata?: Record<string, any>]
   abort: []
 }>()
 
 const chatStore = useChatStore()
 const settingsStore = useSettingsStore()
+const refStore = useReferencesStore()
 
 const {
   isStreaming,
@@ -29,6 +31,7 @@ const {
 } = storeToRefs(chatStore)
 const toggleAsrMode = () => chatStore.toggleAsrMode()
 const { current: settings } = storeToRefs(settingsStore)
+const { pending: pendingRefs } = storeToRefs(refStore)
 
 const {
   pendingAttachments,
@@ -46,7 +49,10 @@ const textareaRef = ref<HTMLTextAreaElement | null>(null)
 const input = ref('')
 const rows = ref(1)
 
-const canSend = computed(() => (input.value.trim().length > 0 || hasAttachments.value) && !isStreaming.value)
+const hasRefs = computed(() => pendingRefs.value.length > 0)
+const canSend = computed(
+  () => (input.value.trim().length > 0 || hasAttachments.value || hasRefs.value) && !isStreaming.value
+)
 
 function autoResize() {
   const el = textareaRef.value
@@ -63,14 +69,12 @@ function handleKeydown(event: KeyboardEvent) {
   const sendOnEnter = settings.value.sendOnEnter
 
   if (sendOnEnter) {
-    // Enter sends, Shift+Enter newline
     if (event.key === 'Enter' && !event.shiftKey && !event.ctrlKey) {
       event.preventDefault()
       if (canSend.value) submit()
       return
     }
   } else {
-    // Ctrl+Enter sends
     if (event.key === 'Enter' && (event.ctrlKey || event.metaKey)) {
       event.preventDefault()
       if (canSend.value) submit()
@@ -82,12 +86,38 @@ function handleKeydown(event: KeyboardEvent) {
 function submit() {
   if (!canSend.value) return
   const content = input.value.trim()
+  const references = [...pendingRefs.value]
   const attachmentsCopy = [...pendingAttachments.value]
   input.value = ''
   rows.value = 1
   if (textareaRef.value) textareaRef.value.style.height = 'auto'
-  emit('send', content, attachmentsCopy)
+  refStore.clearReferences()
+  emit('send', content, attachmentsCopy, { references })
   clearAttachments()
+}
+
+// Focus a reference chip → signal the panel to scroll to it
+function focusRef(ref: (typeof pendingRefs.value)[number]) {
+  refStore.focusReference(ref)
+}
+
+function removeRef(id: string) {
+  refStore.removeReference(id)
+}
+
+function refChipIcon(type: string) {
+  if (type === 'whole-file') return '📎'
+  if (type === 'text-selection') return '✍️'
+  if (type === 'pdf-page') return '📄'
+  return '🔗'
+}
+
+function refChipLabel(r: (typeof pendingRefs.value)[number]) {
+  const parts = r.label.split(' › ')
+  const file = parts[parts.length - 1]
+  if (r.refType === 'pdf-page') return `${file} · p.${r.pageNumber}`
+  if (r.refType === 'text-selection') return `"${(r.selectedText ?? '').slice(0, 30)}…"`
+  return file
 }
 
 useKeyboard([
@@ -101,12 +131,12 @@ useKeyboard([
 ])
 
 function openFilePicker() {
-  const input = document.createElement('input')
-  input.type = 'file'
-  input.multiple = true
-  input.accept = 'image/*,audio/*,.pdf,.txt,.md,.json,.js,.ts,.py,.html,.css,.csv,.xml,.yaml,.yml'
-  input.onchange = handleFileInput
-  input.click()
+  const inp = document.createElement('input')
+  inp.type = 'file'
+  inp.multiple = true
+  inp.accept = 'image/*,audio/*,.pdf,.txt,.md,.json,.js,.ts,.py,.html,.css,.csv,.xml,.yaml,.yml'
+  inp.onchange = handleFileInput
+  inp.click()
 }
 </script>
 
@@ -141,7 +171,7 @@ function openFilePicker() {
           <span class="progress-percent font-bold">{{ processingProgress }}%</span>
         </div>
         <div class="progress-track">
-          <div class="progress-fill" :style="{ width: `${processingProgress}%` }"></div>
+          <div class="progress-fill" :style="{ width: `${processingProgress}%` }" />
         </div>
       </div>
     </Transition>
@@ -152,7 +182,30 @@ function openFilePicker() {
       @dragleave="handleDragLeave"
       @drop.prevent="handleDrop"
     >
-      <!-- Attachment previews -->
+      <!-- ── Reference chips ──────────────────────────────────────────── -->
+      <div v-if="hasRefs" class="reference-strip">
+        <button
+          v-for="r in pendingRefs"
+          :key="r.id"
+          class="ref-chip"
+          :title="`Click to view · ${r.label}`"
+          @click="focusRef(r)"
+        >
+          <span class="ref-chip-icon">{{ refChipIcon(r.refType) }}</span>
+          <span class="ref-chip-text">{{ refChipLabel(r) }}</span>
+          <button
+            class="ref-chip-remove"
+            :aria-label="`Remove reference ${r.label}`"
+            @click.stop="removeRef(r.id)"
+          >
+            <svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" aria-hidden="true">
+              <path d="M2 2l6 6M8 2l-6 6" />
+            </svg>
+          </button>
+        </button>
+      </div>
+
+      <!-- ── Attachment previews ────────────────────────────────────── -->
       <div v-if="hasAttachments" class="attachment-strip">
         <div
           v-for="att in pendingAttachments"
@@ -169,7 +222,7 @@ function openFilePicker() {
         </div>
       </div>
 
-      <!-- Textarea -->
+      <!-- ── Textarea ───────────────────────────────────────────────── -->
       <textarea
         id="chat-input"
         ref="textareaRef"
@@ -177,12 +230,11 @@ function openFilePicker() {
         :rows="rows"
         placeholder="Message NeuralChat…"
         class="chat-textarea"
-        :disabled="false"
         aria-label="Message input"
         @keydown="handleKeydown"
       />
 
-      <!-- Toolbar -->
+      <!-- ── Toolbar ────────────────────────────────────────────────── -->
       <div class="input-toolbar">
         <!-- Attach button -->
         <button
@@ -207,9 +259,7 @@ function openFilePicker() {
           @click="toggleAsrMode"
         >
           <svg v-if="asrMode === 'local'" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-            <rect x="2" y="3" width="20" height="14" rx="2" ry="2" />
-            <line x1="8" y1="21" x2="16" y2="21" />
-            <line x1="12" y1="17" x2="12" y2="21" />
+            <rect x="2" y="3" width="20" height="14" rx="2" ry="2" /><line x1="8" y1="21" x2="16" y2="21" /><line x1="12" y1="17" x2="12" y2="21" />
           </svg>
           <svg v-else width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
             <path d="M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z" />
@@ -279,6 +329,35 @@ function openFilePicker() {
          transition-all duration-150;
 }
 
+/* ─── Reference chips ───────────────────────────────────────────────────── */
+.reference-strip {
+  @apply flex flex-wrap gap-1.5 px-3 pt-2.5;
+}
+
+.ref-chip {
+  @apply flex items-center gap-1.5 pl-2 pr-1 py-1 rounded-lg text-xs font-medium
+         bg-accent-500/10 dark:bg-accent-500/20
+         text-accent-700 dark:text-accent-300
+         border border-accent-500/25 dark:border-accent-500/30
+         hover:bg-accent-500/20 dark:hover:bg-accent-500/25
+         transition-colors duration-100 cursor-pointer max-w-52;
+}
+
+.ref-chip-icon {
+  @apply flex-shrink-0 text-sm leading-none;
+}
+
+.ref-chip-text {
+  @apply truncate flex-1 min-w-0 text-left;
+}
+
+.ref-chip-remove {
+  @apply flex items-center justify-center w-4 h-4 rounded flex-shrink-0
+         text-accent-500/70 hover:text-red-500 hover:bg-red-500/10
+         transition-colors duration-100;
+}
+
+/* ─── Attachment strip ──────────────────────────────────────────────────── */
 .attachment-strip {
   @apply flex flex-wrap gap-2 px-4 pt-3;
 }
@@ -289,18 +368,11 @@ function openFilePicker() {
          text-surface-800 dark:text-surface-900 max-w-40;
 }
 
-.attachment-thumb {
-  @apply w-6 h-6 rounded object-cover flex-shrink-0;
-}
+.attachment-thumb { @apply w-6 h-6 rounded object-cover flex-shrink-0; }
+.attachment-name  { @apply truncate flex-1; }
+.attachment-remove { @apply text-surface-600 hover:text-red-400 flex-shrink-0 text-xs; }
 
-.attachment-name {
-  @apply truncate flex-1;
-}
-
-.attachment-remove {
-  @apply text-surface-600 hover:text-red-400 flex-shrink-0 text-xs;
-}
-
+/* ─── Textarea ──────────────────────────────────────────────────────────── */
 .chat-textarea {
   @apply w-full resize-none bg-transparent
          px-4 py-3 text-sm leading-6
@@ -309,6 +381,7 @@ function openFilePicker() {
          focus:outline-none min-h-12 max-h-64;
 }
 
+/* ─── Toolbar ───────────────────────────────────────────────────────────── */
 .input-toolbar {
   @apply flex items-center gap-2 px-3 py-2.5 border-t border-surface-200 dark:border-surface-200;
 }
@@ -338,7 +411,7 @@ function openFilePicker() {
   @apply flex-1 text-xs text-surface-500 dark:text-surface-500 hidden sm:block;
 }
 
-/* Progress Bar */
+/* ─── Progress bar ──────────────────────────────────────────────────────── */
 .progress-bar-container {
   @apply max-w-3xl mx-auto mb-2 p-3 rounded-xl
          bg-surface-50 dark:bg-surface-50
@@ -350,17 +423,9 @@ function openFilePicker() {
   @apply flex items-center justify-between text-xs text-surface-800 dark:text-surface-800;
 }
 
-.progress-status {
-  @apply flex items-center gap-2 min-w-0;
-}
-
-.progress-file {
-  @apply text-surface-500 dark:text-surface-500 truncate;
-}
-
-.progress-percent {
-  @apply text-accent-500 dark:text-accent-500 font-bold tabular-nums;
-}
+.progress-status { @apply flex items-center gap-2 min-w-0; }
+.progress-file   { @apply text-surface-500 dark:text-surface-500 truncate; }
+.progress-percent { @apply text-accent-500 dark:text-accent-500 font-bold tabular-nums; }
 
 .progress-track {
   @apply w-full h-1.5 rounded-full bg-surface-200 dark:bg-surface-200 overflow-hidden;
@@ -374,7 +439,7 @@ function openFilePicker() {
 }
 
 @keyframes shimmer-progress {
-  0% { background-position: 200% 0; }
+  0%   { background-position: 200% 0; }
   100% { background-position: -200% 0; }
 }
 
@@ -384,7 +449,7 @@ function openFilePicker() {
 
 @keyframes spin {
   from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
+  to   { transform: rotate(360deg); }
 }
 
 .animate-bounce-custom {
@@ -392,11 +457,11 @@ function openFilePicker() {
 }
 
 @keyframes bounce-custom {
-  0% { transform: translateY(0); }
+  0%   { transform: translateY(0); }
   100% { transform: translateY(-4px); }
 }
 
-/* Fade */
+/* ─── Fade ──────────────────────────────────────────────────────────────── */
 .fade-enter-active, .fade-leave-active { @apply transition-opacity duration-200; }
 .fade-enter-from, .fade-leave-to { @apply opacity-0; }
 </style>
