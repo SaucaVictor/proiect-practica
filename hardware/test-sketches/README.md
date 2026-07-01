@@ -22,8 +22,6 @@ test-sketches/
 │   └── test_senzor_lumina.ino
 ```
 
-test test
-
 ## Reguli de dezvoltare pentru teste
 1. **Cod simplu:** Păstrați schițele cât mai aerisite — doar citirea senzorului și afișarea în `Serial Monitor`.
 2. **Documentare pini:** Specificați clar în comentariile de la începutul fișierului ce pini folosiți (corelați cu pinii din [BOM.md](../BOM.md)).
