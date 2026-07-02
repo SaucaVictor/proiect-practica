@@ -25,6 +25,7 @@ function mapSettings(row: DbSettings): UserSettings {
     sendOnEnter: row.send_on_enter,
     showTimestamps: row.show_timestamps,
     showTokenCount: row.show_token_count,
+    openResourcesOnNewChat: row.open_resources_on_new_chat,
     updatedAt: row.updated_at,
   }
 }
@@ -71,6 +72,7 @@ export async function saveSettings(settings: Partial<Omit<UserSettings, 'userId'
   if (settings.sendOnEnter !== undefined)       dbUpdates.send_on_enter      = settings.sendOnEnter
   if (settings.showTimestamps !== undefined)    dbUpdates.show_timestamps    = settings.showTimestamps
   if (settings.showTokenCount !== undefined)    dbUpdates.show_token_count   = settings.showTokenCount
+  if (settings.openResourcesOnNewChat !== undefined) dbUpdates.open_resources_on_new_chat = settings.openResourcesOnNewChat
 
   const { error } = await supabase
     .from('settings')

@@ -12,8 +12,13 @@ import { useReferencesStore } from '@/stores/references.store'
 import PdfViewer from '@/components/chat/PdfViewer.vue'
 import { extractTextFromPdfUrl } from '@/utils/pdf'
 
+const props = defineProps<{
+  isMinimized?: boolean
+}>()
+
 const emit = defineEmits<{
   'send-message': [content: string, metadata?: Record<string, any>]
+  'toggle-minimize': []
 }>()
 
 const refStore = useReferencesStore()
@@ -159,6 +164,62 @@ function collapseAll() {
     subjectNode.expanded = false
     for (const dateNode of subjectNode.dates) {
       dateNode.expanded = false
+    }
+  }
+}
+
+function isSubjectRecursivelyExpanded(node: SubjectNode): boolean {
+  if (!node.expanded) return false
+  if (!node.datesLoaded) return false
+  return node.dates.every((d) => d.expanded)
+}
+
+async function toggleSubjectRecursive(node: SubjectNode) {
+  if (isSubjectRecursivelyExpanded(node)) {
+    collapseSubjectRecursive(node)
+  } else {
+    loading.value = true
+    try {
+      await expandSubjectRecursive(node)
+    } finally {
+      loading.value = false
+    }
+  }
+}
+
+function collapseSubjectRecursive(node: SubjectNode) {
+  node.expanded = false
+  for (const d of node.dates) {
+    d.expanded = false
+  }
+}
+
+async function expandSubjectRecursive(node: SubjectNode) {
+  node.expanded = true
+  if (!node.datesLoaded) {
+    const dates = await listCourseDates(node.name)
+    node.dates = dates.map((d) => ({
+      subject: d.subject,
+      date: d.date,
+      expanded: true,
+      files: [],
+      filesLoaded: false,
+      previewFile: null,
+      previewContent: null,
+      previewLoading: false,
+    }))
+    node.datesLoaded = true
+  } else {
+    for (const d of node.dates) {
+      d.expanded = true
+    }
+  }
+
+  // Load files for all sub-dates
+  for (const d of node.dates) {
+    if (!d.filesLoaded) {
+      d.files = await listCourseFiles(d.subject, d.date)
+      d.filesLoaded = true
     }
   }
 }
@@ -469,14 +530,23 @@ function transcriptKey(subject: string, date: string, filename: string) {
   <div class="course-panel">
     <!-- Panel Header -->
     <div class="panel-header">
-      <div class="panel-header-left">
-        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" aria-hidden="true">
-          <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z" />
-          <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z" />
+      <div class="panel-header-left cursor-pointer select-none" @click="emit('toggle-minimize')">
+        <svg 
+          class="header-chevron" 
+          :class="{ 'chevron-closed': isMinimized }" 
+          width="13" 
+          height="13" 
+          viewBox="0 0 12 12" 
+          fill="none" 
+          stroke="currentColor" 
+          stroke-width="2" 
+          stroke-linecap="round"
+        >
+          <path d="M3 4.5l3 3 3-3" />
         </svg>
         <span>Course Resources</span>
       </div>
-      <div class="panel-header-actions">
+      <div class="panel-header-actions" v-show="!isMinimized">
         <button class="panel-action-btn" title="Expand All" aria-label="Expand all folders" @click="expandAll">
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
             <polyline points="15 3 21 3 21 9" />
@@ -503,30 +573,47 @@ function transcriptKey(subject: string, date: string, filename: string) {
     </div>
 
     <!-- Loading -->
-    <div v-if="loading" class="panel-state">
+    <div v-show="!isMinimized && loading" class="panel-state">
       <div class="panel-spinner" />
       <span>Loading courses…</span>
     </div>
 
     <!-- Error -->
-    <div v-else-if="error && tree.length === 0" class="panel-state panel-state--error">
+    <div v-show="!isMinimized && error && tree.length === 0" class="panel-state panel-state--error">
       <span>{{ error }}</span>
     </div>
 
     <!-- Tree -->
-    <div v-else class="panel-tree">
+    <div v-show="!isMinimized" class="panel-tree">
       <template v-for="subjectNode in tree" :key="subjectNode.name">
         <!-- Subject Row -->
         <div class="tree-subject">
-          <button class="tree-row tree-row--subject" @click="toggleSubject(subjectNode)">
-            <svg class="tree-chevron" :class="{ 'tree-chevron--open': subjectNode.expanded }" width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" aria-hidden="true">
-              <path d="M3 4.5l3 3 3-3" />
-            </svg>
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" aria-hidden="true">
-              <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z" />
-            </svg>
-            <span class="tree-label">{{ subjectNode.name }}</span>
-          </button>
+          <div class="tree-row-container group">
+            <button class="tree-row tree-row--subject flex-1 min-w-0" @click="toggleSubject(subjectNode)">
+              <svg class="tree-chevron" :class="{ 'tree-chevron--open': subjectNode.expanded }" width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" aria-hidden="true">
+                <path d="M3 4.5l3 3 3-3" />
+              </svg>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" aria-hidden="true">
+                <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z" />
+              </svg>
+              <span class="tree-label">{{ subjectNode.name }}</span>
+            </button>
+            
+            <button 
+              class="action-btn text-surface-500 hover:text-accent-500 mr-2 flex-shrink-0 opacity-40 group-hover:opacity-100 transition-opacity duration-150"
+              :title="isSubjectRecursivelyExpanded(subjectNode) ? 'Collapse recursively' : 'Expand recursively'"
+              @click.stop="toggleSubjectRecursive(subjectNode)"
+            >
+              <svg v-if="isSubjectRecursivelyExpanded(subjectNode)" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+                <polyline points="17 11 12 6 7 11" />
+                <polyline points="17 18 12 13 7 18" />
+              </svg>
+              <svg v-else width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+                <polyline points="7 13 12 18 17 13" />
+                <polyline points="7 6 12 11 17 6" />
+              </svg>
+            </button>
+          </div>
 
           <!-- Dates -->
           <div v-if="subjectNode.expanded" class="tree-children">
@@ -598,6 +685,7 @@ function transcriptKey(subject: string, date: string, filename: string) {
                         <div
                           v-else
                           class="transcript-wrapper"
+                          :class="{ 'z-20': selTooltip?.visible && selTooltip.filename === file.name }"
                           @mouseup="onTranscriptMouseUp($event, file.subject, file.date, file.name)"
                         >
                           <pre
@@ -690,7 +778,16 @@ function transcriptKey(subject: string, date: string, filename: string) {
 
 .panel-header-left {
   @apply flex items-center gap-2 text-xs font-semibold
-         text-surface-700 dark:text-surface-700 uppercase tracking-wider;
+         text-surface-700 dark:text-surface-700 uppercase tracking-wider
+         hover:text-surface-950 dark:hover:text-surface-900;
+}
+
+.header-chevron {
+  @apply text-surface-400 transition-transform duration-150;
+}
+
+.chevron-closed {
+  transform: rotate(-90deg);
 }
 
 .panel-refresh-btn {
@@ -751,6 +848,14 @@ function transcriptKey(subject: string, date: string, filename: string) {
 
 .tree-file-row .tree-row--file {
   @apply flex-1;
+}
+
+.tree-row-container {
+  @apply flex items-center justify-between w-full;
+}
+
+.action-btn {
+  @apply flex items-center justify-center w-5 h-5 rounded hover:bg-surface-200 dark:hover:bg-surface-200 transition-colors duration-100;
 }
 
 .tree-row {

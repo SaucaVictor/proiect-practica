@@ -2,11 +2,11 @@ export type ReferenceType = 'whole-file' | 'text-selection' | 'pdf-page'
 
 export interface FileReference {
   id: string
-  subject: string
-  date: string
+  subject?: string
+  date?: string
   filename: string
   refType: ReferenceType
-  /** Display label: "Subject > Date > filename" */
+  /** Display label: "Subject › Date › filename" */
   label: string
   /** For text-selection: the highlighted snippet */
   selectedText?: string
@@ -17,4 +17,7 @@ export interface FileReference {
   endOffset?: number
   /** For pdf-page references */
   pageNumber?: number
+  // User resource extensions
+  isUserResource?: boolean
+  filePath?: string
 }

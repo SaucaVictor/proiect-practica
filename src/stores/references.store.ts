@@ -3,6 +3,7 @@ import { ref } from 'vue'
 import type { FileReference } from '@/types/references'
 
 import { getCourseTranscript, getCourseFileUrl } from '@/services/supabase/courses'
+import { getUserResourceSignedUrl, getUserResourceText } from '@/services/supabase/userResources'
 import { extractTextFromPdfUrl } from '@/utils/pdf'
 
 function nanoid(len = 8) {
@@ -22,6 +23,8 @@ export const useReferencesStore = defineStore('references', () => {
   function addReference(ref: Omit<FileReference, 'id'>) {
     const isDupe = pending.value.some(
       (r) =>
+        r.isUserResource === ref.isUserResource &&
+        r.filePath === ref.filePath &&
         r.subject === ref.subject &&
         r.date === ref.date &&
         r.filename === ref.filename &&
@@ -39,18 +42,41 @@ export const useReferencesStore = defineStore('references', () => {
       if (ref.refType === 'text-selection' && ref.selectedText) {
         extractedText = ref.selectedText
       } else if (ref.refType === 'whole-file') {
-        if (ref.filename.endsWith('.txt')) {
-          const text = await getCourseTranscript(ref.subject, ref.date, ref.filename)
-          extractedText = text ?? ''
-        } else if (ref.filename.endsWith('.pdf')) {
-          const url = getCourseFileUrl(ref.subject, ref.date, ref.filename)
-          const text = await extractTextFromPdfUrl(url)
-          extractedText = text ?? ''
+        if (ref.isUserResource && ref.filePath) {
+          if (ref.filename.endsWith('.txt')) {
+            const text = await getUserResourceText(ref.filePath)
+            extractedText = text ?? ''
+          } else if (ref.filename.endsWith('.pdf')) {
+            const url = await getUserResourceSignedUrl(ref.filePath)
+            if (url) {
+              const text = await extractTextFromPdfUrl(url)
+              extractedText = text ?? ''
+            }
+          }
+        } else {
+          if (ref.filename.endsWith('.txt') && ref.subject && ref.date) {
+            const text = await getCourseTranscript(ref.subject, ref.date, ref.filename)
+            extractedText = text ?? ''
+          } else if (ref.filename.endsWith('.pdf') && ref.subject && ref.date) {
+            const url = getCourseFileUrl(ref.subject, ref.date, ref.filename)
+            const text = await extractTextFromPdfUrl(url)
+            extractedText = text ?? ''
+          }
         }
       } else if (ref.refType === 'pdf-page' && ref.pageNumber !== undefined) {
-        const url = getCourseFileUrl(ref.subject, ref.date, ref.filename)
-        const text = await extractTextFromPdfUrl(url, ref.pageNumber)
-        extractedText = text ?? ''
+        if (ref.isUserResource && ref.filePath) {
+          const url = await getUserResourceSignedUrl(ref.filePath)
+          if (url) {
+            const text = await extractTextFromPdfUrl(url, ref.pageNumber)
+            extractedText = text ?? ''
+          }
+        } else {
+          if (ref.subject && ref.date) {
+            const url = getCourseFileUrl(ref.subject, ref.date, ref.filename)
+            const text = await extractTextFromPdfUrl(url, ref.pageNumber)
+            extractedText = text ?? ''
+          }
+        }
       }
     } catch (err) {
       console.error('Failed to extract reference text:', err)
