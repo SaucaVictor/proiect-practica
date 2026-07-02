@@ -3,8 +3,6 @@ import { ref, onMounted, onUnmounted, watch, nextTick } from 'vue'
 import * as pdfjsLib from 'pdfjs-dist'
 import type { PDFDocumentProxy, PDFPageProxy } from 'pdfjs-dist'
 
-import { useReferencesStore } from '@/stores/references.store'
-
 const props = defineProps<{
   url: string
   /** Subject/date/filename for building references */
@@ -32,7 +30,6 @@ const pageRefs = ref<(HTMLDivElement | null)[]>([])
 const highlightedPage = ref<number | null>(null)
 const pendingScrollPage = ref<number | null>(null)
 
-const refStore = useReferencesStore()
 let pdfDoc: PDFDocumentProxy | null = null
 
 // Selection tooltip
