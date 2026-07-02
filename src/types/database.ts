@@ -72,6 +72,7 @@ export interface DbSettings {
   send_on_enter: boolean
   show_timestamps: boolean
   show_token_count: boolean
+  open_resources_on_new_chat: boolean
   updated_at: string
 }
 

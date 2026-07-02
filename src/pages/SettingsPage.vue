@@ -128,6 +128,12 @@ async function save(updates: Parameters<typeof settingsStore.save>[0]) {
             label="Show token count"
             @update:model-value="save({ showTokenCount: $event })"
           />
+          <Toggle
+            :model-value="settings.openResourcesOnNewChat"
+            label="Open resources on new chat"
+            description="Always open the sidebar panel when starting a new chat"
+            @update:model-value="save({ openResourcesOnNewChat: $event })"
+          />
         </div>
       </section>
 

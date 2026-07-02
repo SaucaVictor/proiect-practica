@@ -54,9 +54,23 @@ function refChipLabel(r: any) {
   return file
 }
 
+const isTeachAIFolder = computed(() => {
+  if (props.message.metadata?.userFolderName) return true
+  return props.message.content.includes('materialele din folderul')
+})
+
+const teachAIFolderName = computed(() => {
+  if (props.message.metadata?.userFolderName) return props.message.metadata.userFolderName as string
+  const match = props.message.content.match(/materialele din folderul "([^"]+)"/)
+  return match ? match[1] : 'Folder'
+})
+
 const isTeachAI = computed(() => {
   if (props.message.metadata?.isTeachAI) return true
-  return props.message.content.includes('Ești un asistent de predare expert, specializat în materia')
+  return (
+    props.message.content.includes('Ești un asistent de predare expert, specializat în materia') ||
+    isTeachAIFolder.value
+  )
 })
 
 const teachAISubject = computed(() => {
@@ -111,11 +125,18 @@ const displayContent = computed(() => {
             </svg>
           </div>
           <div class="teach-ai-bubble-details">
-            <div class="teach-ai-bubble-title">Taught AI on Course Session</div>
+            <div class="teach-ai-bubble-title">
+              {{ isTeachAIFolder ? 'Taught AI on Folder' : 'Taught AI on Course Session' }}
+            </div>
             <div class="teach-ai-bubble-meta">
-              <span class="teach-ai-bubble-subject">{{ teachAISubject }}</span>
-              <span class="teach-ai-bubble-sep">/</span>
-              <span class="teach-ai-bubble-date">{{ teachAIDate }}</span>
+              <template v-if="isTeachAIFolder">
+                <span class="teach-ai-bubble-subject">{{ teachAIFolderName }}</span>
+              </template>
+              <template v-else>
+                <span class="teach-ai-bubble-subject">{{ teachAISubject }}</span>
+                <span class="teach-ai-bubble-sep">/</span>
+                <span class="teach-ai-bubble-date">{{ teachAIDate }}</span>
+              </template>
             </div>
           </div>
         </div>

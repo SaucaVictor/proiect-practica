@@ -11,11 +11,12 @@ import ChatMessages from '@/components/chat/ChatMessages.vue'
 import ChatInput from '@/components/chat/ChatInput.vue'
 import ModelSelector from '@/components/model/ModelSelector.vue'
 import Button from '@/components/ui/Button.vue'
-import CourseResourcePanel from '@/components/chat/CourseResourcePanel.vue'
+import ResourcesPanel from '@/components/chat/ResourcesPanel.vue'
 import type { RealtimeChannel } from '@supabase/supabase-js'
 import { subscribeToMessages, unsubscribe } from '@/services/supabase/realtime'
 
 import { useReferencesStore } from '@/stores/references.store'
+import { useSettingsStore } from '@/stores/settings.store'
 
 const route = useRoute()
 const router = useRouter()
@@ -23,6 +24,7 @@ const chatStore = useChatStore()
 const conversationStore = useConversationStore()
 const providerStore = useProviderStore()
 const refStore = useReferencesStore()
+const settingsStore = useSettingsStore()
 const { sendMessage, regenerate, abort } = useChat()
 
 const { isStreaming } = storeToRefs(chatStore)
@@ -58,7 +60,13 @@ async function loadConversation(id: string) {
 
 onMounted(async () => {
   const id = conversationId()
-  if (id) await loadConversation(id)
+  if (id) {
+    await loadConversation(id)
+  } else {
+    if (settingsStore.openResourcesOnNewChat) {
+      resourcePanelOpen.value = true
+    }
+  }
 })
 
 watch(() => route.params['id'], async (id) => {
@@ -68,6 +76,9 @@ watch(() => route.params['id'], async (id) => {
     }
   } else {
     chatStore.clearConversation()
+    if (settingsStore.openResourcesOnNewChat) {
+      resourcePanelOpen.value = true
+    }
   }
 })
 
@@ -273,7 +284,7 @@ onUnmounted(() => {
           class="resource-panel"
           :style="{ width: (100 - chatPanelWidth) + '%' }"
         >
-          <CourseResourcePanel @send-message="handleSendMessage" />
+          <ResourcesPanel @send-message="handleSendMessage" />
         </div>
       </Transition>
     </div>

@@ -41,6 +41,7 @@ export interface UserSettings {
   sendOnEnter: boolean
   showTimestamps: boolean
   showTokenCount: boolean
+  openResourcesOnNewChat: boolean
   updatedAt: string
 }
 
@@ -62,4 +63,5 @@ export const DEFAULT_SETTINGS: Omit<UserSettings, 'userId' | 'updatedAt'> = {
   sendOnEnter: true,
   showTimestamps: true,
   showTokenCount: false,
+  openResourcesOnNewChat: false,
 }
