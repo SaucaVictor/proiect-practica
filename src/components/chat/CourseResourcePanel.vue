@@ -256,7 +256,6 @@ function addSelectionRef() {
   let endOffset: number | undefined
 
   if (preEl && anchor) {
-    const fullText = preEl.textContent ?? ''
     // Walk text nodes to find the offset
     let idx = 0
     const walker = document.createTreeWalker(preEl, NodeFilter.SHOW_TEXT)

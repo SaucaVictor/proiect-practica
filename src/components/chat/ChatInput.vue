@@ -8,7 +8,7 @@ import { useAttachments } from '@/composables/useAttachments'
 import { useKeyboard } from '@/composables/useKeyboard'
 import Button from '@/components/ui/Button.vue'
 
-const props = defineProps<{
+defineProps<{
   conversationId: string
 }>()
 
