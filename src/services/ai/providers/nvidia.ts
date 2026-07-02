@@ -10,9 +10,7 @@ import type {
 } from '@/types'
 import { NVIDIA_MODELS } from '../models'
 
-const NVIDIA_BASE_URL = import.meta.env.DEV
-  ? '/v1'
-  : 'https://integrate.api.nvidia.com/v1'
+const NVIDIA_BASE_URL = '/v1'
 
 interface OpenAIMessage {
   role: string
