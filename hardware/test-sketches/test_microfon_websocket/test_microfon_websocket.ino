@@ -6,9 +6,9 @@
 #include <driver/i2s.h>
 
 // ─── CONFIGURARE CONEXIUNE ───
-const char* ssid     = "C.O.C.O.";
-const char* password = "tucorneltu";
-const char* ws_host  = "192.168.0.151"; // Modifica cu IP-ul real al serverului tau audio (server.py)
+const char* ssid     = "your_ssid";
+const char* password = "your_password";
+const char* ws_host  = "your_ip"; // Modifica cu IP-ul real al serverului tau audio (server.py)
 const int ws_port    = 8001;            // Portul serverului audio din server.py
 
 WebSocketsClient webSocket;
