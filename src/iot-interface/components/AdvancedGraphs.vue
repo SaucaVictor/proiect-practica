@@ -423,7 +423,7 @@ onUnmounted(() => {
           <span>{{ isPaused ? 'Reia Fluxul' : 'Pauză Flux' }}</span>
         </button>
         <button
-          class="flex items-center gap-1.5 px-3.5 py-2 border-0 rounded-xl text-xs font-semibold text-white bg-gradient-to-r from-[var(--iot-accent)] to-[#c3926f] hover:shadow-[0_4px_12px_rgba(212,162,127,0.3)] cursor-pointer transition-all duration-200 disabled:opacity-50"
+          class="flex items-center gap-1.5 px-3.5 py-2 border-0 rounded-xl text-xs font-semibold text-white bg-gradient-to-r from-[var(--iot-accent)] to-[#4453e7] hover:shadow-[0_4px_12px_rgba(92,114,243,0.3)] cursor-pointer transition-all duration-200 disabled:opacity-50"
           :disabled="isExporting"
           @click="exportToCSV"
         >

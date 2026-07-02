@@ -220,7 +220,7 @@ async function updateBuiltin(id: string, field: string, val: number) {
         <!-- Footer -->
         <div class="flex justify-end gap-2 border-t border-white/5 pt-4">
           <button class="px-4 py-2 border border-white/10 bg-transparent text-xs text-[var(--iot-text-muted)] rounded-xl cursor-pointer hover:border-white/20 transition-all duration-200" @click="showBuilder = false; resetForm()">Anulează</button>
-          <button class="px-4 py-2 border-0 bg-gradient-to-r from-[var(--iot-accent)] to-[#c3926f] text-white text-xs font-semibold rounded-xl cursor-pointer hover:-translate-y-0.5 hover:shadow-[0_4px_12px_rgba(212,162,127,0.3)] transition-all duration-200" @click="saveScenario">{{ editingId ? "Actualizează" : "Salvează Scenariul" }}</button>
+          <button class="px-4 py-2 border-0 bg-gradient-to-r from-[var(--iot-accent)] to-[#4453e7] text-white text-xs font-semibold rounded-xl cursor-pointer hover:-translate-y-0.5 hover:shadow-[0_4px_12px_rgba(92,114,243,0.3)] transition-all duration-200" @click="saveScenario">{{ editingId ? "Actualizează" : "Salvează Scenariul" }}</button>
         </div>
       </div>
     </Transition>
