@@ -6,9 +6,9 @@
 #include <driver/i2s.h>
 
 // ─── CONFIGURARE CONEXIUNE ───
-const char* ssid     = "campus";
-const char* password = "barcelona";
-const char* ws_host  = "192.168.1.100"; // Modifica cu IP-ul real al serverului tau audio (server.py)
+const char* ssid     = "C.O.C.O.";
+const char* password = "tucorneltu";
+const char* ws_host  = "192.168.0.151"; // Modifica cu IP-ul real al serverului tau audio (server.py)
 const int ws_port    = 8001;            // Portul serverului audio din server.py
 
 WebSocketsClient webSocket;
@@ -27,8 +27,9 @@ const int BLOCK_SIZE = 128;
 int32_t i2s_raw_buffer[BLOCK_SIZE];
 int16_t pcm16_buffer[BLOCK_SIZE];
 
-// ─── CONFIGURARE BUTON TEST INREGISTRARE ───
-const int buttonPin = 0; // Butonul BOOT/Flash de pe placa (apasare -> incepere/oprire inregistrare)
+// ─── CONFIGURARE BUTON TEST INREGISTRARE (EXTERN) ───
+// Conecteaza un buton push simplu intre GPIO14 (pinul D7 de pe placa) si GND.
+const int buttonPin = 14; // GPIO14 (D7) pentru buton extern
 bool isRecording = false;
 bool lastButtonState = HIGH;
 
