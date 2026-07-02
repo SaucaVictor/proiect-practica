@@ -50,7 +50,7 @@ export const DEFAULT_SETTINGS: Omit<UserSettings, 'userId' | 'updatedAt'> = {
   fontSize: 'md',
   compactMode: false,
   defaultProvider: 'nvidia',
-  defaultModel: 'z-ai/glm-5.1',
+  defaultModel: 'minimaxai/minimax-m3',
   systemPrompt: '',
   temperature: 0.7,
   topP: 1,
