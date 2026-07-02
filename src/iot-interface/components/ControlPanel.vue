@@ -57,10 +57,10 @@ async function send(msg: string) {
 </script>
 
 <template>
-  <div class="relative bg-[var(--iot-card-bg)] border border-[var(--iot-border)] rounded-2xl p-6.5 backdrop-blur-md">
+  <div class="relative bg-[var(--iot-card-bg)] border border-[var(--iot-border)] rounded-2xl p-8 backdrop-blur-md">
 
     <!-- Mode Toggle -->
-    <div class="flex items-center justify-between mb-5.5">
+    <div class="flex items-center justify-between mb-7">
       <span class="text-[10px] font-bold tracking-wider uppercase text-[var(--iot-text-muted)]">Mod Operare</span>
       <div class="flex gap-1.5">
         <button 
@@ -90,9 +90,9 @@ async function send(msg: string) {
     </div>
 
     <!-- Controls Wrapper -->
-    <div class="space-y-5.5" :class="{ 'opacity-40 pointer-events-none select-none duration-300': currentMode === 'auto' }">
+    <div class="space-y-7" :class="{ 'opacity-40 pointer-events-none select-none duration-300': currentMode === 'auto' }">
       <!-- LED Block -->
-      <div class="flex flex-col gap-2">
+      <div class="flex flex-col gap-3">
         <div class="flex items-center justify-between">
           <span class="text-sm font-semibold text-[var(--iot-text)]">LED <span class="text-[10px] text-[var(--iot-text-muted)] italic font-normal ml-1">pin 26</span></span>
           <div class="flex gap-1">
@@ -107,7 +107,7 @@ async function send(msg: string) {
       </div>
 
       <!-- Fan Block -->
-      <div class="flex flex-col gap-2">
+      <div class="flex flex-col gap-3">
         <div class="flex items-center justify-between">
           <span class="text-sm font-semibold text-[var(--iot-text)]">Fan <span class="text-[10px] text-[var(--iot-text-muted)] italic font-normal ml-1">pin 25</span></span>
           <div class="flex gap-1">
@@ -122,7 +122,7 @@ async function send(msg: string) {
       </div>
 
       <!-- PTC Heater Block -->
-      <div class="flex flex-col gap-2">
+      <div class="flex flex-col gap-3">
         <div class="flex items-center justify-between">
           <span class="text-sm font-semibold text-[var(--iot-text)]">Încălzitor PTC <span class="text-[10px] text-[var(--iot-text-muted)] italic font-normal ml-1">pin 17</span></span>
           <div class="flex gap-1">
