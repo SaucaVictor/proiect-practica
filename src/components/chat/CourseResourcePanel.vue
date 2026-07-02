@@ -12,7 +12,7 @@ import { useReferencesStore } from '@/stores/references.store'
 import PdfViewer from '@/components/chat/PdfViewer.vue'
 import { extractTextFromPdfUrl } from '@/utils/pdf'
 
-const props = defineProps<{
+defineProps<{
   isMinimized?: boolean
 }>()
 

@@ -33,7 +33,7 @@ export interface ResourceNode {
   previewLoading: boolean
 }
 
-const props = defineProps<{
+defineProps<{
   isMinimized?: boolean
 }>()
 

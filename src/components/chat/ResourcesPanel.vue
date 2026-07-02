@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, watch, onMounted, onUnmounted } from 'vue'
+import { ref, watch } from 'vue'
 import { useReferencesStore } from '@/stores/references.store'
 import UserResourcePanel from './UserResourcePanel.vue'
 import CourseResourcePanel from './CourseResourcePanel.vue'
