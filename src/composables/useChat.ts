@@ -50,6 +50,9 @@ export function useChat() {
             if (r.refType === 'pdf-page' && r.extractedText) {
               return `${header}\n${r.extractedText}`
             }
+            if (r.refType === 'live-transcript' && r.extractedText) {
+              return `${header}\n${r.extractedText}`
+            }
             return header
           })
           const refString = blocks.join('\n\n') + '\n\n---\n\n'

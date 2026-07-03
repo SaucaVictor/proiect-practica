@@ -1,10 +1,14 @@
 import os
+import sys
 import wave
+import json
 import asyncio
+import datetime
 import numpy as np
 import av
 import httpx
-from fastapi import FastAPI, WebSocket, WebSocketDisconnect, HTTPException
+import websockets
+from fastapi import FastAPI, WebSocket, WebSocketDisconnect, HTTPException, UploadFile, File
 from fastapi.middleware.cors import CORSMiddleware
 from aiortc import RTCPeerConnection, RTCSessionDescription, MediaStreamTrack, RTCConfiguration, RTCIceServer
 
@@ -21,17 +25,40 @@ app.add_middleware(
 
 # ─── Load Environment Variables ───
 def load_env():
-    if os.path.exists(".env"):
-        with open(".env") as f:
-            for line in f:
-                if line.strip() and not line.startswith("#"):
-                    parts = line.strip().split("=", 1)
-                    if len(parts) == 2:
-                        os.environ[parts[0]] = parts[1].strip()
+    """
+    Walk up from this script's directory until a .env file is found.
+    This makes the server work regardless of which directory it is launched from
+    (e.g. `python server.py` from inside servers/audio-server/, or
+          `python servers/audio-server/server.py` from the project root).
+    """
+    search_dir = os.path.dirname(os.path.abspath(__file__))
+    for _ in range(5):  # walk up at most 5 levels
+        candidate = os.path.join(search_dir, ".env")
+        if os.path.exists(candidate):
+            with open(candidate) as f:
+                for line in f:
+                    line = line.strip()
+                    if line and not line.startswith("#") and "=" in line:
+                        key, _, value = line.partition("=")
+                        # Only set if not already in the environment
+                        os.environ.setdefault(key.strip(), value.strip())
+            print(f"Loaded .env from: {candidate}")
+            return
+        parent = os.path.dirname(search_dir)
+        if parent == search_dir:
+            break
+        search_dir = parent
+    print("WARNING: No .env file found in script directory or any parent directory.")
 
 load_env()
 SUPABASE_URL = os.getenv("VITE_SUPABASE_URL")
 SUPABASE_KEY = os.getenv("VITE_SUPABASE_ANON_KEY")
+
+# Check if auto-transcribe is enabled via environment variable or CLI argument
+AUTO_TRANSCRIBE = ("--auto-transcribe" in sys.argv) or (os.getenv("AUTO_TRANSCRIBE", "false").lower() == "true")
+if AUTO_TRANSCRIBE:
+    print("AUTO_TRANSCRIBE is ENABLED. Live transcription will auto-start on WebSocket connection.")
+
 
 if not SUPABASE_URL or not SUPABASE_KEY:
     print("WARNING: Supabase credentials not found in .env. WebRTC signaling will not work.")
@@ -46,6 +73,14 @@ recording_state = {
     "active": False,
     "buffer": bytearray(),
     "filename": "recording.wav"
+}
+
+# ─── Live Transcription State ───
+# Managed by the DeepgramRelayManager singleton below.
+live_transcription_state = {
+    "active": False,
+    "starting": False,
+    "manager": None,   # DeepgramRelayManager instance
 }
 
 # ─── Custom WebRTC Audio Track ───
@@ -105,6 +140,318 @@ class AudioStreamTrack(MediaStreamTrack):
         
         return frame
 
+
+# ─── Deepgram Relay Manager ───────────────────────────────────────────────────
+class DeepgramRelayManager:
+    """
+    Opens a WebSocket to Deepgram's /v1/listen API and:
+      1. Forwards raw PCM chunks from the ESP32 stream.
+      2. Receives transcript JSON responses and saves them to Supabase.
+    """
+
+    def __init__(self):
+        self.ws = None
+        self._send_queue: asyncio.Queue = asyncio.Queue()
+        self._recv_task: asyncio.Task | None = None
+        self._send_task: asyncio.Task | None = None
+        self._session_start: datetime.datetime = datetime.datetime.now(datetime.timezone.utc)
+        self._schedule_id: str | None = None
+        self._subject_name: str = "Unnamed Lecture"
+        # Track the last preliminary segment ID so we can update it
+        self._pending_id: str | None = None
+
+    # ── Start / Stop ──────────────────────────────────────────────────────────
+
+    async def start(self):
+        """Resolve the active schedule slot, then open the Deepgram WebSocket."""
+        self._session_start = datetime.datetime.now(datetime.timezone.utc)
+        self._pending_id = None
+        await self._resolve_schedule()
+
+        api_key = os.getenv("DEEPGRAM") or os.getenv("DEEPGRAM_API_KEY")
+        if not api_key:
+            print("[Deepgram] Error: No DEEPGRAM or DEEPGRAM_API_KEY found in environment.")
+            self.ws = None
+            return
+
+        # Deepgram streaming API URL
+        # We request linear16 PCM, 16kHz, mono, nova-2 model, Romanian language, and interim results
+        url = (
+            "wss://api.deepgram.com/v1/listen"
+            "?model=nova-2"
+            "&language=ro"
+            "&encoding=linear16"
+            "&sample_rate=16000"
+            "&channels=1"
+            "&smart_format=true"
+            "&interim_results=true"
+        )
+        headers = {
+            "Authorization": f"Token {api_key}"
+        }
+
+        try:
+            # Try connecting with additional_headers (websockets >= 14.0)
+            self.ws = await websockets.connect(url, additional_headers=headers)
+            print(f"[Deepgram] Connected to Deepgram API")
+        except TypeError:
+            try:
+                # Fallback for older websockets versions (< 14.0)
+                self.ws = await websockets.connect(url, extra_headers=headers)
+                print(f"[Deepgram] Connected to Deepgram API (legacy)")
+            except Exception as e:
+                print(f"[Deepgram] Could not connect to Deepgram (legacy) at {url}: {e}")
+                self.ws = None
+                return
+        except Exception as e:
+            print(f"[Deepgram] Could not connect to Deepgram at {url}: {e}")
+            self.ws = None
+            return
+
+        self._send_task = asyncio.create_task(self._send_loop())
+        self._recv_task = asyncio.create_task(self._recv_loop())
+
+    async def stop(self):
+        """Drain the send queue, then close the connection gracefully."""
+        # Signal send loop to exit
+        await self._send_queue.put(None)
+        if self._send_task:
+            try:
+                await asyncio.wait_for(self._send_task, timeout=5.0)
+            except asyncio.TimeoutError:
+                self._send_task.cancel()
+
+        if self.ws:
+            # Send an empty JSON EOF to Deepgram to gracefully shut down the stream
+            try:
+                await self.ws.send(json.dumps({"type": "CloseStream"}))
+                await asyncio.sleep(0.5)
+            except Exception:
+                pass
+            try:
+                await self.ws.close()
+            except Exception:
+                pass
+            self.ws = None
+
+        if self._recv_task:
+            self._recv_task.cancel()
+            try:
+                await self._recv_task
+            except asyncio.CancelledError:
+                pass
+
+        print("[Deepgram] Relay stopped.")
+
+    # ── Feed audio ────────────────────────────────────────────────────────────
+
+    async def send_pcm(self, data: bytes):
+        """Enqueue a raw PCM chunk for forwarding to Deepgram."""
+        if self.ws is not None:
+            await self._send_queue.put(data)
+
+    # ── Internal loops ────────────────────────────────────────────────────────
+
+    async def _send_loop(self):
+        while True:
+            chunk = await self._send_queue.get()
+            if chunk is None:  # sentinel
+                break
+            if self.ws:
+                try:
+                    await self.ws.send(chunk)
+                except Exception as e:
+                    print(f"[Deepgram] Send error: {e}")
+                    break
+
+    async def _recv_loop(self):
+        """Receive transcript messages from Deepgram and persist them to Supabase."""
+        if not self.ws:
+            return
+        try:
+            async for message in self.ws:
+                await self._handle_deepgram_message(message)
+        except websockets.exceptions.ConnectionClosed:
+            print("[Deepgram] Connection closed by Deepgram.")
+        except asyncio.CancelledError:
+            pass
+        except Exception as e:
+            print(f"[Deepgram] Receive error: {e}")
+
+    async def _handle_deepgram_message(self, raw: str | bytes):
+        """Parse a Deepgram response JSON and upsert into Supabase."""
+        if isinstance(raw, bytes):
+            raw = raw.decode("utf-8", errors="replace")
+
+        try:
+            msg = json.loads(raw)
+        except json.JSONDecodeError:
+            return
+
+        # Deepgram results structure:
+        # channel -> alternatives -> transcript
+        channel = msg.get("channel", {})
+        alternatives = channel.get("alternatives", [{}])
+        transcript = alternatives[0].get("transcript", "").strip() if alternatives else ""
+        
+        # If there's no actual transcript content, ignore
+        if not transcript:
+            return
+
+        is_final = msg.get("is_final", False)
+        safe_transcript = transcript.encode("ascii", errors="ignore").decode()
+        print(f"[Deepgram] Received: '{safe_transcript}' (final={is_final})")
+
+        now = datetime.datetime.now(datetime.timezone.utc).isoformat()
+
+        if is_final:
+            # Final text received. Upsert or update our pending preview, and mark it as final
+            if self._pending_id:
+                await self._update_segment(self._pending_id, transcript, is_final=True)
+                self._pending_id = None
+            else:
+                # If no pending preview existed, insert a new final segment
+                await self._upsert_segment(
+                    text=transcript,
+                    is_final=True,
+                    segment_start=now,
+                    segment_end=now,
+                )
+        else:
+            # Interim/preliminary text. Update existing pending segment or create a new one
+            if self._pending_id:
+                await self._update_segment(self._pending_id, transcript, is_final=False)
+            else:
+                row_id = await self._upsert_segment(
+                    text=transcript,
+                    is_final=False,
+                    segment_start=now,
+                    segment_end=None,
+                )
+                self._pending_id = row_id
+
+    # ── Supabase helpers ──────────────────────────────────────────────────────
+
+    async def _resolve_schedule(self):
+        """
+        Look up the active schedule slot for the current day/time.
+        Sets self._schedule_id and self._subject_name.
+        """
+        if not SUPABASE_URL or not SUPABASE_KEY:
+            return
+
+        now = datetime.datetime.now()
+        day_of_week = now.isoweekday()   # 1=Mon … 5=Fri
+        current_time = now.strftime("%H:%M:%S")
+
+        headers = {
+            "apikey": SUPABASE_KEY,
+            "Authorization": f"Bearer {SUPABASE_KEY}",
+        }
+        params = (
+            f"day_of_week=eq.{day_of_week}"
+            f"&start_time=lte.{current_time}"
+            f"&end_time=gte.{current_time}"
+            f"&limit=1"
+        )
+        url = f"{SUPABASE_URL}/rest/v1/schedule?{params}&select=id,subject_name"
+        try:
+            async with httpx.AsyncClient() as client:
+                res = await client.get(url, headers=headers)
+                if res.status_code == 200:
+                    rows = res.json()
+                    if rows:
+                        self._schedule_id = rows[0]["id"]
+                        self._subject_name = rows[0]["subject_name"]
+                        safe_subject = self._subject_name.encode("ascii", errors="ignore").decode()
+                        print(f"[Deepgram] Active schedule slot: {safe_subject} (id={self._schedule_id})")
+                    else:
+                        print("[Deepgram] No active schedule slot found — using 'Unnamed Lecture'")
+        except Exception as e:
+            print(f"[Deepgram] Schedule lookup error: {e}")
+
+    async def _upsert_segment(
+        self,
+        text: str,
+        is_final: bool,
+        segment_start: str,
+        segment_end: str | None,
+    ) -> str | None:
+        """Insert a new live_transcripts row and return its UUID."""
+        if not SUPABASE_URL or not SUPABASE_KEY:
+            return None
+
+        payload = {
+            "subject_name": self._subject_name,
+            "session_date": self._session_start.date().isoformat(),
+            "segment_start": segment_start,
+            "segment_end": segment_end,
+            "text": text,
+            "is_final": is_final,
+        }
+        if self._schedule_id:
+            payload["schedule_id"] = self._schedule_id
+
+        headers = {
+            "apikey": SUPABASE_KEY,
+            "Authorization": f"Bearer {SUPABASE_KEY}",
+            "Content-Type": "application/json",
+            "Prefer": "return=representation",  # return the created row
+        }
+        try:
+            async with httpx.AsyncClient() as client:
+                res = await client.post(
+                     f"{SUPABASE_URL}/rest/v1/live_transcripts",
+                     json=payload,
+                     headers=headers,
+                )
+                if res.status_code in (200, 201):
+                    rows = res.json()
+                    if rows:
+                        row_id = rows[0].get("id")
+                        safe_text = text.encode("ascii", errors="ignore").decode()
+                        print(f"[Deepgram] Upserted segment (final={is_final}): text='{safe_text}', id={row_id}")
+                        return row_id
+                else:
+                    safe_res_text = res.text.encode("ascii", errors="ignore").decode()
+                    print(f"[Deepgram] Supabase insert error {res.status_code}: {safe_res_text}")
+        except Exception as e:
+            print(f"[Deepgram] Supabase insert exception: {e}")
+        return None
+
+    async def _update_segment(self, row_id: str, text: str, is_final: bool):
+        """Update an existing preliminary segment with new text."""
+        if not SUPABASE_URL or not SUPABASE_KEY:
+            return
+
+        now = datetime.datetime.now(datetime.timezone.utc).isoformat()
+        payload = {
+            "text": text,
+            "is_final": is_final,
+            "segment_end": now if is_final else None,
+        }
+        headers = {
+            "apikey": SUPABASE_KEY,
+            "Authorization": f"Bearer {SUPABASE_KEY}",
+            "Content-Type": "application/json",
+        }
+        try:
+            async with httpx.AsyncClient() as client:
+                res = await client.patch(
+                    f"{SUPABASE_URL}/rest/v1/live_transcripts?id=eq.{row_id}",
+                    json=payload,
+                    headers=headers,
+                )
+                if res.status_code in (200, 204):
+                    safe_text = text.encode("ascii", errors="ignore").decode()
+                    print(f"[Deepgram] Updated segment: id={row_id}, text='{safe_text}', final={is_final}")
+                else:
+                    safe_res_text = res.text.encode("ascii", errors="ignore").decode()
+                    print(f"[Deepgram] Supabase update error {res.status_code}: {safe_res_text}")
+        except Exception as e:
+            print(f"[Deepgram] Supabase update exception: {e}")
+
+
 # ─── Helper Functions for Recording ───
 async def start_recording_internal():
     if recording_state["active"]:
@@ -137,6 +484,43 @@ async def stop_recording_internal():
     except Exception as e:
         print(f"Failed to save recording file: {e}")
         return {"status": "error", "message": str(e)}
+
+
+# ─── Live transcription start/stop helpers ────────────────────────────────────
+
+async def start_live_transcription():
+    if live_transcription_state["active"] or live_transcription_state.get("starting"):
+        print("[Deepgram] Live transcription already active or starting.")
+        return
+    live_transcription_state["starting"] = True
+    try:
+        manager = DeepgramRelayManager()
+        await manager.start()
+        if manager.ws is None:
+            print("[Deepgram] Connection failed, live transcription not active.")
+            return
+        live_transcription_state["manager"] = manager
+        live_transcription_state["active"] = True
+        print("[Deepgram] Live transcription started.")
+    finally:
+        live_transcription_state["starting"] = False
+
+async def stop_live_transcription():
+    if not live_transcription_state["active"]:
+        return
+    manager = live_transcription_state["manager"]
+    if manager:
+        await manager.stop()
+    live_transcription_state["manager"] = None
+    live_transcription_state["active"] = False
+    print("[Deepgram] Live transcription stopped.")
+
+async def feed_live_transcription(data: bytes):
+    if live_transcription_state["active"]:
+        manager = live_transcription_state["manager"]
+        if manager:
+            await manager.send_pcm(data)
+
 
 async def upload_and_transcribe_task(filename):
     print("Background upload & transcribe task started...")
@@ -185,22 +569,36 @@ async def upload_and_transcribe_task(filename):
     except Exception as e:
         print(f"Failed to upload audio file: {e}")
 
-    # 2. Call separate ASR server (port 8000) for transcription
-    asr_url = "http://127.0.0.1:8000/transcribe"
-    print(f"Forwarding audio to ASR server ({asr_url}) for Whisper transcription...")
+    # 2. Call Deepgram REST API for batch transcription
+    api_key = os.getenv("DEEPGRAM") or os.getenv("DEEPGRAM_API_KEY")
     transcription_text = ""
-    try:
-        async with httpx.AsyncClient(timeout=300.0) as client:
-            with open(filename, "rb") as f:
-                files = {"file": (filename, f, "audio/wav")}
-                res = await client.post(asr_url, files=files)
-            if res.status_code == 200:
-                transcription_text = res.json().get("text", "")
-                print(f"ASR Server transcription complete: {transcription_text[:100]}...")
-            else:
-                print(f"ASR Server returned status {res.status_code}: {res.text}")
-    except Exception as e:
-        print(f"Failed to connect to ASR server on port 8000: {e}")
+    if api_key:
+        print("Forwarding audio to Deepgram for batch transcription...")
+        try:
+            headers_dg = {
+                "Authorization": f"Token {api_key}",
+                "Content-Type": "audio/wav"
+            }
+            url_dg = "https://api.deepgram.com/v1/listen?model=nova-2&language=ro&smart_format=true"
+            async with httpx.AsyncClient(timeout=300.0) as client:
+                res = await client.post(url_dg, content=file_bytes, headers=headers_dg)
+                if res.status_code == 200:
+                    response_json = res.json()
+                    transcription_text = (
+                        response_json.get("results", {})
+                        .get("channels", [{}])[0]
+                        .get("alternatives", [{}])[0]
+                        .get("transcript", "")
+                    )
+                    safe_text = transcription_text[:100].encode("ascii", errors="ignore").decode()
+                    print(f"Deepgram batch transcription complete: {safe_text}...")
+                else:
+                    safe_res_text = res.text.encode("ascii", errors="ignore").decode()
+                    print(f"Deepgram ASR returned status {res.status_code}: {safe_res_text}")
+        except Exception as e:
+            print(f"Failed to connect to Deepgram for batch transcription: {e}")
+    else:
+        print("[Deepgram] Error: No DEEPGRAM or DEEPGRAM_API_KEY found. Batch transcription skipped.")
 
     # 3. Upload transcript to Supabase Storage
     transcript_uploaded = False
@@ -240,10 +638,16 @@ async def upload_and_transcribe_task(filename):
 # ─── HTTP Endpoints to Control Recording ───
 @app.post("/record/start")
 async def record_start():
-    return await start_recording_internal()
+    result = await start_recording_internal()
+    if result["status"] == "started":
+        # Also kick off live transcription relay
+        asyncio.create_task(start_live_transcription())
+    return result
 
 @app.post("/record/stop")
 async def record_stop():
+    # Stop live transcription relay first
+    asyncio.create_task(stop_live_transcription())
     res = await stop_recording_internal()
     if res["status"] == "stopped":
         results = await upload_and_transcribe_task(res["file"])
@@ -256,11 +660,44 @@ async def record_stop():
         }
     return res
 
+@app.post("/transcribe")
+async def transcribe(file: UploadFile = File(...)):
+    api_key = os.getenv("DEEPGRAM") or os.getenv("DEEPGRAM_API_KEY")
+    if not api_key:
+        raise HTTPException(status_code=500, detail="DEEPGRAM API key not configured on backend.")
+    
+    file_bytes = await file.read()
+    
+    try:
+        headers_dg = {
+            "Authorization": f"Token {api_key}",
+            "Content-Type": file.content_type or "audio/wav"
+        }
+        url_dg = "https://api.deepgram.com/v1/listen?model=nova-2&language=ro&smart_format=true"
+        async with httpx.AsyncClient(timeout=120.0) as client:
+            res = await client.post(url_dg, content=file_bytes, headers=headers_dg)
+            if res.status_code == 200:
+                response_json = res.json()
+                transcription_text = (
+                    response_json.get("results", {})
+                    .get("channels", [{}])[0]
+                    .get("alternatives", [{}])[0]
+                    .get("transcript", "")
+                )
+                return {"text": transcription_text.strip()}
+            else:
+                raise HTTPException(status_code=res.status_code, detail=f"Deepgram returned error: {res.text}")
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
 # ─── ESP32 WebSocket Endpoint ───
 @app.websocket("/ws/audio")
 async def websocket_endpoint(websocket: WebSocket):
     await websocket.accept()
     print("ESP32 microcontroler conectat la /ws/audio!")
+    if AUTO_TRANSCRIBE:
+        print("[Deepgram] Auto-transcribe is enabled. Starting live transcription...")
+        asyncio.create_task(start_live_transcription())
     try:
         while True:
             # We use websocket.receive() to support both binary and text frames
@@ -274,21 +711,35 @@ async def websocket_endpoint(websocket: WebSocket):
                 # Accumulate into recording buffer
                 if recording_state["active"]:
                     recording_state["buffer"].extend(data)
+                # Forward to Deepgram ASR relay (non-blocking)
+                await feed_live_transcription(data)
                     
             elif "text" in result:
                 text_cmd = result["text"]
                 print(f"WebSocket text command received: {text_cmd}")
                 if text_cmd == "RECORD_START":
-                    await start_recording_internal()
+                    res = await start_recording_internal()
+                    if res["status"] == "started":
+                        asyncio.create_task(start_live_transcription())
                 elif text_cmd == "RECORD_STOP":
+                    asyncio.create_task(stop_live_transcription())
                     res = await stop_recording_internal()
                     if res["status"] == "stopped":
                         asyncio.create_task(upload_and_transcribe_task(res["file"]))
                     
     except WebSocketDisconnect:
         print("ESP32 microcontroler s-a deconectat.")
+    except RuntimeError as re:
+        if "Cannot call" in str(re):
+            print("WebSocket ESP32 s-a închis.")
+        else:
+            print(f"Eroare WebSocket ESP32 (RuntimeError): {re}")
     except Exception as e:
         print(f"Eroare WebSocket ESP32: {e}")
+    finally:
+        if AUTO_TRANSCRIBE:
+            print("[Deepgram] Auto-transcribe is stopping live transcription...")
+            asyncio.create_task(stop_live_transcription())
 
 # ─── WebRTC Signaling Database Loop ───
 async def handle_offer(offer_row):
@@ -392,6 +843,7 @@ async def signaling_loop():
 # Start signaling loop task on FastAPI startup
 @app.on_event("startup")
 async def startup_event():
+    print(f"[*] AUTO_TRANSCRIBE is {'ENABLED' if AUTO_TRANSCRIBE else 'DISABLED'}")
     asyncio.create_task(signaling_loop())
 
 if __name__ == "__main__":
