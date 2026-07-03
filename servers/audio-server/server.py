@@ -396,5 +396,5 @@ async def startup_event():
 
 if __name__ == "__main__":
     import uvicorn
-    # Start on port 8001
-    uvicorn.run(app, host="127.0.0.1", port=8001)
+    # Start on port 8001, listening on all interfaces to allow ESP32 connection
+    uvicorn.run(app, host="0.0.0.0", port=8001)

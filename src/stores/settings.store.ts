@@ -14,6 +14,7 @@ export const useSettingsStore = defineStore('settings', () => {
   const current = computed(() => settings.value ?? { ...DEFAULT_SETTINGS, userId: '', updatedAt: '' })
   const streamEnabled = computed(() => current.value.streamEnabled)
   const sendOnEnter = computed(() => current.value.sendOnEnter)
+  const openResourcesOnNewChat = computed(() => current.value.openResourcesOnNewChat)
 
   // ─── Actions ─────────────────────────────────────────────────────────────────
 
@@ -55,9 +56,10 @@ export const useSettingsStore = defineStore('settings', () => {
     current,
     streamEnabled,
     sendOnEnter,
+    openResourcesOnNewChat,
     load,
     save,
     setLocal,
-    initWithDefaults,
+    initWithDefaults
   }
 })

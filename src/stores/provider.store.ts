@@ -10,7 +10,7 @@ export const useProviderStore = defineStore('providers', () => {
 
   // ─── State ──────────────────────────────────────────────────────────────────
   const activeProvider = ref<ProviderName>('nvidia')
-  const activeModelId = ref<string>('z-ai/glm-5.1')
+  const activeModelId = ref<string>('minimaxai/minimax-m3')
 
   // ─── Getters ────────────────────────────────────────────────────────────────
 

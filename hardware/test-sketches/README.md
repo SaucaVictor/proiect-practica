@@ -22,6 +22,10 @@ test-sketches/
 │   └── test_senzor_lumina.ino
 ├── test_microfon_websocket/
 │   └── test_microfon_websocket.ino
+├── test_microfon_offline/
+│   └── test_microfon_offline.ino
+├── test_buton_extern/
+│   └── test_buton_extern.ino
 ```
 
 ## Reguli de dezvoltare pentru teste

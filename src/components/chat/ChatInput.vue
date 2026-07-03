@@ -193,7 +193,7 @@ function openFilePicker() {
         >
           <span class="ref-chip-icon">{{ refChipIcon(r.refType) }}</span>
           <span class="ref-chip-text">{{ refChipLabel(r) }}</span>
-          <button
+          <div
             class="ref-chip-remove"
             :aria-label="`Remove reference ${r.label}`"
             @click.stop="removeRef(r.id)"
@@ -201,7 +201,7 @@ function openFilePicker() {
             <svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" aria-hidden="true">
               <path d="M2 2l6 6M8 2l-6 6" />
             </svg>
-          </button>
+          </div>
         </button>
       </div>
 
@@ -267,9 +267,7 @@ function openFilePicker() {
           <span class="asr-badge-text">{{ asrMode === 'local' ? 'ASR: Local' : 'ASR: Cloud' }}</span>
         </button>
 
-        <span class="toolbar-hint">
-          {{ settings.sendOnEnter ? 'Enter to send · Shift+Enter for newline' : 'Ctrl+Enter to send' }}
-        </span>
+        <span class="toolbar-hint"></span>
 
         <!-- Abort / Send -->
         <Button

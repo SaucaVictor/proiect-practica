@@ -22,7 +22,7 @@
 | Lumină (fotorezistor) | LDR | 1 | Analog | Divizor de tensiune cu rezistență fixă (10kΩ rec.) |
 | Prezență | Senzor IR (2x) | 2 | Digital | Detectare prezență în sală; plasați la intrare/ieșire |
 | Curent | ACS712 (5A) | 1 | Analog | Management energetic; ales modelul în funcție de sarcina maximă |
-| Microfon | INMP441 | 1 | I2S | Înregistrare cursuri; necesită 3.3V; pini: SCK, WS, SD — ⏳ **comandat, în așteptare** |
+| Microfon | INMP441 | 1 | I2S | Înregistrare cursuri; necesită 3.3V; pini: SCK, WS, SD |
 
 ---
 
@@ -61,6 +61,7 @@
 | Rezistență | 10 kΩ | 3 | Divizor de tensiune ACS712 (ieșire 5V → 3.3V pentru ADC ESP32) |
 | Rezistență | 10 kΩ | 1 | Pull-down LDR (divizor de tensiune cu fotorezistorul) |
 | Potențiometru | 10 kΩ (sau similar) | 1 | Folosit pentru testare manuală semnale PWM (LED/Ventilator) |
+| Buton tactil (push-button) | Omron B3F (sau similar) | 1 | Buton fizic extern pentru control înregistrare audio (start/stop) |
 
 ---
 
@@ -111,11 +112,13 @@
 | **Afișaj** | | |
 | GPIO21 | I2C SDA | OLED 0.96" |
 | GPIO22 | I2C SCL | OLED 0.96" |
-| **Microfon** | | |
+| **Microfon / Înregistrare** | | |
 | GPIO18 | I2S SCK | INMP441 — bit clock |
 | GPIO19 | I2S WS | INMP441 — word select (LRCLK) |
 | GPIO13 | I2S SD | INMP441 — data |
+| GPIO14 | Digital IN | Buton extern start/stop înregistrare (cu pull-up intern) |
 
 > **Notă:** GPIO35 și GPIO36 sunt input-only pe ESP32 — nu au pull-up intern, nu pot fi OUTPUT. Perfect pentru ADC.  
 > **Notă:** GPIO23 folosit pentru IR2; dacă adăugați SPI ulterior, va trebui realocate.  
-> **Notă:** INMP441 necesită alimentare la **3.3V** (nu 5V!). GPIO18/19/13 sunt liberi și compatibili I2S.
+> **Notă:** INMP441 necesită alimentare la **3.3V** (nu 5V!). GPIO18/19/13 sunt liberi și compatibili I2S.  
+> **Notă:** Butonul de înregistrare folosește GPIO14 (D7) cu rezistența internă de pull-up a ESP32 (INPUT_PULLUP), deci se conectează direct între GPIO14 și GND, fără rezistență externă pe breadboard.
