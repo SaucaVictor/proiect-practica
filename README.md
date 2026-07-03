@@ -1,140 +1,223 @@
 # ClassMonitor 🖥️🔊
 
-ClassMonitor este o aplicație web premium concepută pentru monitorizarea energetică și controlul bidirecțional al sălilor de curs (IoT), dotată cu interfață AI multimodală avansată.
-
-Acest depozit conține codul sursă pentru interfața web (Vue 3, Vite, TailwindCSS) și pipeline-ul de Speech-to-Text (ASR).
+**ClassMonitor** transformă o sală de curs clasică într-un ecosistem inteligent: monitorizare IoT în timp real, conferință audio WebRTC live, **transcriere automată a cursurilor în timp real (Speech-to-Text)** și un chat AI bazat pe RAG care permite studenților să interogheze conținutul cursurilor.
 
 ---
 
-## 🚀 Funcționalități Multimodale AI
+## 🧩 Arhitectura Sistemului
 
-- **Transcriere Audio Automată (ASR)**: Încarcă fișiere audio în chat pentru a fi transcrise automat și trimise ca text/context către LLM.
-- **Switch Flexibil (Local / Cloud)**: O opțiune direct în bara de chat permite selectarea instantanee a sursei de transcriere:
-  - **ASR Cloud**: Folosește API-ul Hugging Face Serverless (Whisper Large v3) gratuit.
-  - **ASR Local**: Rulează un server local de Whisper în Python pe mașina ta pentru transcrieri complet offline, rapide și de dimensiuni nelimitate.
+```
+ESP32 (INMP441 mic)
+  │
+  │  WebSocket — raw PCM 16kHz mono s16le
+  ▼
+audio-server :8001          ← Serverul audio local
+  ├── WebRTC broadcast      → Browser (Live Audio)
+  ├── WAV recording buffer  → Supabase Storage (după stop)
+  └── WLK relay             → whisperlivekit :8000/asr
+                                  │
+                             Transcript JSON
+                                  │
+                             Supabase: live_transcripts ← Realtime → Browser (Live Transcript)
 
----
+mqtt-server                 ← Bridge MQTT ↔ Supabase (senzori IoT)
 
-## 🛠️ Ghid de Instalare și Rulare (Frontend)
-
-1. **Instalează dependențele Node.js**:
-
-   ```bash
-   npm install
-   ```
-
-2. **Configurează fișierul `.env`**:
-   Copiază fișierul `.env.example` sub numele `.env` și completează credențialele tale (Supabase, cheia NVIDIA NIM și, opțional, token-ul Hugging Face):
-
-   ```bash
-   cp .env.example .env
-   ```
-
-3. **Pornește serverul de dezvoltare**:
-   ```bash
-   npm run dev
-   ```
+Frontend (Vue 3 + Vite)     ← Supabase Auth, Realtime, Storage, REST
+```
 
 ---
 
-## 🎙️ Servere Locale și Ghid de Pornire
+## 🚀 Funcționalități
 
-Proiectul ClassMonitor folosește servere locale pentru a procesa media în timp real, a rula ASR (Speech-to-Text) offline și a face legătura cu hardware-ul din clasă.
+| Funcționalitate | Stare |
+|---|---|
+| Conferință Audio Live (WebRTC) | ✅ |
+| **Transcriere Live în Timp Real (WhisperLiveKit)** | ✅ **Nou** |
+| Transcriere Batch după înregistrare | ✅ |
+| Upload audio + transcript în Supabase Storage | ✅ |
+| Monitoring senzori IoT (DHT11, LDR, ACS712) | ✅ |
+| Control actuatori (LED, ventilator, PTC) | ✅ |
+| Chat AI cu RAG pe transcripturi | ✅ |
 
-### 1. Serverul Speech-to-Text (ASR) Local (`servers/speech-to-text`)
+---
 
-Acest server FastAPI rulează Whisper pentru a asigura transcrieri locale rapide, offline și de dimensiuni nelimitate, folosite direct în chat-ul AI al site-ului.
+## 🛠️ Instalare & Prerechizite
 
-### Pornire Rapidă (Ambele Servere)
+Înainte de a rula proiectul, trebuie să instalezi dependențele pentru frontend și pentru servere, și să configurezi variabilele de mediu.
 
-Dacă rulezi pe Windows, poți porni ambele servere simultan, fiecare în propria fereastră de terminal, folosind comanda:
+### 1. Dependențe Frontend (Node.js)
+Instalează modulele NodeJS din rădăcina proiectului:
+```bash
+npm install
+```
 
+### 2. Variabile de Mediu
+Copiază fișierul `.env.example` în `.env` și completează credențialele tale de Supabase, API keys, etc.:
+```bash
+cp .env.example .env
+```
+
+### 3. Dependențe Python (Servere & Scripturi de Test)
+Instalează pachetele de Python pentru serverul audio, serverul MQTT și testarea simulărilor:
+```bash
+pip install -r servers/audio-server/requirements.txt
+```
+
+---
+
+## 🚀 Pornirea Serverelor
+
+Poți rula separat componentele aplicației din rădăcina proiectului utilizând comenzile de mai jos:
+
+### 1. Serverul Audio — WebRTC + Deepgram ASR _(port 8001)_
+- **Pornire Standard** (așteaptă explicit semnalul `RECORD_START` pentru a activa conexiunea de transcriere):
+  ```bash
+  npm run audio-server
+  ```
+- **Pornire cu Auto-Transcriere** (transcrierea live pornește instant la prima conectare a microfonului):
+  ```bash
+  npm run audio-server:auto
+  ```
+
+### 2. Serverul MQTT (Bridge Senzori/Actuatori IoT)
+Pornește bridge-ul MQTT către baza de date Supabase:
+```bash
+python servers/mqtt-server/server.py
+```
+
+### 3. Pornire Rapidă (Audio-Server + MQTT-Server deodată)
+Pornește simultan Audio-Server și MQTT-Server în mod paralel:
 ```bash
 npm run servers
 ```
 
-### Pornire Individuală
-
-Dacă dorești să le pornești manual:
-
-1. **Serverul ASR**:
-
-   ```bash
-   python servers/speech-to-text/server.py
-   ```
-
-   _(Pornit pe portul `8000` pentru interfața de chat)_
-
-2. **Serverul Audio**:
-   ```bash
-   python servers/audio-server/server.py
-   ```
-   _(Pornit pe portul `8001` pentru WebSocket/WebRTC)_
-
-#### Instalare Dependențe Python
-
-Deschide un terminal în root-ul proiectului și instalează bibliotecile necesare:
-
+### 4. Frontend Vue 3 (Aplicația Web de client)
+Pornește serverul local de development pentru frontend:
 ```bash
-pip install faster-whisper fastapi uvicorn python-multipart aiortc av numpy httpx websockets
+npm run dev
 ```
 
 ---
 
-### 3. Serverul pentru Senzori & Bridge MQTT (În Curând / Soon)
+## 🗄️ Migrări Supabase
 
-Acest al treilea server local va gestiona:
+Aplică migrările în ordine în **Supabase SQL Editor** (`supabase/migrations/`):
 
-- **Preluare Telemetrie**: Ascultă brokerul MQTT public pentru date de la senzorii DHT11, LDR, ACS712 trimiși de Wemos D1 R32 și le salvează în Supabase.
-- **Transmitere Comenzi**: Ascultă tabela `iot_settings` din Supabase și trimite în timp real comenzile de control (ventilator, LED, PTC) înapoi pe MQTT către microcontroler.
-
----
-
-## 🧪 Ghid de Testare Manuală (Fără Hardware)
-
-Pentru a testa fluxurile fără a avea plăcile Wemos D1 ESP32 conectate fizic, poți folosi fișierul audio de test preconfigurat: **`scripts/audio-test.mp3`**.
-
-### A. Testare Streaming Live (WebRTC)
-
-1. Asigură-te că serverul audio rulează pe portul `8001`: `python servers/audio-server/server.py`
-2. Porneste stream-ul de test:
-   ```bash
-   python scripts/test_audio_stream.py
-   ```
-   _(Acesta va simula microfonul Wemos trimițând fișierul audio-test.mp3 în buclă)._
-3. În site, deschide pagina **Live Audio (icoana căști)** din sidebar și apasă **Conectare la Curs**.
-
-### B. Testare Rapidă Transcriere & Încărcare Directă
-
-1. Asigură-te că serverul ASR rulează pe portul `8000`: `python servers/speech-to-text/server.py`
-2. Asigură-te că ai creat bucket-ul `courses` în Supabase (vezi migrarea `005_storage_courses.sql`).
-3. Pornește scriptul de test:
-   ```bash
-   python scripts/test_transcribe_flow.py
-   ```
-   _(Acesta va trimite fișierul audio-test.mp3 la serverul ASR local, îl va transcrie și le va urca pe ambele în bucket-ul Supabase)._
-
-### C. Testare Flow Înregistrare complet în Timp Real
-
-Acesta simulează înregistrarea stream-ului în timp real de pe server, urmată de salvare, ASR și upload:
-
-1. Porneste ambele servere local: `npm run servers` (ASR pe 8000 și Audio pe 8001)
-2. Porneste stream-ul de test: `python scripts/test_audio_stream.py` (pentru a simula hardware-ul care trimite sunet live)
-3. Rulează scriptul de control:
-   ```bash
-   python scripts/test_recording_flow.py
-   ```
-   _(Acesta va trimite comanda de start înregistrare către Audio Server, va înregistra timp de 30 de secunde din stream-ul activ, va opri înregistrarea, o va salva local ca `recording.wav`, o va încărca în storage, o va trimite la serverul ASR pe portul 8000, iar apoi va încărca transcrierea obținută în Supabase)._
+| Fișier | Conținut |
+|---|---|
+| `001_initial_schema.sql` | Tabele de bază (profiles, conversations, messages) |
+| `002_rls_policies.sql` | Politici RLS |
+| `003_schedule.sql` | Orar săptămânal (materii și intervale orare) |
+| `004_webrtc_signaling.sql` | Semnalizare WebRTC |
+| `005_storage_courses.sql` | Bucket Supabase Storage `courses` |
+| `006_update_default_model.sql` | Model LLM implicit |
+| `007_user_resources.sql` | Resurse utilizator |
+| `008_settings_open_resources.sql` | Setări deschise |
+| **`009_live_transcripts.sql`** | **Segmente transcriere live (nou)** |
 
 ---
 
-## ⚙️ Variabile de Mediu (.env)
+## 🧪 Testare Manuală (Fără Hardware ESP32)
 
-Aplicația folosește următoarele variabile cheie pentru controlul ASR și bazei de date:
+Poți simula comportamentul microfonului fizic (ESP32) streamuind fișierul audio de probă **`scripts/audio-test.mp3`** către servere.
 
-- `VITE_SUPABASE_URL`: URL-ul proiectului tău Supabase.
-- `VITE_SUPABASE_ANON_KEY`: Anon key-ul proiectului Supabase (necesar pentru semnalizarea WebRTC).
-- `VITE_HF_TOKEN`: Token Hugging Face pentru API-ul cloud (dacă se folosește transcrierea cloud).
-- `VITE_ASR_ENDPOINT`: URL-ul către serverul local de transcriere (implicit `http://localhost:8000/transcribe`).
+### A. Test Streaming Live (WebRTC Audio)
+Simulează microfonul ESP32 trimițând fluxul audio în buclă:
+```bash
+# Rulare implicită stream
+npm run test-audio
 
-DEPLOY TRIGGER = 3
+# Rulare explicită modul stream
+npm run test-audio -- stream
+
+# Rulare cu un fișier audio custom
+npm run test-audio -- stream /cale/catre/fisier.mp3
+```
+*Ghid de utilizare:*
+1. Pornește serverul audio: `npm run audio-server`
+2. Rulează comanda de test-audio de mai sus.
+3. Deschide site-ul → accesează **Live Audio** → click pe **Conectare la Curs** pentru a auzi audio în browser în timp real.
+
+### B. Test Transcriere Live (Deepgram/WLK) ⭐ Nou
+Simulează o sesiune activă de curs cu înregistrare și transcriere live:
+```bash
+# Rulare standard (30 de secunde)
+npm run test-audio -- live
+
+# Durată specifică (ex. 60 de secunde)
+python scripts/test_audio_stream.py live scripts/audio-test.mp3 --duration 60
+```
+*Ce face:*
+1. Trimite comanda `RECORD_START` → audio-server-ul deschide conexiunea cu serviciul de transcriere.
+2. Transmite audio PCM în timp real, iar transcrierea apare în tabelele `live_transcripts` din Supabase.
+3. Panoul **Transcriere Live** din frontend afișează textul în timp real cu latență minimă.
+4. La finalul duratei trimite `RECORD_STOP`, salvează fișierul WAV și finalizează transcrierea.
+
+### C. Test Flow Înregistrare + Upload + Transcriere Batch
+Testarea automată a fluxului de înregistrare locală, upload în Supabase Storage și transcriere post-înregistrare:
+```bash
+# 1. Pornește serverele de bază
+npm run servers
+
+# 2. Pornește stream-ul de simulare
+python scripts/test_audio_stream.py stream
+
+# 3. Declanșează înregistrarea (durată fixă de 30s)
+python scripts/test_recording_flow.py
+```
+
+### D. Test Transcriere Batch Directă
+Efectuează o transcriere batch rapidă a fișierului de test local către REST API:
+```bash
+python scripts/test_transcribe_flow.py
+```
+
+---
+
+## ⚙️ Variabile de Mediu (`.env`)
+
+```env
+# Supabase
+VITE_SUPABASE_URL=https://xxxx.supabase.co
+VITE_SUPABASE_ANON_KEY=eyJ...
+
+# AI Chat (NVIDIA NIM)
+VITE_NVIDIA_API_KEY=nvapi-...
+
+# Hugging Face (transcriere cloud, opțional)
+VITE_HF_TOKEN=hf_...
+
+# Deepgram (transcriere live & batch cloud)
+DEEPGRAM=your_deepgram_api_key_here
+```
+
+> Copiază `.env.example` → `.env` și completează valorile tale.
+
+---
+
+## 📁 Structura Proiectului
+
+```
+├── src/                        # Frontend Vue 3
+│   ├── pages/AudioCallPage.vue # Conferință audio + panou transcriere live
+│   ├── composables/
+│   │   ├── useAudioCall.ts     # WebRTC client
+│   │   └── useLiveTranscript.ts# Supabase Realtime → segmente live
+│   └── ...
+├── servers/
+│   ├── audio-server/           # FastAPI: WebRTC + Deepgram ASR (port 8001)
+│   │   ├── server.py
+│   │   └── requirements.txt
+│   └── mqtt-server/            # Bridge MQTT ↔ Supabase
+├── scripts/
+│   ├── test_audio_stream.py    # Test streaming + live transcription
+│   ├── test_recording_flow.py  # Test înregistrare + batch upload
+│   ├── test_transcribe_flow.py # Test transcriere directă
+│   └── audio-test.mp3          # Fișier audio de test
+├── supabase/migrations/        # Migrări SQL Supabase
+└── docs/product_brief.md       # Document de produs complet
+```
+
+---
+
+DEPLOY TRIGGER = 4

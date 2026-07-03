@@ -1,13 +1,13 @@
 /**
  * Transcribes an audio file.
  * Supports:
- * 1. Custom local ASR endpoint (e.g. local Python server running in whispered project)
- *    defined by VITE_ASR_ENDPOINT in `.env` (defaults to http://localhost:8000/transcribe).
+ * 1. Custom local ASR endpoint (e.g. local Python server running on port 8001)
+ *    defined by VITE_ASR_ENDPOINT in `.env` (defaults to http://localhost:8001/transcribe).
  * 2. Hugging Face Serverless Inference API (using openai/whisper-large-v3),
  *    optionally authenticated with VITE_HF_TOKEN or VITE_HF_API_KEY.
  */
 export async function transcribeAudio(file: File, mode: 'cloud' | 'local' = 'cloud'): Promise<string> {
-  const customAsrEndpoint = import.meta.env.VITE_ASR_ENDPOINT || 'http://localhost:8000/transcribe'
+  const customAsrEndpoint = import.meta.env.VITE_ASR_ENDPOINT || 'http://localhost:8001/transcribe'
   const hfToken = import.meta.env.VITE_HF_TOKEN || import.meta.env.VITE_HF_API_KEY
 
   // ─── 1. Custom Local ASR Server Endpoint ──────────────────────────────────
@@ -19,6 +19,9 @@ export async function transcribeAudio(file: File, mode: 'cloud' | 'local' = 'clo
     try {
       const response = await fetch(customAsrEndpoint, {
         method: 'POST',
+        headers: {
+          'Bypass-Tunnel-Reminder': 'true'
+        },
         body: formData
       })
 

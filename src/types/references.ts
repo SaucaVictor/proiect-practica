@@ -1,4 +1,4 @@
-export type ReferenceType = 'whole-file' | 'text-selection' | 'pdf-page'
+export type ReferenceType = 'whole-file' | 'text-selection' | 'pdf-page' | 'live-transcript'
 
 export interface FileReference {
   id: string
