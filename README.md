@@ -217,7 +217,29 @@ DEEPGRAM=your_deepgram_api_key_here
 ├── supabase/migrations/        # Migrări SQL Supabase
 └── docs/product_brief.md       # Document de produs complet
 ```
+## 🌐 Setup Tunneling Public (ngrok)
+
+Pentru a permite unei versiuni de frontend deployate public (de exemplu pe Vercel) să comunice securizat cu serverul tău audio local (`audio-server` pe portul 8001), urmează acești pași de configurare:
+
+### 1. Instalare locală ngrok
+Instalează clientul ngrok local în proiect ca devDependency (pentru a evita erorile de PATH pe Windows):
+```bash
+npm install --save-dev ngrok
+```
+
+### 2. Configurare Authtoken (O singură dată)
+Autentifică clientul local ngrok folosind token-ul tău gratuit obținut de pe [ngrok Dashboard](https://dashboard.ngrok.com/):
+```bash
+npx ngrok config add-authtoken <YOUR_AUTHTOKEN>
+```
+
+### 3. Pornirea Tunnelului Static
+Rulați comanda preconfigurată din `package.json` care pornește proxy-ul ngrok pe portul 8001 cu domeniul tău static rezervat:
+```bash
+npm run tunnel
+```
 
 ---
 
 DEPLOY TRIGGER = 4
+

@@ -12,7 +12,7 @@
     "audio-server": "powershell -ExecutionPolicy Bypass -File scripts/start-audio-server.ps1",
     "audio-server:auto": "powershell -ExecutionPolicy Bypass -File scripts/start-audio-server.ps1 --auto-transcribe",
     "servers": "start cmd /k \"npm run audio-server\" && start cmd /k \"python -u servers/mqtt-server/server.py\"",
-    "tunnel": "npx localtunnel --port 8001 --subdomain classmonitor-audio-e7a9b2f",
+    "tunnel": "node scripts/start-tunnel.js",
     "test-audio": "python -u scripts/test_audio_stream.py"
   },
   "dependencies": {
@@ -39,6 +39,7 @@
     "@vitejs/plugin-vue": "^5.1.4",
     "@vue/tsconfig": "^0.9.1",
     "autoprefixer": "^10.4.20",
+    "ngrok": "^5.0.0-beta.2",
     "postcss": "^8.4.47",
     "tailwindcss": "^3.4.13",
     "typescript": "^5.6.3",
