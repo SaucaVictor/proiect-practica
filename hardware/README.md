@@ -7,9 +7,11 @@ Documentația hardware pentru sistemul de instrumentare sală de curs.
 ```
 hardware/
 ├── BOM.md              # Bill of Materials — lista completă de piese
-├── schematic.fzz       # Schema Fritzing (de adăugat)
-├── schematic-preview.png  # Export PNG schemă (de adăugat)
-├── test-sketches/      # Coduri Arduino (.ino) pentru testarea componentelor/senzorilor
+├── schematic.fzz       # Schema Fritzing
+├── schematic-preview.png  # Export PNG schemă
+├── classmonitor_firmware/ # Firmware de bază (MQTT telemetrie, fără audio)
+├── classmonitor_firmware_final/ # Firmware integrat final (MQTT telemetrie/comenzi + Audio)
+├── test-sketches/      # Coduri Arduino (.ino) pentru testarea individuală a pieselor
 ├── photos/             # Poze machetă / montaj (de adăugat)
 └── notes.md            # Note tehnice din testare
 ```
