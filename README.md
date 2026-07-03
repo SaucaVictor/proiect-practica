@@ -137,4 +137,4 @@ Aplicația folosește următoarele variabile cheie pentru controlul ASR și baze
 - `VITE_HF_TOKEN`: Token Hugging Face pentru API-ul cloud (dacă se folosește transcrierea cloud).
 - `VITE_ASR_ENDPOINT`: URL-ul către serverul local de transcriere (implicit `http://localhost:8000/transcribe`).
 
-DEPLOY TRIGGER = 2
+DEPLOY TRIGGER = 3
