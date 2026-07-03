@@ -102,7 +102,7 @@ async function send(msg: string) {
         </div>
         <input type="range" min="0" max="255" :value="ledSlider"
           @input="ledSlider = +($event.target as HTMLInputElement).value"
-          @change="setLed(ledSlider)" class="w-full h-1 bg-white/10 rounded-lg appearance-none cursor-pointer accent-[var(--iot-accent)]" />
+          @change="setLed(ledSlider)" class="w-full h-1 bg-[var(--iot-slider-track)] rounded-lg appearance-none cursor-pointer accent-[var(--iot-accent)]" />
         <span class="text-[10px] font-mono text-[var(--iot-text-muted)] text-right -mt-1">{{ ledSlider }} / 255</span>
       </div>
 
@@ -117,7 +117,7 @@ async function send(msg: string) {
         </div>
         <input type="range" min="0" max="255" :value="fanSlider"
           @input="fanSlider = +($event.target as HTMLInputElement).value"
-          @change="setFan(fanSlider)" class="w-full h-1 bg-white/10 rounded-lg appearance-none cursor-pointer accent-[var(--iot-accent)]" />
+          @change="setFan(fanSlider)" class="w-full h-1 bg-[var(--iot-slider-track)] rounded-lg appearance-none cursor-pointer accent-[var(--iot-accent)]" />
         <span class="text-[10px] font-mono text-[var(--iot-text-muted)] text-right -mt-1">{{ fanSlider }} / 255</span>
       </div>
 
@@ -132,7 +132,7 @@ async function send(msg: string) {
         </div>
         <input type="range" min="0" max="255" :value="ptcSlider"
           @input="ptcSlider = +($event.target as HTMLInputElement).value"
-          @change="setPtc(ptcSlider)" class="w-full h-1 bg-white/10 rounded-lg appearance-none cursor-pointer accent-[#ef4444]" />
+          @change="setPtc(ptcSlider)" class="w-full h-1 bg-[var(--iot-slider-track)] rounded-lg appearance-none cursor-pointer accent-[#ef4444]" />
         <span class="text-[10px] font-mono text-[var(--iot-text-muted)] text-right -mt-1">{{ ptcSlider }} / 255</span>
       </div>
 
