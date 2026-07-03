@@ -1,3 +1,4 @@
+/* Dark mode (default) */
 :root {
   --iot-accent: #5c72f3;
   --iot-accent-hover: #4453e7;
@@ -8,4 +9,73 @@
   --iot-text-muted: #9aa0b2;
   --iot-border: rgba(255, 255, 255, 0.08);
   --iot-border-hover: rgba(255, 255, 255, 0.16);
+  --iot-slider-track: rgba(255, 255, 255, 0.12);
+
+  /* Audio page variables */
+  --audio-bg: #0e0f11;
+  --audio-text: #e8eaf0;
+  --audio-text-muted: #737c8e;
+  --audio-text-dim: #464b55;
+  --audio-badge-bg: rgba(92, 114, 243, 0.1);
+  --audio-badge-color: #a4b9fc;
+  --audio-badge-border: rgba(92, 114, 243, 0.25);
+  --audio-title-from: #e8eaf0;
+  --audio-title-mid: #a4b9fc;
+  --audio-title-to: #c4c9d4;
+  --audio-card-bg: rgba(26, 27, 30, 0.6);
+  --audio-card-border: rgba(255, 255, 255, 0.06);
+  --audio-card-shadow: 0 25px 60px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.04);
+  --audio-glow-default: rgba(92, 114, 243, 0.12);
+  --audio-glow-connected: rgba(16, 185, 129, 0.12);
+  --audio-circle-idle-bg: rgba(42, 45, 51, 0.8);
+  --audio-circle-idle-border: rgba(255, 255, 255, 0.08);
+  --audio-volume-bg: rgba(26, 27, 30, 0.5);
+  --audio-volume-border: rgba(255, 255, 255, 0.05);
+  --audio-slider-track: #2a2d33;
+  --audio-btn-loading-bg: #1a1b1e;
+  --audio-btn-loading-color: #737c8e;
+  --audio-btn-loading-border: rgba(255, 255, 255, 0.06);
+  --audio-spinner-border: #363a42;
+  --audio-grid-line: rgba(255, 255, 255, 0.025);
+}
+
+/* Light mode overrides */
+html:not(.dark) {
+  --iot-accent: #5c72f3;
+  --iot-accent-hover: #4453e7;
+  --iot-bg: #f0f2f7;
+  --iot-bg-subtle: #e5e8ef;
+  --iot-card-bg: #e5e8ef;
+  --iot-text: #0f172a;
+  --iot-text-muted: #475569;
+  --iot-border: rgba(0, 0, 0, 0.07);
+  --iot-border-hover: rgba(0, 0, 0, 0.14);
+  --iot-slider-track: #cdd1db;
+
+  /* Audio page variables — light mode */
+  --audio-bg: #f0f2f7;
+  --audio-text: #0f172a;
+  --audio-text-muted: #64748b;
+  --audio-text-dim: #94a3b8;
+  --audio-badge-bg: rgba(92, 114, 243, 0.08);
+  --audio-badge-color: #4355c7;
+  --audio-badge-border: rgba(92, 114, 243, 0.2);
+  --audio-title-from: #1e293b;
+  --audio-title-mid: #4355c7;
+  --audio-title-to: #334155;
+  --audio-card-bg: rgba(229, 232, 239, 0.9);
+  --audio-card-border: rgba(0, 0, 0, 0.07);
+  --audio-card-shadow: 0 8px 32px rgba(0,0,0,0.06), inset 0 1px 0 rgba(255,255,255,0.6);
+  --audio-glow-default: rgba(92, 114, 243, 0.05);
+  --audio-glow-connected: rgba(16, 185, 129, 0.05);
+  --audio-circle-idle-bg: rgba(209, 213, 221, 0.9);
+  --audio-circle-idle-border: rgba(0, 0, 0, 0.08);
+  --audio-volume-bg: rgba(229, 232, 239, 0.9);
+  --audio-volume-border: rgba(0, 0, 0, 0.07);
+  --audio-slider-track: #cdd1db;
+  --audio-btn-loading-bg: #e5e8ef;
+  --audio-btn-loading-color: #94a3b8;
+  --audio-btn-loading-border: rgba(0, 0, 0, 0.08);
+  --audio-spinner-border: #d1d5db;
+  --audio-grid-line: rgba(0, 0, 0, 0.035);
 }

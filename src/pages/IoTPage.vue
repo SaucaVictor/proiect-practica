@@ -35,7 +35,7 @@ const currentTab = ref<"dashboard" | "analytics">("dashboard");
         </div>
 
         <!-- Navigation Tabs -->
-        <div class="flex bg-white/5 border border-white/5 rounded-2xl p-1 backdrop-blur-md">
+        <div class="flex bg-white/5 border border-white/5 rounded-2xl p-1">
           <button
             class="px-5 py-2 rounded-xl border-0 bg-transparent text-xs font-semibold text-[var(--iot-text-muted)] cursor-pointer transition-all duration-200 hover:text-[var(--iot-text)]"
             :class="{ 'bg-[var(--iot-accent)]/15 text-[var(--iot-accent)]': currentTab === 'dashboard' }"
@@ -100,7 +100,7 @@ const currentTab = ref<"dashboard" | "analytics">("dashboard");
             </section>
 
             <!-- Scenario manager section -->
-            <section class="space-y-4 bg-[var(--iot-card-bg)]/30 border border-[var(--iot-border)] rounded-2xl p-6 backdrop-blur-md">
+            <section class="space-y-4 bg-[var(--iot-card-bg)]/30 border border-[var(--iot-border)] rounded-2xl p-6">
               <ScenarioManager />
             </section>
           </div>

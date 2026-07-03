@@ -78,7 +78,7 @@ async function deleteSensor() {
     </div>
 
     <!-- Progress bar for light sensor -->
-    <div v-if="name === 'Light'" class="h-1 bg-white/10 rounded-full mb-2 overflow-hidden">
+    <div v-if="name === 'Light'" class="h-1 bg-[var(--iot-slider-track)] rounded-full mb-2 overflow-hidden">
       <div class="h-full bg-gradient-to-r from-[var(--iot-accent)] to-[#f59e0b] rounded-full transition-all duration-500" :style="{ width: (Math.min(100, Math.max(0, (Number(data.latestValue) / 1023 * 100))) + '%') }" />
     </div>
   </div>

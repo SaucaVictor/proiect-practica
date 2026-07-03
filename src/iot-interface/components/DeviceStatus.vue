@@ -12,7 +12,7 @@ const online = computed(() => {
 </script>
 
 <template>
-  <div class="flex items-center gap-2.5 bg-[var(--iot-bg-subtle)] border border-[var(--iot-border)] rounded-full px-5 py-2.5 text-xs backdrop-blur-md transition-all duration-300 hover:border-[var(--iot-accent)]/30">
+  <div class="flex items-center gap-2.5 bg-[var(--iot-bg-subtle)] border border-[var(--iot-border)] rounded-full px-5 py-2.5 text-xs  transition-all duration-300 hover:border-[var(--iot-accent)]/30">
     <span class="w-2.5 h-2.5 rounded-full transition-all duration-300" :class="[online ? 'bg-emerald-500 shadow-[0_0_8px_#10b981]' : 'bg-zinc-600']" />
     <span class="font-semibold text-[var(--iot-text)]">{{ online ? "Online" : "Offline" }}</span>
   </div>

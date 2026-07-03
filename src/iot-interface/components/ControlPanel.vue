@@ -57,7 +57,7 @@ async function send(msg: string) {
 </script>
 
 <template>
-  <div class="relative bg-[var(--iot-card-bg)] border border-[var(--iot-border)] rounded-2xl p-8 backdrop-blur-md">
+  <div class="relative bg-[var(--iot-card-bg)] border border-[var(--iot-border)] rounded-2xl p-8 ">
 
     <!-- Mode Toggle -->
     <div class="flex items-center justify-between mb-7">
@@ -102,7 +102,7 @@ async function send(msg: string) {
         </div>
         <input type="range" min="0" max="255" :value="ledSlider"
           @input="ledSlider = +($event.target as HTMLInputElement).value"
-          @change="setLed(ledSlider)" class="w-full h-1 bg-white/10 rounded-lg appearance-none cursor-pointer accent-[var(--iot-accent)]" />
+          @change="setLed(ledSlider)" class="w-full h-1 bg-[var(--iot-slider-track)] rounded-lg appearance-none cursor-pointer accent-[var(--iot-accent)]" />
         <span class="text-[10px] font-mono text-[var(--iot-text-muted)] text-right -mt-1">{{ ledSlider }} / 255</span>
       </div>
 
@@ -117,7 +117,7 @@ async function send(msg: string) {
         </div>
         <input type="range" min="0" max="255" :value="fanSlider"
           @input="fanSlider = +($event.target as HTMLInputElement).value"
-          @change="setFan(fanSlider)" class="w-full h-1 bg-white/10 rounded-lg appearance-none cursor-pointer accent-[var(--iot-accent)]" />
+          @change="setFan(fanSlider)" class="w-full h-1 bg-[var(--iot-slider-track)] rounded-lg appearance-none cursor-pointer accent-[var(--iot-accent)]" />
         <span class="text-[10px] font-mono text-[var(--iot-text-muted)] text-right -mt-1">{{ fanSlider }} / 255</span>
       </div>
 
@@ -132,7 +132,7 @@ async function send(msg: string) {
         </div>
         <input type="range" min="0" max="255" :value="ptcSlider"
           @input="ptcSlider = +($event.target as HTMLInputElement).value"
-          @change="setPtc(ptcSlider)" class="w-full h-1 bg-white/10 rounded-lg appearance-none cursor-pointer accent-[#ef4444]" />
+          @change="setPtc(ptcSlider)" class="w-full h-1 bg-[var(--iot-slider-track)] rounded-lg appearance-none cursor-pointer accent-[#ef4444]" />
         <span class="text-[10px] font-mono text-[var(--iot-text-muted)] text-right -mt-1">{{ ptcSlider }} / 255</span>
       </div>
 
@@ -182,7 +182,7 @@ async function send(msg: string) {
     >
       <div 
         v-if="toast" 
-        class="absolute bottom-4 left-1/2 -translate-x-1/2 px-4.5 py-2 rounded-full border text-xs font-semibold shadow-lg backdrop-blur"
+        class="absolute bottom-4 left-1/2 -translate-x-1/2 px-4.5 py-2 rounded-full border text-xs font-semibold shadow-lg "
         :class="[toast.type === 'err' ? 'border-red-500/30 bg-red-950/80 text-red-400' : 'border-[var(--iot-accent)]/30 bg-[var(--iot-bg-subtle)]/90 text-[var(--iot-accent)]']"
       >
         {{ toast.msg }}

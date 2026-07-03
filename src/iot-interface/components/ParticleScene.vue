@@ -3,9 +3,12 @@ import { ref, onMounted, onUnmounted } from "vue";
 
 const canvasRef = ref<HTMLCanvasElement>();
 let animId: number;
+let lastTime = 0;
+const FPS = 30;
+const FRAME_MS = 1000 / FPS;
 
-const COUNT = 60;
-const DIST = 120;
+const COUNT = 35;   // reduced from 60 — cuts O(n²) work by ~66%
+const DIST  = 90;   // reduced from 120
 const particles: Array<{
   x: number;
   y: number;
@@ -73,7 +76,15 @@ function draw() {
     if (p.y < 0 || p.y > canvas.height) p.vy *= -1;
   }
 
-  animId = requestAnimationFrame(draw);
+  animId = requestAnimationFrame(loop);
+}
+
+function loop(ts: number) {
+  if (ts - lastTime >= FRAME_MS) {
+    lastTime = ts;
+    draw();
+  }
+  animId = requestAnimationFrame(loop);
 }
 
 function onResize() {
@@ -85,7 +96,7 @@ function onResize() {
 
 onMounted(() => {
   init();
-  draw();
+  animId = requestAnimationFrame(loop);
   window.addEventListener("resize", onResize);
 });
 
@@ -105,5 +116,6 @@ onUnmounted(() => {
   inset: 0;
   z-index: 0;
   pointer-events: none;
+  will-change: transform;  /* own GPU compositing layer */
 }
 </style>

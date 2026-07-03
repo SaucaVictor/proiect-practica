@@ -97,7 +97,7 @@ onUnmounted(() => chart?.destroy());
 </script>
 
 <template>
-  <div class="relative bg-[var(--iot-card-bg)] border border-[var(--iot-border)] rounded-2xl p-5 backdrop-blur-md">
+  <div class="relative bg-[var(--iot-card-bg)] border border-[var(--iot-border)] rounded-2xl p-5 ">
     <div class="flex justify-between items-center mb-3">
       <span class="text-xs font-bold tracking-wider uppercase text-[var(--iot-text-muted)]">{{ label }}</span>
       <span class="text-[10px] text-[var(--iot-text-muted)] opacity-70">{{ readings.length }} pts</span>

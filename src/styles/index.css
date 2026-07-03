@@ -59,3 +59,306 @@
   }
 }
 
+/* ═══════════════════════════════════════════════════════════════════════════ */
+/*  PERFORMANCE HINTS                                                          */
+/*  Limit browser reflow scope, promote scrollable areas to GPU layers.       */
+/* ═══════════════════════════════════════════════════════════════════════════ */
+
+/* Scrollable list containers — limit repaint scope */
+.messages-container,
+.sidebar-body {
+  contain: layout style;
+  will-change: scroll-position;
+}
+
+/* Disable expensive backdrop-blur on drawer backdrop */
+.drawer-backdrop {
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════ */
+/*  LIGHT MODE OVERRIDES                                                       */
+/*  Palette:                                                                   */
+/*    --bg-page   : #f0f2f7  (page background)                                */
+/*    --bg-widget : #e5e8ef  (cards / widgets — slightly darker)              */
+/*    --bg-input  : #dde1e9  (inputs / interactive surfaces)                  */
+/*    --border    : #cdd1db  (borders)                                         */
+/* ═══════════════════════════════════════════════════════════════════════════ */
+
+/* ── Base ──────────────────────────────────────────────────────────────────── */
+html:not(.dark) body {
+  background-color: #f0f2f7 !important;
+  color: #0f172a !important;
+}
+
+html:not(.dark) .app-layout {
+  background-color: #f0f2f7 !important;
+}
+
+/* ── Sidebar rail ──────────────────────────────────────────────────────────── */
+html:not(.dark) .app-rail {
+  background-color: #eaecf2 !important;
+  border-color: #cdd1db !important;
+}
+html:not(.dark) .rail-item {
+  color: #475569 !important;
+}
+html:not(.dark) .rail-item:hover {
+  background-color: #d5d9e2 !important;
+  color: #0f172a !important;
+}
+
+/* ── Chat topbar ───────────────────────────────────────────────────────────── */
+html:not(.dark) .chat-topbar {
+  background-color: #eaecf2 !important;
+  border-color: #cdd1db !important;
+}
+html:not(.dark) .chat-conv-title {
+  color: #0f172a !important;
+}
+
+/* ── Chat page / messages area ─────────────────────────────────────────────── */
+html:not(.dark) .chat-page,
+html:not(.dark) .chat-body,
+html:not(.dark) .chat-panel,
+html:not(.dark) .messages-container {
+  background-color: #f0f2f7 !important;
+}
+
+/* ── Chat input box ────────────────────────────────────────────────────────── */
+html:not(.dark) .input-wrapper {
+  background-color: #e5e8ef !important;
+  border-color: #cdd1db !important;
+}
+html:not(.dark) .input-toolbar {
+  border-color: #cdd1db !important;
+}
+
+/* ── Conversation drawer + Sidebar ────────────────────────────────────────── */
+html:not(.dark) .drawer-panel {
+  background-color: #e5e8ef !important;
+  border-color: #cdd1db !important;
+}
+html:not(.dark) .sidebar {
+  background-color: #e5e8ef !important;
+}
+html:not(.dark) .sidebar-header {
+  border-color: #cdd1db !important;
+}
+html:not(.dark) .sidebar-logo-text {
+  color: #0f172a !important;
+}
+html:not(.dark) .new-chat-btn {
+  color: #475569 !important;
+}
+html:not(.dark) .new-chat-btn:hover {
+  background-color: #d5d9e2 !important;
+  color: #0f172a !important;
+}
+
+/* ── Conversation search bar ───────────────────────────────────────────────── */
+html:not(.dark) .search-input {
+  background-color: #dde1e9 !important;
+  color: #0f172a !important;
+  border-color: #cdd1db !important;
+}
+html:not(.dark) .search-icon {
+  color: #64748b !important;
+}
+
+/* ── Drag handle ───────────────────────────────────────────────────────────── */
+html:not(.dark) .drag-handle {
+  background-color: #cdd1db !important;
+}
+
+/* ── Settings page ─────────────────────────────────────────────────────────── */
+html:not(.dark) .settings-page {
+  background-color: #f0f2f7 !important;
+  color: #0f172a !important;
+}
+html:not(.dark) .section-body {
+  background-color: #e5e8ef !important;
+  border-color: #cdd1db !important;
+}
+html:not(.dark) .system-prompt-input {
+  background-color: #dde1e9 !important;
+  border-color: #cdd1db !important;
+  color: #0f172a !important;
+}
+html:not(.dark) .theme-buttons {
+  border-color: #cdd1db !important;
+}
+html:not(.dark) .theme-btn {
+  background-color: #e5e8ef !important;
+  color: #475569 !important;
+}
+
+/* ── Profile page ──────────────────────────────────────────────────────────── */
+html:not(.dark) .profile-page {
+  background-color: #f0f2f7 !important;
+  color: #0f172a !important;
+}
+html:not(.dark) .profile-card {
+  background-color: #e5e8ef !important;
+  border-color: #cdd1db !important;
+}
+html:not(.dark) .profile-title {
+  color: #0f172a !important;
+}
+html:not(.dark) .profile-name {
+  color: #0f172a !important;
+}
+html:not(.dark) .profile-email {
+  color: #64748b !important;
+}
+
+/* ── Input / field component (used in Profile, Settings) ───────────────────── */
+html:not(.dark) .field-input {
+  background-color: #dde1e9 !important;
+  border-color: #cdd1db !important;
+  color: #0f172a !important;
+}
+html:not(.dark) .field-label {
+  color: #334155 !important;
+}
+html:not(.dark) .field-hint {
+  color: #64748b !important;
+}
+
+/* ── Schedule page ─────────────────────────────────────────────────────────── */
+html:not(.dark) .schedule-page {
+  background-color: #f0f2f7 !important;
+  color: #0f172a !important;
+}
+html:not(.dark) .day-card {
+  background-color: #e5e8ef !important;
+  border-color: #cdd1db !important;
+}
+html:not(.dark) .day-header {
+  border-color: #cdd1db !important;
+}
+html:not(.dark) .day-name  { color: #0f172a !important; }
+html:not(.dark) .day-count { color: #64748b !important; }
+html:not(.dark) .empty-day { color: #94a3b8 !important; }
+html:not(.dark) .entry-card:hover {
+  background-color: rgba(209, 213, 221, 0.6) !important;
+}
+html:not(.dark) .add-form {
+  background-color: #dde1e9 !important;
+  border-color: #cdd1db !important;
+}
+html:not(.dark) .form-input,
+html:not(.dark) .form-select {
+  background-color: #dde1e9 !important;
+  border-color: #cdd1db !important;
+  color: #0f172a !important;
+}
+html:not(.dark) .form-label     { color: #475569 !important; }
+html:not(.dark) .schedule-title { color: #0f172a !important; }
+html:not(.dark) .schedule-subtitle { color: #64748b !important; }
+
+/* ── Text color classes (specific, not wildcard) ───────────────────────────── */
+html:not(.dark) .text-surface-950 { color: #020617 !important; }
+html:not(.dark) .text-surface-900 { color: #0f172a !important; }
+html:not(.dark) .text-surface-800 { color: #1e293b !important; }
+html:not(.dark) .text-surface-700 { color: #334155 !important; }
+html:not(.dark) .text-surface-600 { color: #475569 !important; }
+html:not(.dark) .text-surface-500 { color: #64748b !important; }
+
+/* ─── IoT Page light mode ─────────────────────────────────────────────────── */
+html:not(.dark) .iot-page {
+  background-color: #f0f2f7 !important;
+  color: #0f172a !important;
+  scrollbar-color: #cdd1db transparent !important;
+}
+html:not(.dark) .iot-page header {
+  border-color: rgba(0, 0, 0, 0.06) !important;
+}
+/* Tab bar wrapper */
+html:not(.dark) .iot-page .flex.bg-white\/5 {
+  background-color: rgba(209, 213, 221, 0.8) !important;
+  border-color: rgba(0, 0, 0, 0.07) !important;
+}
+/* bg-white/5 & bg-white/10 surfaces inside IoT */
+html:not(.dark) .iot-page .bg-white\/5  { background-color: #dde1e9 !important; }
+html:not(.dark) .iot-page .bg-white\/10 { background-color: #d5d9e2 !important; }
+/* Borders */
+html:not(.dark) .iot-page .border-white\/5  { border-color: rgba(0, 0, 0, 0.06) !important; }
+html:not(.dark) .iot-page .border-white\/10 { border-color: rgba(0, 0, 0, 0.10) !important; }
+html:not(.dark) .iot-page .border-white\/15 { border-color: rgba(0, 0, 0, 0.12) !important; }
+/* Toggle switch track */
+html:not(.dark) .iot-page .w-9.h-5 { background-color: #b8bdc9 !important; }
+
+/* ─── Audio Page light mode ───────────────────────────────────────────────── */
+html:not(.dark) .audio-call-container {
+  background-color: #f0f2f7 !important;
+  color: #0f172a !important;
+}
+html:not(.dark) .audio-call-container .bg-glow--left {
+  background: radial-gradient(circle, rgba(92, 114, 243, 0.07) 0%, transparent 70%) !important;
+}
+html:not(.dark) .audio-call-container .bg-glow--right {
+  background: radial-gradient(circle, rgba(99, 102, 241, 0.05) 0%, transparent 70%) !important;
+}
+html:not(.dark) .audio-call-container .grid-overlay {
+  background-image:
+    linear-gradient(to right, rgba(0, 0, 0, 0.04) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(0, 0, 0, 0.04) 1px, transparent 1px) !important;
+}
+html:not(.dark) .audio-call-container .status-badge {
+  background: rgba(92, 114, 243, 0.08) !important;
+  color: #4355c7 !important;
+  border-color: rgba(92, 114, 243, 0.2) !important;
+}
+html:not(.dark) .audio-call-container .page-title {
+  background: linear-gradient(135deg, #1e293b 0%, #4355c7 50%, #334155 100%) !important;
+  -webkit-background-clip: text !important;
+  -webkit-text-fill-color: transparent !important;
+  background-clip: text !important;
+}
+html:not(.dark) .audio-call-container .page-subtitle { color: #64748b !important; }
+html:not(.dark) .audio-call-container .visualizer-card {
+  background: rgba(229, 232, 239, 0.9) !important;
+  border-color: rgba(0, 0, 0, 0.07) !important;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.06), inset 0 1px 0 rgba(255, 255, 255, 0.5) !important;
+}
+html:not(.dark) .audio-call-container .card-glow         { background: rgba(92, 114, 243, 0.05) !important; }
+html:not(.dark) .audio-call-container .card-glow--connected { background: rgba(16, 185, 129, 0.05) !important; }
+html:not(.dark) .audio-call-container .status-circle--disconnected {
+  background: rgba(209, 213, 221, 0.9) !important;
+  border-color: rgba(0, 0, 0, 0.08) !important;
+}
+html:not(.dark) .audio-call-container .status-circle--connecting {
+  background: rgba(92, 114, 243, 0.1) !important;
+  border-color: rgba(92, 114, 243, 0.25) !important;
+}
+html:not(.dark) .audio-call-container .status-circle--connected {
+  background: rgba(16, 185, 129, 0.12) !important;
+  border-color: rgba(16, 185, 129, 0.3) !important;
+}
+html:not(.dark) .audio-call-container .status-label--disconnected { color: #94a3b8 !important; }
+html:not(.dark) .audio-call-container .status-label--connecting   { color: #4355c7 !important; }
+html:not(.dark) .audio-call-container .status-label--connected    { color: #059669 !important; }
+html:not(.dark) .audio-call-container .status-label--failed       { color: #dc2626 !important; }
+html:not(.dark) .audio-call-container .connection-details { color: #94a3b8 !important; }
+html:not(.dark) .audio-call-container .volume-panel {
+  background: rgba(229, 232, 239, 0.9) !important;
+  border-color: rgba(0, 0, 0, 0.07) !important;
+}
+html:not(.dark) .audio-call-container .mute-btn       { color: #64748b !important; }
+html:not(.dark) .audio-call-container .mute-btn:hover {
+  background: rgba(0, 0, 0, 0.04) !important;
+  color: #0f172a !important;
+}
+html:not(.dark) .audio-call-container .volume-slider  { background: #cdd1db !important; }
+html:not(.dark) .audio-call-container .volume-value   { color: #94a3b8 !important; }
+html:not(.dark) .audio-call-container .btn--loading {
+  background: #e5e8ef !important;
+  color: #94a3b8 !important;
+  border-color: rgba(0, 0, 0, 0.08) !important;
+}
+html:not(.dark) .audio-call-container .spinner {
+  border-color: #d1d5db !important;
+  border-top-color: #5c72f3 !important;
+}

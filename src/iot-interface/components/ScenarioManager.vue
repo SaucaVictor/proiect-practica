@@ -209,7 +209,7 @@ async function updateBuiltin(id: string, field: string, val: number) {
               <select v-model="a.output" class="bg-[var(--iot-bg-subtle)] border border-white/10 rounded-lg px-2 py-1.5 text-xs text-[var(--iot-text)] outline-none cursor-pointer focus:border-[var(--iot-accent)]">
                 <option v-for="o in OUTPUTS" :key="o">{{ o }}</option>
               </select>
-              <input type="range" min="0" max="255" v-model.number="a.value" class="flex-1 h-1 bg-white/10 rounded appearance-none cursor-pointer accent-[var(--iot-accent)]" />
+              <input type="range" min="0" max="255" v-model.number="a.value" class="flex-1 h-1 bg-[var(--iot-slider-track)] rounded appearance-none cursor-pointer accent-[var(--iot-accent)]" />
               <span class="w-10 text-right text-xs font-mono text-[var(--iot-accent)]">{{ Math.round(a.value / 255 * 100) }}%</span>
               <button class="p-1 rounded bg-red-500/10 text-red-400 hover:bg-red-500/25 border-0 cursor-pointer" @click="removeAction(i)">✕</button>
             </div>
