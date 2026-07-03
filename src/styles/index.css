@@ -59,50 +59,122 @@
   }
 }
 
-/* ─── Light Mode Overrides ─────────────────────────────────────────────────── */
-/* The surface palette is dark-first (surface-0 = darkest). In light mode we   */
-/* remap to a proper white/slate scale so the UI actually looks light.         */
-
-html:not(.dark) {
-  color-scheme: light;
-}
+/* ─────────────────────────────────────────────────────────────────────────── */
+/* LIGHT MODE OVERRIDES                                                        */
+/* Tailwind genera CSS hardcodat la build-time; nu putem folosi CSS variables  */
+/* în config. În schimb, suprascriem cu !important clasele componente + body.  */
+/* ─────────────────────────────────────────────────────────────────────────── */
 
 html:not(.dark) body {
-  background-color: #f8fafc;
-  color: #0f172a;
+  background-color: #f8fafc !important;
+  color: #0f172a !important;
 }
 
-/* Backgrounds */
-html:not(.dark) .bg-surface-0   { background-color: #ffffff; }
-html:not(.dark) .bg-surface-50  { background-color: #f8fafc; }
-html:not(.dark) .bg-surface-100 { background-color: #f1f5f9; }
-html:not(.dark) .bg-surface-200 { background-color: #e2e8f0; }
-html:not(.dark) .bg-surface-300 { background-color: #cbd5e1; }
-html:not(.dark) .bg-surface-400 { background-color: #94a3b8; }
-
-/* Hover backgrounds */
-html:not(.dark) .hover\:bg-surface-200:hover { background-color: #e2e8f0; }
-html:not(.dark) .hover\:bg-surface-300:hover { background-color: #cbd5e1; }
-
-/* Borders */
-html:not(.dark) .border-surface-200 { border-color: #e2e8f0; }
-html:not(.dark) .border-surface-300 { border-color: #cbd5e1; }
-
-/* Text */
-html:not(.dark) .text-surface-950 { color: #020617; }
-html:not(.dark) .text-surface-900 { color: #0f172a; }
-html:not(.dark) .text-surface-800 { color: #1e293b; }
-html:not(.dark) .text-surface-700 { color: #334155; }
-html:not(.dark) .text-surface-600 { color: #475569; }
-html:not(.dark) .text-surface-500 { color: #64748b; }
-
-/* Hover text */
-html:not(.dark) .hover\:text-surface-950:hover { color: #020617; }
-
-/* Selection in light mode */
-html:not(.dark) ::selection {
-  background-color: rgba(92, 114, 243, 0.25);
-  color: #020617;
+/* AppLayout wrapper */
+html:not(.dark) .app-layout {
+  background-color: #f8fafc !important;
 }
 
+/* Sidebar rail */
+html:not(.dark) .app-rail {
+  background-color: #f1f5f9 !important;
+  border-color: #e2e8f0 !important;
+}
+
+html:not(.dark) .rail-item {
+  color: #475569 !important;
+}
+
+html:not(.dark) .rail-item:hover {
+  background-color: #e2e8f0 !important;
+  color: #0f172a !important;
+}
+
+/* Chat topbar */
+html:not(.dark) .chat-topbar {
+  background-color: #f8fafc !important;
+  border-color: #e2e8f0 !important;
+}
+
+html:not(.dark) .chat-conv-title {
+  color: #0f172a !important;
+}
+
+/* Chat messages area */
+html:not(.dark) .chat-page,
+html:not(.dark) .chat-body,
+html:not(.dark) .chat-panel {
+  background-color: #f8fafc !important;
+}
+
+/* Conversation drawer */
+html:not(.dark) .conversation-drawer,
+html:not(.dark) .drawer-content {
+  background-color: #ffffff !important;
+  border-color: #e2e8f0 !important;
+}
+
+/* Settings, Profile, Schedule, IoT pages */
+html:not(.dark) .settings-page,
+html:not(.dark) .profile-page,
+html:not(.dark) .schedule-page {
+  background-color: #f8fafc !important;
+  color: #0f172a !important;
+}
+
+/* Drag handle */
+html:not(.dark) .drag-handle {
+  background-color: #e2e8f0 !important;
+}
+
+/* Generic surface overrides for any element with these Tailwind classes */
+html:not(.dark) [class*="bg-surface-0"]   { background-color: #ffffff !important; }
+html:not(.dark) [class*="bg-surface-50"]  { background-color: #f8fafc !important; }
+html:not(.dark) [class*="bg-surface-100"] { background-color: #f1f5f9 !important; }
+html:not(.dark) [class*="bg-surface-200"] { background-color: #e2e8f0 !important; }
+html:not(.dark) [class*="bg-surface-300"] { background-color: #cbd5e1 !important; }
+
+html:not(.dark) [class*="border-surface-200"] { border-color: #e2e8f0 !important; }
+html:not(.dark) [class*="border-surface-300"] { border-color: #cbd5e1 !important; }
+
+html:not(.dark) [class*="text-surface-950"] { color: #020617 !important; }
+html:not(.dark) [class*="text-surface-900"] { color: #0f172a !important; }
+html:not(.dark) [class*="text-surface-800"] { color: #1e293b !important; }
+html:not(.dark) [class*="text-surface-700"] { color: #334155 !important; }
+html:not(.dark) [class*="text-surface-600"] { color: #475569 !important; }
+html:not(.dark) [class*="text-surface-500"] { color: #64748b !important; }
+
+/* ─── Schedule Page ────────────────────────────────────────────────────────── */
+html:not(.dark) .day-card {
+  background-color: #ffffff !important;
+  border-color: #e2e8f0 !important;
+}
+
+html:not(.dark) .day-header {
+  border-color: #e2e8f0 !important;
+}
+
+html:not(.dark) .day-name  { color: #0f172a !important; }
+html:not(.dark) .day-count { color: #64748b !important; }
+html:not(.dark) .empty-day { color: #94a3b8 !important; }
+
+html:not(.dark) .entry-card:hover {
+  background-color: rgba(226, 232, 240, 0.5) !important;
+}
+
+html:not(.dark) .add-form {
+  background-color: #f1f5f9 !important;
+  border-color: #e2e8f0 !important;
+}
+
+html:not(.dark) .form-input,
+html:not(.dark) .form-select {
+  background-color: #ffffff !important;
+  border-color: #cbd5e1 !important;
+  color: #0f172a !important;
+}
+
+html:not(.dark) .form-label { color: #475569 !important; }
+html:not(.dark) .schedule-title { color: #0f172a !important; }
+html:not(.dark) .schedule-subtitle { color: #64748b !important; }
 

@@ -1,3 +1,4 @@
+/* Dark mode (default) */
 :root {
   --iot-accent: #5c72f3;
   --iot-accent-hover: #4453e7;
@@ -8,4 +9,19 @@
   --iot-text-muted: #9aa0b2;
   --iot-border: rgba(255, 255, 255, 0.08);
   --iot-border-hover: rgba(255, 255, 255, 0.16);
+  --iot-slider-track: rgba(255, 255, 255, 0.12);
+}
+
+/* Light mode overrides */
+html:not(.dark) {
+  --iot-accent: #5c72f3;
+  --iot-accent-hover: #4453e7;
+  --iot-bg: #f8fafc;
+  --iot-bg-subtle: #f1f5f9;
+  --iot-card-bg: #ffffff;
+  --iot-text: #0f172a;
+  --iot-text-muted: #475569;
+  --iot-border: rgba(0, 0, 0, 0.08);
+  --iot-border-hover: rgba(0, 0, 0, 0.16);
+  --iot-slider-track: #cbd5e1;
 }
