@@ -59,3 +59,50 @@
   }
 }
 
+/* ─── Light Mode Overrides ─────────────────────────────────────────────────── */
+/* The surface palette is dark-first (surface-0 = darkest). In light mode we   */
+/* remap to a proper white/slate scale so the UI actually looks light.         */
+
+html:not(.dark) {
+  color-scheme: light;
+}
+
+html:not(.dark) body {
+  background-color: #f8fafc;
+  color: #0f172a;
+}
+
+/* Backgrounds */
+html:not(.dark) .bg-surface-0   { background-color: #ffffff; }
+html:not(.dark) .bg-surface-50  { background-color: #f8fafc; }
+html:not(.dark) .bg-surface-100 { background-color: #f1f5f9; }
+html:not(.dark) .bg-surface-200 { background-color: #e2e8f0; }
+html:not(.dark) .bg-surface-300 { background-color: #cbd5e1; }
+html:not(.dark) .bg-surface-400 { background-color: #94a3b8; }
+
+/* Hover backgrounds */
+html:not(.dark) .hover\:bg-surface-200:hover { background-color: #e2e8f0; }
+html:not(.dark) .hover\:bg-surface-300:hover { background-color: #cbd5e1; }
+
+/* Borders */
+html:not(.dark) .border-surface-200 { border-color: #e2e8f0; }
+html:not(.dark) .border-surface-300 { border-color: #cbd5e1; }
+
+/* Text */
+html:not(.dark) .text-surface-950 { color: #020617; }
+html:not(.dark) .text-surface-900 { color: #0f172a; }
+html:not(.dark) .text-surface-800 { color: #1e293b; }
+html:not(.dark) .text-surface-700 { color: #334155; }
+html:not(.dark) .text-surface-600 { color: #475569; }
+html:not(.dark) .text-surface-500 { color: #64748b; }
+
+/* Hover text */
+html:not(.dark) .hover\:text-surface-950:hover { color: #020617; }
+
+/* Selection in light mode */
+html:not(.dark) ::selection {
+  background-color: rgba(92, 114, 243, 0.25);
+  color: #020617;
+}
+
+
