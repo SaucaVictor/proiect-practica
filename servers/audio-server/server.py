@@ -664,9 +664,11 @@ async def record_stop():
 async def transcribe(file: UploadFile = File(...)):
     api_key = os.getenv("DEEPGRAM") or os.getenv("DEEPGRAM_API_KEY")
     if not api_key:
+        print("[Deepgram] Error: DEEPGRAM API key not configured on backend.")
         raise HTTPException(status_code=500, detail="DEEPGRAM API key not configured on backend.")
     
     file_bytes = await file.read()
+    print(f"[Deepgram] /transcribe request received: filename='{file.filename}', content_type='{file.content_type}', size={len(file_bytes)} bytes")
     
     try:
         headers_dg = {
@@ -676,6 +678,7 @@ async def transcribe(file: UploadFile = File(...)):
         url_dg = "https://api.deepgram.com/v1/listen?model=nova-2&language=ro&smart_format=true"
         async with httpx.AsyncClient(timeout=120.0) as client:
             res = await client.post(url_dg, content=file_bytes, headers=headers_dg)
+            print(f"[Deepgram] HTTP POST request to Deepgram API. Status: {res.status_code}")
             if res.status_code == 200:
                 response_json = res.json()
                 transcription_text = (
@@ -684,10 +687,13 @@ async def transcribe(file: UploadFile = File(...)):
                     .get("alternatives", [{}])[0]
                     .get("transcript", "")
                 )
+                print(f"[Deepgram] Successful transcription. Result: '{transcription_text.strip()}'")
                 return {"text": transcription_text.strip()}
             else:
+                print(f"[Deepgram] Error: Deepgram API returned status {res.status_code}. Response: {res.text}")
                 raise HTTPException(status_code=res.status_code, detail=f"Deepgram returned error: {res.text}")
     except Exception as e:
+        print(f"[Deepgram] Exception occurred during transcription: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
 
 # ─── ESP32 WebSocket Endpoint ───

@@ -66,7 +66,7 @@ export function useChat() {
 
         if (hasImages && activeModelSupportsVision) {
           const cleanText = (typeof contentVal === 'string' ? contentVal : m.content)
-            .replace(/<!-- FILES_CONTENT_START -->[\s\S]*<!-- FILES_CONTENT_END -->/, '')
+            .replace(/<files_content>[\s\S]*<\/files_content>/, '')
             .trim()
           const parts: any[] = [{ type: 'text', text: cleanText }]
           for (const att of m.attachments) {
@@ -212,7 +212,7 @@ export function useChat() {
           }
         }
         if (fileTexts) {
-          dbContent += `\n\n<!-- FILES_CONTENT_START -->${fileTexts}<!-- FILES_CONTENT_END -->`
+          dbContent += `\n\n<files_content>${fileTexts}</files_content>`
         }
       }
 
