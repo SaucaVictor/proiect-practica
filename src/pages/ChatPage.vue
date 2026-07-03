@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { ref, watch, onMounted, onUnmounted, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { storeToRefs } from 'pinia'
 import { useChatStore } from '@/stores/chat.store'
 import { useConversationStore } from '@/stores/conversation.store'
 import { useProviderStore } from '@/stores/provider.store'
@@ -10,7 +9,6 @@ import { useKeyboard } from '@/composables/useKeyboard'
 import ChatMessages from '@/components/chat/ChatMessages.vue'
 import ChatInput from '@/components/chat/ChatInput.vue'
 import ModelSelector from '@/components/model/ModelSelector.vue'
-import Button from '@/components/ui/Button.vue'
 import ResourcesPanel from '@/components/chat/ResourcesPanel.vue'
 import type { RealtimeChannel } from '@supabase/supabase-js'
 import { subscribeToMessages, unsubscribe } from '@/services/supabase/realtime'
@@ -27,7 +25,6 @@ const refStore = useReferencesStore()
 const settingsStore = useSettingsStore()
 const { sendMessage, regenerate, abort } = useChat()
 
-const { isStreaming } = storeToRefs(chatStore)
 
 watch(
   () => refStore.focusRef,

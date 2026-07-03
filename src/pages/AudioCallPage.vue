@@ -17,7 +17,6 @@ import ChatMessages from '@/components/chat/ChatMessages.vue'
 import ChatInput from '@/components/chat/ChatInput.vue'
 import ModelSelector from '@/components/model/ModelSelector.vue'
 import ResourcesPanel from '@/components/chat/ResourcesPanel.vue'
-import Button from '@/components/ui/Button.vue'
 
 const { status, error, stream, connect, disconnect } = useAudioCall()
 
