@@ -151,12 +151,12 @@ function buildChart() {
       plugins: {
         legend: { display: false },
         tooltip: {
-          backgroundColor: "var(--iot-bg-subtle)",
-          borderColor: "var(--iot-border)",
+          backgroundColor: "#1a1b1e",
+          borderColor: "rgba(255,255,255,0.08)",
           borderWidth: 1,
           padding: 12,
-          titleColor: "var(--iot-text-muted)",
-          bodyColor: "var(--iot-text)",
+          titleColor: "#9aa0b2",
+          bodyColor: "#e8eaf0",
           titleFont: { family: "Inter", weight: "bold" },
           bodyFont: { family: "Inter" },
           callbacks: {
@@ -173,7 +173,7 @@ function buildChart() {
         x: {
           grid: { color: "rgba(255,255,255,0.03)" },
           ticks: {
-            color: "var(--iot-text-muted)",
+            color: "#9aa0b2",
             font: { size: 9, family: "Inter" },
             maxTicksLimit: 8,
           }
