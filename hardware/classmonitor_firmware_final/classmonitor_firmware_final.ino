@@ -32,7 +32,7 @@
 #include <Adafruit_GFX.h>
 #include <Adafruit_SSD1306.h>
 #include <DHT.h>
-#include <driver/i2s.h>
+#include <ESP_I2S.h>
 
 // ─── CONFIGURARE CONEXIUNI REȚEA ȘI SERVERE ───
 const char* ssid       = "your_ssid";
@@ -50,9 +50,11 @@ const int wsPort       = 8001;
 WiFiClient espClient;
 PubSubClient mqttClient(espClient);
 WebSocketsClient webSocket;
+I2SClass i2s;
 
 bool wsConnected = false;
 bool isRecording = false;
+bool oledEnabled = false;
 
 // ─── CONFIGURARE TOPICE MQTT ───
 const char* telemetryTopic = "iot/classmonitor/telemetry";
@@ -108,28 +110,11 @@ bool lastButtonState = HIGH;
 
 // ─── INITIALIZARE I2S PENTRU MICROFON ───
 void initI2S() {
-  i2s_config_t i2s_config = {
-    .mode = (i2s_mode_t)(I2S_MODE_MASTER | I2S_MODE_RX),
-    .sample_rate = SAMPLE_RATE,
-    .bits_per_sample = I2S_BITS_PER_SAMPLE_32BIT,
-    .channel_format = I2S_CHANNEL_FMT_ONLY_LEFT,
-    .communication_format = I2S_COMM_FORMAT_STAND_I2S,
-    .intr_alloc_flags = ESP_INTR_FLAG_LEVEL1,
-    .dma_buf_count = 8,
-    .dma_buf_len = 64,
-    .use_apll = false
-  };
-
-  i2s_pin_config_t pin_config = {
-    .bck_io_num = I2S_SCK,
-    .ws_io_num = I2S_WS,
-    .data_out_num = I2S_PIN_NO_CHANGE,
-    .data_in_num = I2S_SD
-  };
-
-  i2s_driver_install(I2S_PORT, &i2s_config, 0, NULL);
-  i2s_set_pin(I2S_PORT, &pin_config);
-  i2s_zero_dma_buffer(I2S_PORT);
+  i2s.setPins(I2S_SCK, I2S_WS, -1, I2S_SD, -1);
+  i2s.setTimeout(1000); // Setam timeout la 1000ms pentru a forta citirea de blocuri complete (128 esantioane / 8ms)
+  if (!i2s.begin(I2S_MODE_STD, SAMPLE_RATE, I2S_DATA_BIT_WIDTH_32BIT, I2S_SLOT_MODE_MONO, I2S_STD_SLOT_LEFT)) {
+    Serial.println("Eroare la initializarea I2S!");
+  }
 }
 
 // ─── CONTROL PWM MOSFET ───
@@ -156,6 +141,7 @@ void webSocketEvent(WStype_t type, uint8_t * payload, size_t length) {
 
 // ─── ACTUALIZARE OLED ───
 void updateDisplay() {
+  if (!oledEnabled) return;
   display.clearDisplay();
   display.setTextSize(1);
   display.setTextColor(SSD1306_WHITE);
@@ -342,11 +328,22 @@ void setup() {
   pinMode(buttonPin, INPUT_PULLUP);
   dht.begin();
   
-  // Initializare OLED
+  // Initializare I2C si detectare ecran OLED
   Wire.begin(21, 22);
-  if(display.begin(SSD1306_SWITCHCAPVCC, 0x3C)) {
-    display.clearDisplay();
-    display.display();
+  Wire.beginTransmission(0x3C);
+  byte i2cError = Wire.endTransmission();
+  if (i2cError == 0) {
+    Serial.println("Ecran OLED detectat la adresa 0x3C. Se incepe initializarea...");
+    if(display.begin(SSD1306_SWITCHCAPVCC, 0x3C)) {
+      oledEnabled = true;
+      display.clearDisplay();
+      display.display();
+      Serial.println("Ecran OLED initializat cu succes.");
+    } else {
+      Serial.println("AVERTISMENT: Eroare la display.begin() desi dispozitivul a fost detectat.");
+    }
+  } else {
+    Serial.println("Ecranul OLED nu a fost detectat pe magistrala I2C (adresa 0x3C). Sistemul va continua fara ecran.");
   }
 
   // Conectare WiFi
@@ -405,9 +402,8 @@ void loop() {
 
   // Citire microfon si transmitere audio daca suntem conectati la WebSocket si inregistrarea e activa
   if (wsConnected && isRecording) {
-    size_t bytes_read = 0;
-    // Citim datele cu un timeout mic (10ms) pentru a nu bloca rularea celorlalte procese din loop
-    i2s_read(I2S_PORT, &i2s_raw_buffer, sizeof(i2s_raw_buffer), &bytes_read, 10 / portTICK_PERIOD_MS);
+    // Citim datele din I2S (I2SClass readBytes returneaza numarul de octeti cititi)
+    size_t bytes_read = i2s.readBytes((char*)i2s_raw_buffer, sizeof(i2s_raw_buffer));
     int samples_read = bytes_read / 4;
     
     if (samples_read > 0) {
