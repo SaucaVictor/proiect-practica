@@ -82,7 +82,7 @@ Poți rula separat componentele aplicației din rădăcina proiectului utilizân
 ### 2. Serverul MQTT (Bridge Senzori/Actuatori IoT)
 Pornește bridge-ul MQTT către baza de date Supabase:
 ```bash
-python servers/mqtt-server/server.py
+npx tsx servers/mqtt-server/server.ts
 ```
 
 ### 3. Pornire Rapidă (Audio-Server + MQTT-Server deodată)

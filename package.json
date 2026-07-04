@@ -11,7 +11,7 @@
     "lint": "eslint . --ext .vue,.ts,.tsx",
     "audio-server": "powershell -ExecutionPolicy Bypass -File scripts/start-audio-server.ps1",
     "audio-server:auto": "powershell -ExecutionPolicy Bypass -File scripts/start-audio-server.ps1 --auto-transcribe",
-    "servers": "start cmd /k \"npm run audio-server\" && start cmd /k \"python -u servers/mqtt-server/server.py\"",
+    "servers": "start cmd /k \"npm run audio-server\" && start cmd /k \"npx tsx servers/mqtt-server/server.ts\"",
     "tunnel": "node scripts/start-tunnel.js",
     "test-audio": "python -u scripts/test_audio_stream.py"
   },
