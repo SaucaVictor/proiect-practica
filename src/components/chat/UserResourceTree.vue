@@ -299,7 +299,10 @@ function fileIcon(node: ResourceNode) {
           >
             <span class="file-icon mr-1.5 flex-shrink-0">{{ fileIcon(node) }}</span>
             <span class="tree-label file-name">{{ node.name }}</span>
-            <span class="file-size ml-2 font-mono text-xs text-surface-400 flex-shrink-0">{{ formatSize(node.size) }}</span>
+            <span v-if="node.isIndexing" class="ml-2 text-[10px] text-accent-500 font-semibold animate-pulse">
+              Indexing {{ node.indexingProgress ?? 0 }}%
+            </span>
+            <span v-else-if="node.size" class="file-size ml-2 font-mono text-xs text-surface-400 flex-shrink-0">{{ formatSize(node.size) }}</span>
           </button>
 
           <!-- Actions -->

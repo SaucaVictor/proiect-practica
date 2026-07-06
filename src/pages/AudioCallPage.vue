@@ -890,7 +890,7 @@ onUnmounted(() => {
 /* ── Container ───────────────────────────────────────────────────────────── */
 .audio-call-container {
   @apply flex flex-col h-full w-full overflow-hidden relative
-         bg-surface-50 dark:bg-surface-0 text-surface-950 dark:text-surface-900;
+         bg-transparent text-slate-900 dark:text-surface-950;
   font-family: 'Inter', 'Outfit', sans-serif;
   z-index: 10;
 }
@@ -962,7 +962,7 @@ onUnmounted(() => {
   background-clip: text;
 }
 .page-subtitle {
-  @apply text-xs max-w-lg m-0 leading-relaxed text-surface-500 dark:text-surface-400;
+  @apply text-xs max-w-lg m-0 leading-relaxed text-surface-500 dark:text-surface-800;
 }
 
 /* ── Visualizer ──────────────────────────────────────────────────────────── */
@@ -972,7 +972,7 @@ onUnmounted(() => {
 .visualizer-card {
   @apply relative w-full max-w-2xl aspect-[21/9] rounded-3xl p-6 overflow-hidden
          flex flex-col items-center justify-center shadow-2xl
-         bg-surface-100 dark:bg-surface-50/50 border border-surface-200 dark:border-surface-200/30;
+         bg-surface-900/60 dark:bg-surface-50/50 border border-surface-800 dark:border-surface-200/30;
   backdrop-filter: blur(20px);
 }
 .card-glow {
@@ -994,7 +994,7 @@ onUnmounted(() => {
 .status-circle {
   @apply w-16 h-16 rounded-full flex items-center justify-center relative transition-all duration-300;
 }
-.status-circle--disconnected { @apply bg-surface-200 dark:bg-surface-100/10 border border-surface-300 dark:border-surface-300/10; }
+.status-circle--disconnected { @apply bg-surface-800 dark:bg-surface-100/10 border border-surface-900 dark:border-surface-300/10; }
 .status-circle--connecting   { @apply bg-accent-500/15 border border-accent-500/30 animate-pulse; }
 .status-circle--connected    { @apply bg-emerald-500/20 border border-emerald-500/40 shadow-[0_0_20px_rgba(16,185,129,0.2)]; }
 .status-circle--failed       { @apply bg-red-500/20 border border-red-500/40; }
@@ -1015,14 +1015,14 @@ onUnmounted(() => {
 .status-label {
   @apply text-[10px] font-semibold tracking-widest uppercase transition-colors duration-300 mt-1;
 }
-.status-label--disconnected { @apply text-surface-500 dark:text-surface-400; }
+.status-label--disconnected { @apply text-surface-500 dark:text-surface-800; }
 .status-label--connecting   { @apply text-accent-500 dark:text-accent-400; }
 .status-label--connected    { @apply text-emerald-500 dark:text-emerald-400; }
 .status-label--failed       { @apply text-red-500 dark:text-red-400; }
 
 /* ── Connection details ──────────────────────────────────────────────────── */
 .connection-details {
-  @apply flex gap-6 text-[10px] font-mono text-surface-400 tracking-wide;
+  @apply flex gap-6 text-[10px] font-mono text-surface-500 dark:text-surface-800 tracking-wide;
 }
 
 /* ── Error ───────────────────────────────────────────────────────────────── */
@@ -1040,7 +1040,7 @@ onUnmounted(() => {
 }
 
 .transcript-title {
-  @apply flex items-center gap-2 text-xs font-bold tracking-widest uppercase text-surface-500 dark:text-surface-400;
+  @apply flex items-center gap-2 text-xs font-bold tracking-widest uppercase text-surface-500 dark:text-surface-800;
 }
 
 .transcript-dot {
@@ -1056,13 +1056,13 @@ onUnmounted(() => {
 
 .autoscroll-btn {
   @apply inline-flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-semibold cursor-pointer
-         bg-surface-100 dark:bg-surface-50 border border-surface-200 dark:border-surface-200/50
-         text-surface-600 dark:text-surface-400 hover:text-surface-950 dark:hover:text-surface-200
-         transition-all duration-150 ease-out;
+         bg-surface-900 dark:bg-surface-50 border border-surface-800 dark:border-surface-200/50
+         text-surface-600 dark:text-surface-800 hover:bg-surface-800 dark:hover:bg-surface-100/10
+         hover:text-surface-50 dark:hover:text-surface-950 transition-all duration-150 ease-out;
 }
 
 .autoscroll-btn:hover {
-  @apply bg-surface-200 dark:bg-surface-100/10 border-surface-300 dark:border-surface-200/80;
+  @apply bg-surface-800 dark:bg-surface-100/10 border-surface-900 dark:border-surface-200/80;
 }
 
 .autoscroll-btn--active {
@@ -1082,7 +1082,7 @@ onUnmounted(() => {
 }
 
 .transcript-count {
-  @apply text-[10px] font-mono text-surface-400 tracking-wide;
+  @apply text-[10px] font-mono text-surface-500 dark:text-surface-800 tracking-wide;
 }
 
 .transcript-error {
@@ -1090,16 +1090,16 @@ onUnmounted(() => {
 }
 
 .transcript-empty {
-  @apply flex-1 flex flex-col items-center justify-center gap-3 p-10 text-xs text-surface-400 text-center
-         rounded-2xl border border-dashed border-surface-200 dark:border-surface-300/30
-         bg-surface-100/50 dark:bg-surface-50/10;
+  @apply flex-1 flex flex-col items-center justify-center gap-3 p-10 text-xs text-surface-500 dark:text-surface-800 text-center
+         rounded-2xl border border-dashed border-surface-800 dark:border-surface-300/30
+         bg-surface-900/50 dark:bg-surface-50/10;
   backdrop-filter: blur(12px);
 }
 .transcript-empty-icon { @apply text-2xl; }
 
 .transcript-scroll {
   @apply flex-1 min-h-0 overflow-y-auto flex flex-col gap-1.5 p-3 rounded-2xl
-         bg-surface-100/85 dark:bg-surface-50/30 border border-surface-200 dark:border-surface-200/10;
+         bg-surface-900/85 dark:bg-surface-50/30 border border-surface-800 dark:border-surface-200/10;
   backdrop-filter: blur(12px);
   scroll-behavior: smooth;
 }
@@ -1110,11 +1110,11 @@ onUnmounted(() => {
   @apply bg-transparent;
 }
 .transcript-scroll::-webkit-scrollbar-thumb {
-  @apply bg-surface-300 dark:bg-surface-600 rounded-full;
+  @apply bg-surface-800 dark:bg-surface-600 rounded-full;
 }
 
 .transcript-segment {
-  @apply flex gap-2.5 items-baseline transition-all duration-200 p-1 py-1.5 px-3 rounded-xl cursor-pointer select-none hover:bg-surface-200/50 dark:hover:bg-surface-100/10;
+  @apply flex gap-2.5 items-baseline transition-all duration-200 p-1 py-1.5 px-3 rounded-xl cursor-pointer select-none hover:bg-surface-800/50 dark:hover:bg-surface-100/10;
   animation: segment-in 0.25s ease;
 }
 
@@ -1131,7 +1131,7 @@ onUnmounted(() => {
 }
 
 .segment-checkbox {
-  @apply w-3.5 h-3.5 rounded border-surface-300 dark:border-surface-600 text-accent-500 focus:ring-accent-500 cursor-pointer transition-all duration-150;
+  @apply w-3.5 h-3.5 rounded border-surface-800 dark:border-surface-600 text-accent-500 focus:ring-accent-500 cursor-pointer transition-all duration-150;
   accent-color: var(--accent-500, #5c72f3);
 }
 
@@ -1144,7 +1144,7 @@ onUnmounted(() => {
 }
 
 .reference-action-btn--secondary {
-  @apply bg-surface-100 dark:bg-surface-50 border border-surface-200 dark:border-surface-200/50 text-surface-600 dark:text-surface-400 hover:text-surface-950 dark:hover:text-surface-200 hover:bg-surface-200 dark:hover:bg-surface-100/10;
+  @apply bg-surface-900 dark:bg-surface-50 border border-surface-800 dark:border-surface-200/50 text-surface-600 dark:text-surface-800 hover:text-surface-50 dark:hover:text-surface-950 hover:bg-surface-800 dark:hover:bg-surface-100/10;
 }
 
 .animate-pulse-once {
@@ -1163,11 +1163,11 @@ onUnmounted(() => {
 }
 
 .transcript-time {
-  @apply flex-shrink-0 text-[10px] font-mono text-surface-800 pt-0.5;
+  @apply flex-shrink-0 text-[10px] font-mono text-surface-600 dark:text-surface-800 pt-0.5;
 }
 
 .transcript-text {
-  @apply text-sm text-surface-800 dark:text-surface-200 leading-relaxed;
+  @apply text-sm text-surface-100 dark:text-surface-950 leading-relaxed;
 }
 
 .transcript-cursor {
@@ -1186,15 +1186,15 @@ onUnmounted(() => {
 }
 .volume-panel {
   @apply w-full max-w-xs flex items-center gap-3 p-3 px-5 rounded-2xl
-         bg-surface-100/80 dark:bg-surface-50/30 border border-surface-200 dark:border-surface-200/10;
+         bg-surface-900/80 dark:bg-surface-50/30 border border-surface-800 dark:border-surface-200/10;
   backdrop-filter: blur(12px);
 }
 .mute-btn {
   @apply bg-transparent border-0 cursor-pointer text-surface-500 dark:text-surface-400 p-1.5 rounded-lg
-         flex items-center justify-center hover:bg-surface-200 dark:hover:bg-surface-100/10 hover:text-surface-950 dark:hover:text-surface-200 transition-colors duration-150;
+         flex items-center justify-center hover:bg-surface-800 dark:hover:bg-surface-100/10 hover:text-surface-50 dark:hover:text-surface-950 transition-colors duration-150;
 }
 .volume-slider {
-  @apply flex-1 accent-accent-500 h-1 rounded-full bg-surface-200 dark:bg-surface-600 cursor-pointer outline-none;
+  @apply flex-1 accent-accent-500 h-1 rounded-full bg-surface-800 dark:bg-surface-600 cursor-pointer outline-none;
   appearance: none;
 }
 .volume-slider::-webkit-slider-thumb {
@@ -1202,7 +1202,7 @@ onUnmounted(() => {
   appearance: none;
 }
 .volume-value {
-  @apply text-[10px] font-mono text-surface-500 dark:text-surface-400 w-10 text-right;
+  @apply text-[10px] font-mono text-surface-500 dark:text-surface-800 w-10 text-right;
 }
 
 /* ── Buttons ─────────────────────────────────────────────────────────────── */
@@ -1216,7 +1216,7 @@ onUnmounted(() => {
          hover:from-accent-700 hover:to-accent-500 hover:-translate-y-0.5 hover:shadow-[0_12px_32px_rgba(92,114,243,0.4)];
 }
 .btn--loading {
-  @apply bg-surface-100 dark:bg-surface-50 border border-surface-200 dark:border-surface-200/50 text-surface-400 dark:text-surface-500 cursor-not-allowed;
+  @apply bg-surface-900 dark:bg-surface-50 border border-surface-800 dark:border-surface-200/50 text-surface-500 dark:text-surface-500 cursor-not-allowed;
 }
 .btn--disconnect {
   @apply bg-gradient-to-r from-red-500 to-red-600 text-white shadow-[0_8px_24px_rgba(239,68,68,0.25)]
@@ -1228,10 +1228,10 @@ onUnmounted(() => {
 
 /* ── Chat Toggle Button ── */
 .btn--chat {
-  @apply bg-surface-100 dark:bg-surface-50/50 border border-surface-200 dark:border-surface-200/30 text-surface-500 dark:text-surface-400 shadow-md;
+  @apply bg-surface-900 dark:bg-surface-50/50 border border-surface-800 dark:border-surface-200/30 text-surface-600 dark:text-surface-800 shadow-md;
 }
 .btn--chat:hover {
-  @apply bg-surface-200 dark:bg-surface-100/10 text-surface-950 dark:text-surface-200 border-surface-300 dark:border-surface-200/50;
+  @apply bg-surface-800 dark:bg-surface-100/10 text-surface-50 dark:text-surface-950 border-surface-900 dark:border-surface-200/50;
 }
 .btn--chat-active {
   @apply bg-gradient-to-r from-pink-500 to-fuchsia-500 text-white border-0 shadow-[0_8px_24px_rgba(236,72,153,0.35)]
@@ -1297,7 +1297,7 @@ onUnmounted(() => {
 
 .embedded-chat-column {
   @apply h-full overflow-hidden flex flex-col
-         bg-surface-100 dark:bg-surface-50/50 border border-surface-200 dark:border-surface-200/30;
+         bg-surface-950 dark:bg-surface-50/50 border border-surface-800 dark:border-surface-200/30;
   backdrop-filter: blur(20px);
   grid-column: 3;
   grid-row: 1;
@@ -1306,7 +1306,7 @@ onUnmounted(() => {
 /* Adjustments for compressed left visualizer panel in chat mode */
 .chat-mode-active .control-column {
   @apply flex flex-col justify-start gap-2 p-4 h-full box-border
-         bg-surface-100 dark:bg-surface-50/50 border border-surface-200 dark:border-surface-200/30;
+         bg-surface-950 dark:bg-surface-50/50 border border-surface-800 dark:border-surface-200/30;
   backdrop-filter: blur(20px);
   grid-row: 1;
   grid-column: 1;
@@ -1327,7 +1327,7 @@ onUnmounted(() => {
   @apply bg-transparent border-0 p-0 shadow-none rounded-none relative h-5 overflow-hidden flex items-center justify-center aspect-auto;
 }
 .chat-mode-active .control-column .visualizer-canvas {
-  @apply h-3.5 bg-surface-200/10 dark:bg-surface-100/5 rounded border border-surface-300/20 dark:border-surface-200/5;
+  @apply h-3.5 bg-surface-800/10 dark:bg-surface-100/5 rounded border border-surface-900/20 dark:border-surface-200/5;
 }
 .chat-mode-active .control-column .status-indicator {
   @apply hidden;
@@ -1339,7 +1339,7 @@ onUnmounted(() => {
   @apply flex flex-row items-center justify-between gap-4 w-full mt-0.5;
 }
 .chat-mode-active .control-column .volume-panel {
-  @apply flex items-center gap-1.5 p-1 px-2 rounded bg-surface-200/20 dark:bg-surface-100/5 border border-surface-300/20 dark:border-surface-200/5 flex-1;
+  @apply flex items-center gap-1.5 p-1 px-2 rounded bg-surface-800/20 dark:bg-surface-100/5 border border-surface-900/20 dark:border-surface-200/5 flex-1;
 }
 .chat-mode-active .control-column .volume-slider {
   @apply h-0.5;
@@ -1363,7 +1363,7 @@ onUnmounted(() => {
 /* Adjustments for transcripts panel in chat mode */
 .chat-mode-active .transcript-column {
   @apply p-5 box-border h-full overflow-hidden
-         bg-surface-100 dark:bg-surface-50/50 border border-surface-200 dark:border-surface-200/30;
+         bg-surface-950 dark:bg-surface-50/50 border border-surface-800 dark:border-surface-200/30;
   backdrop-filter: blur(20px);
   grid-row: 3;
   grid-column: 1;
@@ -1400,7 +1400,7 @@ onUnmounted(() => {
 /* Top bar / header inside embedded chat */
 .embedded-chat-topbar {
   @apply flex items-center justify-between p-3 px-6 relative z-20 gap-4 flex-shrink-0
-         border-b border-surface-200 dark:border-surface-200/30 bg-surface-100 dark:bg-surface-50/10;
+         border-b border-surface-800 dark:border-surface-200/30 bg-surface-900 dark:bg-surface-50/10;
   backdrop-filter: blur(10px);
 }
 .chat-topbar-left {
@@ -1420,8 +1420,8 @@ onUnmounted(() => {
 
 .conv-selector-btn {
   @apply inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold cursor-pointer max-w-full transition-all duration-150
-         bg-surface-200/50 dark:bg-surface-100/10 border border-surface-300/30 dark:border-surface-200/10
-         text-surface-700 dark:text-surface-200 hover:bg-surface-200 dark:hover:bg-surface-100/20 hover:text-surface-950 dark:hover:text-surface-100;
+         bg-surface-900 dark:bg-surface-100/10 border border-surface-800 dark:border-surface-200/10
+         text-surface-50 dark:text-surface-950 hover:bg-surface-800 dark:hover:bg-surface-100/20 hover:text-surface-50 dark:hover:text-surface-900;
 }
 
 .conv-selector-title {
@@ -1435,7 +1435,7 @@ onUnmounted(() => {
 /* Dropdown Menu */
 .conv-dropdown-menu {
   @apply absolute left-0 w-72 rounded-xl shadow-2xl overflow-hidden z-[50]
-         bg-surface-50 dark:bg-surface-0 border border-surface-200 dark:border-surface-200/50;
+         bg-surface-950 dark:bg-surface-0 border border-surface-800 dark:border-surface-200/50;
   top: calc(100% + 6px);
   backdrop-filter: blur(20px);
   animation: dropdown-in 0.15s cubic-bezier(0.16, 1, 0.3, 1);
@@ -1447,7 +1447,7 @@ onUnmounted(() => {
 
 .conv-dropdown-header {
   @apply flex items-center justify-between p-2 px-3 text-[10px] font-bold uppercase tracking-wider
-         border-b border-surface-200 dark:border-surface-200/30 text-surface-500 dark:text-surface-400;
+         border-b border-surface-800 dark:border-surface-200/30 text-surface-500 dark:text-surface-800;
 }
 
 .conv-new-btn-inline {
@@ -1462,15 +1462,15 @@ onUnmounted(() => {
   @apply w-1;
 }
 .conv-dropdown-list::-webkit-scrollbar-thumb {
-  @apply bg-surface-300 dark:bg-surface-600 rounded-full;
+  @apply bg-surface-800 dark:bg-surface-600 rounded-full;
 }
 
 .conv-dropdown-item {
   @apply flex flex-col gap-0.5 p-2 px-2.5 rounded-lg cursor-pointer transition-colors duration-150
-         hover:bg-surface-100 dark:hover:bg-surface-100/10;
+         hover:bg-surface-900 dark:hover:bg-surface-100/10;
 }
 .conv-dropdown-item:hover {
-  @apply bg-surface-200 dark:bg-surface-100/5;
+  @apply bg-surface-800 dark:bg-surface-100/5;
 }
 .conv-dropdown-item--active {
   @apply bg-accent-500/10;
@@ -1480,17 +1480,17 @@ onUnmounted(() => {
 }
 
 .conv-item-title {
-  @apply text-xs font-semibold truncate text-surface-800 dark:text-surface-200;
+  @apply text-xs font-semibold truncate text-surface-50 dark:text-surface-950;
 }
 .conv-item-date {
-  @apply text-[9px] font-mono text-surface-800;
+  @apply text-[9px] font-mono text-surface-500 dark:text-surface-800;
 }
 
 /* Resources toggle button */
 .resources-toggle-btn {
   @apply flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold cursor-pointer transition-all duration-150
-         bg-surface-200/50 dark:bg-surface-100/10 border border-surface-300/30 dark:border-surface-200/10
-         text-surface-700 dark:text-surface-200 hover:bg-surface-200 dark:hover:bg-surface-100/20 hover:text-surface-950 dark:hover:text-surface-100;
+         bg-surface-900 dark:bg-surface-100/10 border border-surface-800 dark:border-surface-200/10
+         text-surface-50 dark:text-surface-950 hover:bg-surface-800 dark:hover:bg-surface-100/20 hover:text-surface-50 dark:hover:text-surface-900;
 }
 .resources-toggle-btn--active {
   @apply bg-accent-500/10 border-accent-500/30 text-accent-600 dark:text-accent-400;

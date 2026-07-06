@@ -4,6 +4,7 @@ import wave
 import json
 import asyncio
 import datetime
+import re
 import numpy as np
 import av
 import httpx
@@ -347,17 +348,16 @@ class DeepgramRelayManager:
         headers = {
             "apikey": SUPABASE_KEY,
             "Authorization": f"Bearer {SUPABASE_KEY}",
+            "Content-Type": "application/json"
         }
-        params = (
-            f"day_of_week=eq.{day_of_week}"
-            f"&start_time=lte.{current_time}"
-            f"&end_time=gte.{current_time}"
-            f"&limit=1"
-        )
-        url = f"{SUPABASE_URL}/rest/v1/schedule?{params}&select=id,subject_name"
+        url = f"{SUPABASE_URL}/rest/v1/rpc/resolve_schedule_slot"
+        payload = {
+            "p_day_of_week": day_of_week,
+            "p_time": current_time
+        }
         try:
             async with httpx.AsyncClient() as client:
-                res = await client.get(url, headers=headers)
+                res = await client.post(url, json=payload, headers=headers)
                 if res.status_code == 200:
                     rows = res.json()
                     if rows:
@@ -460,7 +460,8 @@ async def start_recording_internal():
     
     recording_state["active"] = True
     recording_state["buffer"] = bytearray()
-    print("Recording started.")
+    recording_state["start_time"] = datetime.datetime.now()
+    print(f"Recording started at {recording_state['start_time']}")
     return {"status": "started"}
 
 async def stop_recording_internal():
@@ -472,6 +473,7 @@ async def stop_recording_internal():
     print("Recording stopped. Saving file...")
     
     filename = recording_state["filename"]
+    start_time = recording_state.get("start_time") or datetime.datetime.now()
     try:
         # Save raw 16kHz mono PCM to a valid WAV file
         with wave.open(filename, "wb") as wav_file:
@@ -480,7 +482,7 @@ async def stop_recording_internal():
             wav_file.setframerate(16000)
             wav_file.writeframes(recording_state["buffer"])
         print(f"Saved recording locally: {filename}")
-        return {"status": "stopped", "file": filename}
+        return {"status": "stopped", "file": filename, "start_time": start_time}
     except Exception as e:
         print(f"Failed to save recording file: {e}")
         return {"status": "error", "message": str(e)}
@@ -522,20 +524,94 @@ async def feed_live_transcription(data: bytes):
             await manager.send_pcm(data)
 
 
-async def upload_and_transcribe_task(filename):
+# ─── Text Chunking and Embedding Generation for RAG ───
+def chunk_text(text: str, size: int = 800, overlap: int = 120) -> list[str]:
+    # Normalize excessive white spaces
+    normalized = re.sub(r'\s+', ' ', text).strip()
+    chunks = []
+    start = 0
+    while start < len(normalized):
+        end = min(start + size, len(normalized))
+        chunk = normalized[start:end].strip()
+        if len(chunk) > 20:
+            chunks.append(chunk)
+        start += size - overlap
+    return chunks
+
+
+async def generate_embedding(text: str, input_type: str = "passage") -> list[float]:
+    nvidia_key = os.getenv("VITE_NVIDIA_API_KEY")
+    if not nvidia_key:
+        raise ValueError("[RAG] VITE_NVIDIA_API_KEY is not configured in the environment")
+        
+    url = "https://integrate.api.nvidia.com/v1/embeddings"
+    headers = {
+        "Authorization": f"Bearer {nvidia_key}",
+        "Content-Type": "application/json"
+    }
+    payload = {
+        "input": [text],
+        "model": "nvidia/nv-embedqa-e5-v5",
+        "input_type": input_type,
+        "encoding_format": "float",
+        "truncate": "END"
+    }
+    
+    async with httpx.AsyncClient() as client:
+        res = await client.post(url, json=payload, headers=headers, timeout=30.0)
+        if res.status_code != 200:
+            raise Exception(f"[RAG] NVIDIA API error {res.status_code}: {res.text}")
+        data = res.json()
+        return data["data"][0]["embedding"]
+
+
+async def upload_and_transcribe_task(filename: str, start_time: datetime.datetime = None):
     print("Background upload & transcribe task started...")
     
-    # Test path in courses bucket
-    course_name = "Materia_Test"
-    course_date = "2026-07-01"
+    if start_time is None:
+        start_time = datetime.datetime.now()
+        
+    course_name = "Unscheduled"
+    course_date = start_time.strftime("%Y-%m-%d")
     
-    audio_path = f"{course_name}/{course_date}/audio.wav"
-    storage_url = f"{SUPABASE_URL}/storage/v1/object/courses/{audio_path}"
     headers = {
         "apikey": SUPABASE_KEY,
         "Authorization": f"Bearer {SUPABASE_KEY}",
-        "Content-Type": "audio/wav"
     }
+    
+    if SUPABASE_URL and SUPABASE_KEY:
+        try:
+            day_of_week = start_time.isoweekday()
+            current_time = start_time.strftime("%H:%M:%S")
+            url = f"{SUPABASE_URL}/rest/v1/rpc/resolve_schedule_slot"
+            payload = {
+                "p_day_of_week": day_of_week,
+                "p_time": current_time
+            }
+            headers_rpc = headers.copy()
+            headers_rpc["Content-Type"] = "application/json"
+            async with httpx.AsyncClient() as client:
+                res = await client.post(url, json=payload, headers=headers_rpc)
+                if res.status_code == 200:
+                    rows = res.json()
+                    if rows and rows[0].get("subject_name"):
+                        course_name = rows[0]["subject_name"]
+                        print(f"[RAG] Matched schedule subject: {course_name}")
+                    else:
+                        print("[RAG] No matching schedule slot found. Using fallback 'Unscheduled'.")
+        except Exception as e:
+            print(f"[RAG] Error querying schedule for start_time {start_time}: {e}")
+            
+    start_hour = start_time.strftime("%H-%M-%S")
+    audio_filename = f"{start_hour}_{course_name}_audio.wav"
+    transcript_filename = f"{start_hour}_{course_name}_transcript.txt"
+    
+    audio_path = f"{course_name}/{course_date}/{audio_filename}"
+    text_path = f"{course_name}/{course_date}/{transcript_filename}"
+    
+    storage_url = f"{SUPABASE_URL}/storage/v1/object/courses/{audio_path}"
+    headers_audio = headers.copy()
+    headers_audio["Content-Type"] = "audio/wav"
     
     # Read the file
     if not os.path.exists(filename):
@@ -555,12 +631,12 @@ async def upload_and_transcribe_task(filename):
     print("Uploading audio to Supabase Storage...")
     try:
         async with httpx.AsyncClient() as client:
-            res = await client.post(storage_url, content=file_bytes, headers=headers)
+            res = await client.post(storage_url, content=file_bytes, headers=headers_audio)
             if res.status_code == 200:
                 print(f"Successfully uploaded audio at: {audio_path}")
                 audio_uploaded = True
             elif res.status_code == 400 and ("AlreadyExists" in res.text or "Duplicate" in res.text or "exists" in res.text):
-                res_put = await client.put(storage_url, content=file_bytes, headers=headers)
+                res_put = await client.put(storage_url, content=file_bytes, headers=headers_audio)
                 if res_put.status_code == 200:
                     print("Successfully updated audio in Supabase Storage.")
                     audio_uploaded = True
@@ -604,23 +680,53 @@ async def upload_and_transcribe_task(filename):
     transcript_uploaded = False
     if transcription_text:
         print("Uploading transcript to Supabase Storage...")
-        text_path = f"{course_name}/{course_date}/transcript.txt"
         text_url = f"{SUPABASE_URL}/storage/v1/object/courses/{text_path}"
-        headers["Content-Type"] = "text/plain"
+        headers_text = headers.copy()
+        headers_text["Content-Type"] = "text/plain"
         try:
             async with httpx.AsyncClient() as client:
-                res = await client.post(text_url, content=transcription_text.encode("utf-8"), headers=headers)
+                res = await client.post(text_url, content=transcription_text.encode("utf-8"), headers=headers_text)
                 if res.status_code == 200:
                     print(f"Successfully uploaded transcript at: {text_path}")
                     transcript_uploaded = True
                 elif res.status_code == 400 and ("AlreadyExists" in res.text or "Duplicate" in res.text or "exists" in res.text):
-                    res_put = await client.put(text_url, content=transcription_text.encode("utf-8"), headers=headers)
+                    res_put = await client.put(text_url, content=transcription_text.encode("utf-8"), headers=headers_text)
                     if res_put.status_code == 200:
                         print("Successfully updated transcript in Supabase Storage.")
                         transcript_uploaded = True
         except Exception as e:
             print(f"Failed to upload transcript: {e}")
             
+    # Index transcript for RAG in Supabase
+    if transcript_uploaded and transcription_text.strip():
+        print("[RAG] Ingesting transcription chunks & embeddings...")
+        try:
+            chunks = chunk_text(transcription_text)
+            if chunks:
+                embeddings = []
+                for chunk in chunks:
+                    emb = await generate_embedding(chunk, "passage")
+                    embeddings.append(emb)
+                
+                rpc_url = f"{SUPABASE_URL}/rest/v1/rpc/register_and_index_transcript"
+                rpc_payload = {
+                    "p_subject_name": course_name,
+                    "p_session_date": course_date,
+                    "p_file_name": transcript_filename,
+                    "p_file_path": f"courses/{text_path}",
+                    "p_file_size": len(transcription_text),
+                    "p_chunks": chunks,
+                    "p_embeddings": embeddings
+                }
+                async with httpx.AsyncClient() as client:
+                    res = await client.post(rpc_url, json=rpc_payload, headers=headers)
+                    if res.status_code in (200, 204):
+                        print("[RAG] Successfully indexed transcript in DB.")
+                    else:
+                        print(f"[RAG] Failed to index transcript via RPC {res.status_code}: {res.text}")
+        except Exception as e:
+            print(f"[RAG] Exception during transcript indexing: {e}")
+
     # Clean up local file
     try:
         if os.path.exists(filename):
@@ -650,7 +756,7 @@ async def record_stop():
     asyncio.create_task(stop_live_transcription())
     res = await stop_recording_internal()
     if res["status"] == "stopped":
-        results = await upload_and_transcribe_task(res["file"])
+        results = await upload_and_transcribe_task(res["file"], res.get("start_time"))
         return {
             "status": "completed",
             "file": res["file"],
@@ -731,7 +837,7 @@ async def websocket_endpoint(websocket: WebSocket):
                     asyncio.create_task(stop_live_transcription())
                     res = await stop_recording_internal()
                     if res["status"] == "stopped":
-                        asyncio.create_task(upload_and_transcribe_task(res["file"]))
+                        asyncio.create_task(upload_and_transcribe_task(res["file"], res.get("start_time")))
                     
     except WebSocketDisconnect:
         print("ESP32 microcontroler s-a deconectat.")
