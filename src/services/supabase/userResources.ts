@@ -1,6 +1,6 @@
 import { supabase } from './client'
-import { ingestDocument, hasDocumentChunks, deleteDocumentChunks } from './vectorStore'
-import { extractTextFromPdf } from '@/utils/pdf'
+import { deleteDocumentChunks } from './vectorStore'
+
 
 export interface UserResource {
   id: string
@@ -35,7 +35,7 @@ export async function listUserResources(parentId: string | null = null): Promise
     }
 
     const { data, error } = await query
-      .order('type', { ascending: true }) // Folders first
+      .order('type', { ascending: false }) // Folders first
       .order('name', { ascending: true })
 
     if (error) {
