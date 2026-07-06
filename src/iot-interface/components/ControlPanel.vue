@@ -1,4 +1,4 @@
-﻿<script setup lang="ts">
+<script setup lang="ts">
 import { ref, watch, computed } from "vue";
 import { useSettings } from "../composables/useSettings";
 
@@ -109,6 +109,7 @@ function pct(val: number) { return Math.round(val / 255 * 100); }
         </div>
         <input
           type="range" min="0" max="255" :value="ledSlider"
+          :style="{ '--progress': `${(ledSlider / 255) * 100}%` }"
           @input="ledSlider = +($event.target as HTMLInputElement).value"
           @change="setLed(ledSlider)"
           class="cp-slider cp-slider--blue"
@@ -131,6 +132,7 @@ function pct(val: number) { return Math.round(val / 255 * 100); }
         </div>
         <input
           type="range" min="0" max="255" :value="fanSlider"
+          :style="{ '--progress': `${(fanSlider / 255) * 100}%` }"
           @input="fanSlider = +($event.target as HTMLInputElement).value"
           @change="setFan(fanSlider)"
           class="cp-slider cp-slider--accent"
@@ -153,6 +155,7 @@ function pct(val: number) { return Math.round(val / 255 * 100); }
         </div>
         <input
           type="range" min="0" max="255" :value="ptcSlider"
+          :style="{ '--progress': `${(ptcSlider / 255) * 100}%` }"
           @input="ptcSlider = +($event.target as HTMLInputElement).value"
           @change="setPtc(ptcSlider)"
           class="cp-slider cp-slider--red"
@@ -353,8 +356,13 @@ function pct(val: number) { return Math.round(val / 255 * 100); }
 }
 .cp-slider::-webkit-slider-thumb:active { transform: scale(1.25); }
 .cp-slider--blue::-webkit-slider-thumb { background: #f59e0b; box-shadow: 0 0 0 3px rgba(245,158,11,0.2); }
+.cp-slider--blue { background-image: linear-gradient(to right, #f59e0b var(--progress, 0%), transparent var(--progress, 0%)); }
+
 .cp-slider--accent::-webkit-slider-thumb { background: var(--iot-accent); box-shadow: 0 0 0 3px var(--iot-accent-subtle); }
+.cp-slider--accent { background-image: linear-gradient(to right, var(--iot-accent) var(--progress, 0%), transparent var(--progress, 0%)); }
+
 .cp-slider--red::-webkit-slider-thumb { background: var(--iot-danger); box-shadow: 0 0 0 3px var(--iot-danger-subtle); }
+.cp-slider--red { background-image: linear-gradient(to right, var(--iot-danger) var(--progress, 0%), transparent var(--progress, 0%)); }
 
 .cp-slider-val { font-size: 10px; font-family: monospace; color: var(--iot-text-muted); text-align: right; margin-top: -4px; }
 

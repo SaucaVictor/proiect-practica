@@ -8,9 +8,12 @@ import { useChatStore } from '@/stores/chat.store'
 import { useConversationStore } from '@/stores/conversation.store'
 import { useProviderStore } from '@/stores/provider.store'
 import { useReferencesStore } from '@/stores/references.store'
+import { useThemeStore } from '@/stores/theme.store'
 import { useChat } from '@/composables/useChat'
 import { subscribeToMessages, unsubscribe } from '@/services/supabase/realtime'
 import type { RealtimeChannel } from '@supabase/supabase-js'
+
+const themeStore = useThemeStore()
 
 // Sub-components
 import ChatMessages from '@/components/chat/ChatMessages.vue'
@@ -235,7 +238,7 @@ function drawVisualizer() {
       ctx.stroke()
     } else {
       ctx.lineWidth = 1.5
-      ctx.strokeStyle = 'rgba(255, 255, 255, 0.15)'
+      ctx.strokeStyle = themeStore.isDark ? 'rgba(255, 255, 255, 0.15)' : 'rgba(0, 0, 0, 0.15)'
       ctx.beginPath()
       
       const time = Date.now() * 0.004
@@ -632,7 +635,7 @@ onUnmounted(() => {
               </svg>
             </button>
 
-            <input type="range" min="0" max="100" :value="volume" @input="handleVolumeChange" class="volume-slider" />
+            <input type="range" min="0" max="100" :value="volume" :style="{ '--progress': `${volume}%` }" @input="handleVolumeChange" class="volume-slider" />
 
             <span class="volume-value">{{ volume }}%</span>
           </div>
@@ -1196,10 +1199,18 @@ onUnmounted(() => {
 .volume-slider {
   @apply flex-1 accent-accent-500 h-1 rounded-full bg-surface-800 dark:bg-surface-600 cursor-pointer outline-none;
   appearance: none;
+  background-image: linear-gradient(to right, #5c72f3 var(--progress, 0%), transparent var(--progress, 0%)) !important;
+}
+.volume-slider::-webkit-slider-runnable-track {
+  @apply w-full h-full rounded-full;
+  background-image: linear-gradient(to right, #5c72f3 var(--progress, 0%), transparent var(--progress, 0%)) !important;
 }
 .volume-slider::-webkit-slider-thumb {
-  @apply w-3.5 h-3.5 rounded-full bg-accent-500 shadow-[0_0_6px_rgba(92,114,243,0.5)] cursor-pointer;
+  @apply w-3.5 h-3.5 rounded-full bg-accent-500 shadow-[0_0_6px_rgba(92,114,243,0.5)] cursor-pointer border-none;
   appearance: none;
+}
+.volume-slider::-moz-range-thumb {
+  @apply w-3.5 h-3.5 rounded-full bg-accent-500 shadow-[0_0_6px_rgba(92,114,243,0.5)] cursor-pointer border-none;
 }
 .volume-value {
   @apply text-[10px] font-mono text-surface-500 dark:text-surface-800 w-10 text-right;

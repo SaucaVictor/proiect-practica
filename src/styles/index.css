@@ -1,4 +1,5 @@
 @import 'katex/dist/katex.min.css';
+@import './light-mode-text.css';
 
 @tailwind base;
 @tailwind components;
@@ -351,7 +352,6 @@ html:not(.dark) .audio-call-container .mute-btn:hover {
   background: rgba(0, 0, 0, 0.04) !important;
   color: #0f172a !important;
 }
-html:not(.dark) .audio-call-container .volume-slider  { background: #cdd1db !important; }
 html:not(.dark) .audio-call-container .volume-value   { color: #94a3b8 !important; }
 html:not(.dark) .audio-call-container .btn--loading {
   background: #e5e8ef !important;

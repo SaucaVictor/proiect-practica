@@ -39,7 +39,15 @@ function select(modelId: string) {
       @click="open = !open"
     >
       <span class="model-name">{{ activeModel?.name ?? activeModelId }}</span>
-      <span v-for="tag in tags" :key="tag" class="model-tag">{{ tag }}</span>
+      <span 
+        v-for="tag in tags" 
+        :key="tag" 
+        class="model-tag"
+        :class="{
+          'model-tag--vision': tag === 'Vision',
+          'model-tag--reasoning': tag === 'Reasoning'
+        }"
+      >{{ tag }}</span>
       <svg class="model-chevron" :class="{ 'rotate-180': open }" width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true">
         <path d="M3 4.5l3 3 3-3" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" />
       </svg>
@@ -100,6 +108,14 @@ function select(modelId: string) {
   @apply text-xs px-1.5 py-0.5 rounded bg-accent-500/15 text-accent-400 font-medium;
 }
 
+.model-tag--vision {
+  @apply bg-sky-500/15 text-sky-400 dark:bg-sky-500/15 dark:text-sky-400 !important;
+}
+
+.model-tag--reasoning {
+  @apply bg-violet-500/15 text-violet-400 dark:bg-violet-500/15 dark:text-violet-400 !important;
+}
+
 .model-chevron { @apply text-surface-600 transition-transform duration-200; }
 
 /* Dropdown */
@@ -153,8 +169,8 @@ function select(modelId: string) {
          text-surface-700 dark:text-surface-700 font-medium;
 }
 
-.badge--vision    { @apply bg-sky-500/15 text-sky-400; }
-.badge--reasoning { @apply bg-violet-500/15 text-violet-400; }
+.badge--vision    { @apply bg-sky-500/15 text-sky-400 dark:bg-sky-500/15 dark:text-sky-400; }
+.badge--reasoning { @apply bg-violet-500/15 text-violet-400 dark:bg-violet-500/15 dark:text-violet-400; }
 
 /* Fade */
 .fade-enter-active, .fade-leave-active { @apply transition-opacity duration-150; }

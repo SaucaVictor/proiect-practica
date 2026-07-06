@@ -1,0 +1,134 @@
+/* Generic text surface overrides for Light Mode (pt elemente cu clase utilitare direct in html) */
+html:not(.dark) [class*="text-surface-950"] { color: #020617 !important; }
+html:not(.dark) [class*="text-surface-900"] { color: #0f172a !important; }
+html:not(.dark) [class*="text-surface-800"] { color: #1e293b !important; }
+html:not(.dark) [class*="text-surface-700"] { color: #334155 !important; }
+html:not(.dark) [class*="text-surface-600"] { color: #475569 !important; }
+html:not(.dark) [class*="text-surface-500"] { color: #64748b !important; }
+
+/* EmptyState specific (din cauza Tailwind @apply) */
+html:not(.dark) .empty-state-title { color: #0f172a !important; }
+html:not(.dark) .empty-state-desc { color: #475569 !important; }
+
+/* Model Selector specific (din cauza Tailwind @apply) */
+html:not(.dark) .model-name { color: #0f172a !important; }
+html:not(.dark) .model-option-name { color: #0f172a !important; }
+html:not(.dark) .model-dropdown-header { color: #0f172a !important; }
+html:not(.dark) .model-option-desc { color: #475569 !important; }
+html:not(.dark) .model-chevron { color: #64748b !important; }
+html:not(.dark) .badge:not(.badge--vision):not(.badge--reasoning) { background-color: #cbd5e1 !important; color: #020617 !important; }
+
+/* Chat Topbar specific */
+html:not(.dark) .chat-conv-title { color: #0f172a !important; }
+html:not(.dark) .resources-toggle-btn:hover { background-color: #cbd5e1 !important; color: #020617 !important; }
+
+/* Resources Panel specific */
+html:not(.dark) .tree-label { color: #0f172a !important; }
+html:not(.dark) .panel-header-left:hover { color: #0f172a !important; }
+html:not(.dark) .panel-refresh-btn:hover { color: #0f172a !important; }
+
+/* Auth Pages (Login / Register) specific */
+html:not(.dark) .page-title { color: #0f172a !important; }
+html:not(.dark) .page-subtitle { color: #475569 !important; }
+html:not(.dark) .auth-switch { color: #475569 !important; }
+html:not(.dark) .auth-switch-link,
+html:not(.dark) .forgot-link { color: #4453e7 !important; }
+
+/* Settings Page specific */
+html:not(.dark) .settings-title,
+html:not(.dark) .setting-label,
+html:not(.dark) .toggle-label,
+html:not(.dark) .slider-label { color: #0f172a !important; }
+
+html:not(.dark) .section-heading,
+html:not(.dark) .toggle-desc { color: #475569 !important; }
+
+html:not(.dark) .slider-value { color: #4453e7 !important; }
+
+html:not(.dark) button.theme-btn.theme-btn--active {
+  background-color: #5c72f3 !important;
+  color: #ffffff !important;
+}
+
+/* Chat Pages specific */
+html:not(.dark) .message-body,
+html:not(.dark) .message-user-text,
+html:not(.dark) .markdown-content,
+html:not(.dark) .message-assistant-text,
+html:not(.dark) .chat-textarea,
+html:not(.dark) .reasoning-toggle { color: #0f172a !important; }
+
+html:not(.dark) .chat-textarea::placeholder { color: #475569 !important; }
+
+html:not(.dark) .markdown-content blockquote,
+html:not(.dark) .reasoning-content { color: #334155 !important; border-left-color: #cbd5e1 !important; }
+
+/* Conversation List specific (Tailwind @apply overrides) */
+html:not(.dark) .conv-item { color: #1e293b !important; }
+html:not(.dark) .conv-item--active,
+html:not(.dark) .conv-edit-input { color: #0f172a !important; }
+html:not(.dark) .conv-group-label,
+html:not(.dark) .conv-empty,
+html:not(.dark) .conv-action-btn { color: #475569 !important; }
+html:not(.dark) .conv-action-btn:hover { color: #0f172a !important; }
+
+html:not(.dark) .prose {
+  --tw-prose-body: #0f172a !important;
+  --tw-prose-headings: #020617 !important;
+  --tw-prose-lead: #334155 !important;
+  --tw-prose-links: #4453e7 !important;
+  --tw-prose-bold: #020617 !important;
+  --tw-prose-counters: #475569 !important;
+  --tw-prose-bullets: #475569 !important;
+  --tw-prose-hr: #e2e8f0 !important;
+  --tw-prose-quotes: #0f172a !important;
+  --tw-prose-quote-borders: #cbd5e1 !important;
+  --tw-prose-captions: #475569 !important;
+  --tw-prose-code: #4453e7 !important;
+  --tw-prose-pre-code: #0f172a !important;
+  --tw-prose-pre-bg: #f8fafc !important;
+  --tw-prose-th-borders: #cbd5e1 !important;
+  --tw-prose-td-borders: #e2e8f0 !important;
+}
+
+html:not(.dark) .volume-slider,
+html:not(.dark) .volume-slider::-webkit-slider-runnable-track {
+  background-color: #cbd5e1 !important;
+  background-image: linear-gradient(to right, #5c72f3 var(--progress, 0%), transparent var(--progress, 0%)) !important;
+}
+
+/* Generic Surface Background overrides (pentru @apply si utilities) */
+html:not(.dark) [class*="bg-surface-0"] { background-color: #ffffff !important; }
+html:not(.dark) [class*="bg-surface-50"] { background-color: #f8fafc !important; }
+
+html:not(.dark) [class*="bg-surface-100"],
+html:not(.dark) .model-dropdown,
+html:not(.dark) .model-dropdown-header,
+html:not(.dark) .resources-container,
+html:not(.dark) .course-panel,
+html:not(.dark) .user-panel,
+html:not(.dark) .panel-header,
+html:not(.dark) .section-body { background-color: #f1f5f9 !important; }
+
+html:not(.dark) [class*="bg-surface-200"],
+html:not(.dark) .resize-bar,
+html:not(.dark) .tree-row:hover,
+html:not(.dark) .panel-action-btn:hover,
+html:not(.dark) .panel-refresh-btn:hover,
+html:not(.dark) .teach-btn:hover,
+html:not(.dark) .ref-whole-btn:hover,
+html:not(.dark) .conv-item:hover,
+html:not(.dark) .conv-item--active { background-color: #e2e8f0 !important; }
+
+html:not(.dark) [class*="bg-surface-300"],
+html:not(.dark) .model-btn:hover,
+html:not(.dark) .model-option:hover,
+html:not(.dark) .toggle:not(.toggle--on),
+html:not(.dark) .conv-action-btn:hover,
+html:not(.dark) .slider { background-color: #cbd5e1 !important; }
+
+html:not(.dark) [class*="border-surface-200"],
+html:not(.dark) .model-dropdown-header,
+html:not(.dark) .model-dropdown,
+html:not(.dark) .section-body { border-color: #e2e8f0 !important; }
+html:not(.dark) [class*="border-surface-300"] { border-color: #cbd5e1 !important; }

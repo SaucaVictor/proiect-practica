@@ -47,8 +47,6 @@ const {
 
 const textareaRef = ref<HTMLTextAreaElement | null>(null)
 const input = ref('')
-const rows = ref(1)
-
 const hasRefs = computed(() => pendingRefs.value.length > 0)
 const canSend = computed(
   () => (input.value.trim().length > 0 || hasAttachments.value || hasRefs.value) && !isStreaming.value
@@ -58,8 +56,6 @@ function autoResize() {
   const el = textareaRef.value
   if (!el) return
   el.style.height = 'auto'
-  const newRows = Math.min(Math.max(Math.ceil(el.scrollHeight / 24), 1), 10)
-  rows.value = newRows
   el.style.height = `${el.scrollHeight}px`
 }
 
@@ -89,7 +85,6 @@ function submit() {
   const references = [...pendingRefs.value]
   const attachmentsCopy = [...pendingAttachments.value]
   input.value = ''
-  rows.value = 1
   if (textareaRef.value) textareaRef.value.style.height = 'auto'
   refStore.clearReferences()
   emit('send', content, attachmentsCopy, { references })
@@ -227,7 +222,7 @@ function openFilePicker() {
         id="chat-input"
         ref="textareaRef"
         v-model="input"
-        :rows="rows"
+        rows="1"
         placeholder="Message NeuralChat…"
         class="chat-textarea"
         aria-label="Message input"

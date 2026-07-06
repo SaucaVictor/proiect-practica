@@ -33,6 +33,7 @@ const emit = defineEmits<{ 'update:modelValue': [value: number] }>()
       :disabled="disabled"
       type="range"
       class="slider"
+      :style="{ '--progress': `${((modelValue! - min!) / (max! - min!)) * 100}%` }"
       @input="emit('update:modelValue', Number(($event.target as HTMLInputElement).value))"
     />
   </div>
@@ -48,5 +49,7 @@ const emit = defineEmits<{ 'update:modelValue': [value: number] }>()
   @apply w-full h-1.5 rounded-full appearance-none cursor-pointer
          bg-surface-300 dark:bg-surface-400
          accent-accent-500;
+  
+  background-image: linear-gradient(to right, theme('colors.accent.500') var(--progress, 0%), transparent var(--progress, 0%));
 }
 </style>
