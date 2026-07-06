@@ -1,4 +1,6 @@
 import { supabase } from './client'
+import { deleteDocumentChunks } from './vectorStore'
+
 
 export interface UserResource {
   id: string
@@ -33,7 +35,7 @@ export async function listUserResources(parentId: string | null = null): Promise
     }
 
     const { data, error } = await query
-      .order('type', { ascending: true }) // Folders first
+      .order('type', { ascending: false }) // Folders first
       .order('name', { ascending: true })
 
     if (error) {
@@ -180,7 +182,13 @@ export async function deleteUserResource(id: string): Promise<boolean> {
       await collectNestedFiles(item.id)
     }
 
-    // 1. Delete from Supabase Storage
+    // 1a. Cleanup chunk-uri RAG din document_chunks
+    //    (CASCADE DELETE din SQL face asta automat, dar apelăm explicit pentru robustete)
+    if (item.type === 'file') {
+      await deleteDocumentChunks(item.id)
+    }
+
+    // 1b. Delete from Supabase Storage
     if (filePathsToClean.length > 0) {
       const { error: storageError } = await supabase.storage
         .from('user_resources')

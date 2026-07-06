@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { ref, watch, onMounted, onUnmounted, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { storeToRefs } from 'pinia'
 import { useChatStore } from '@/stores/chat.store'
 import { useConversationStore } from '@/stores/conversation.store'
 import { useProviderStore } from '@/stores/provider.store'
@@ -10,7 +9,6 @@ import { useKeyboard } from '@/composables/useKeyboard'
 import ChatMessages from '@/components/chat/ChatMessages.vue'
 import ChatInput from '@/components/chat/ChatInput.vue'
 import ModelSelector from '@/components/model/ModelSelector.vue'
-import Button from '@/components/ui/Button.vue'
 import ResourcesPanel from '@/components/chat/ResourcesPanel.vue'
 import type { RealtimeChannel } from '@supabase/supabase-js'
 import { subscribeToMessages, unsubscribe } from '@/services/supabase/realtime'
@@ -27,7 +25,6 @@ const refStore = useReferencesStore()
 const settingsStore = useSettingsStore()
 const { sendMessage, regenerate, abort } = useChat()
 
-const { isStreaming } = storeToRefs(chatStore)
 
 watch(
   () => refStore.focusRef,
@@ -215,22 +212,6 @@ onUnmounted(() => {
         <ModelSelector />
       </div>
       <div class="chat-topbar-right">
-        <Button
-          v-if="isStreaming"
-          id="header-abort-btn"
-          variant="ghost"
-          size="sm"
-          aria-label="Stop generation"
-          @click="abort"
-        >
-          <svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true">
-            <rect x="2" y="2" width="8" height="8" rx="1.5" fill="currentColor" />
-          </svg>
-          Stop
-        </Button>
-
-
-        <!-- Resources toggle button -->
         <button
           id="resources-toggle-btn"
           class="resources-toggle-btn"

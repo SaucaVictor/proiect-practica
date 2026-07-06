@@ -9,7 +9,11 @@
     "preview": "vite preview",
     "type-check": "vue-tsc --noEmit",
     "lint": "eslint . --ext .vue,.ts,.tsx",
-    "servers": "start cmd /k \"python servers/speech-to-text/server.py\" && start cmd /k \"python servers/audio-server/server.py\""
+    "audio-server": "powershell -ExecutionPolicy Bypass -File scripts/start-audio-server.ps1",
+    "audio-server:auto": "powershell -ExecutionPolicy Bypass -File scripts/start-audio-server.ps1 --auto-transcribe",
+    "servers": "start cmd /k \"npm run audio-server\" && start cmd /k \"npx tsx servers/mqtt-server/server.ts\"",
+    "tunnel": "node scripts/start-tunnel.js",
+    "test-audio": "python -u scripts/test_audio_stream.py"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.45.4",
@@ -35,6 +39,7 @@
     "@vitejs/plugin-vue": "^5.1.4",
     "@vue/tsconfig": "^0.9.1",
     "autoprefixer": "^10.4.20",
+    "ngrok": "^5.0.0-beta.2",
     "postcss": "^8.4.47",
     "tailwindcss": "^3.4.13",
     "typescript": "^5.6.3",

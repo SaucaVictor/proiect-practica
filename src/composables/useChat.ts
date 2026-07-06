@@ -14,6 +14,7 @@ import { supabase } from '@/services/supabase/client'
 import type { PendingAttachment } from '@/composables/useAttachments'
 import { extractTextFromPdf } from '@/utils/pdf'
 import { transcribeAudio } from '@/utils/audio'
+import { useRag } from '@/composables/useRag'
 
 export function useChat() {
   const chatStore = useChatStore()
@@ -21,6 +22,7 @@ export function useChat() {
   const settingsStore = useSettingsStore()
   const providerStore = useProviderStore()
   const toast = useToast()
+  const { ragSearch } = useRag()
 
   const sending = ref(false)
 
@@ -50,6 +52,9 @@ export function useChat() {
             if (r.refType === 'pdf-page' && r.extractedText) {
               return `${header}\n${r.extractedText}`
             }
+            if (r.refType === 'live-transcript' && r.extractedText) {
+              return `${header}\n${r.extractedText}`
+            }
             return header
           })
           const refString = blocks.join('\n\n') + '\n\n---\n\n'
@@ -63,7 +68,7 @@ export function useChat() {
 
         if (hasImages && activeModelSupportsVision) {
           const cleanText = (typeof contentVal === 'string' ? contentVal : m.content)
-            .replace(/<!-- FILES_CONTENT_START -->[\s\S]*<!-- FILES_CONTENT_END -->/, '')
+            .replace(/<files_content>[\s\S]*<\/files_content>/, '')
             .trim()
           const parts: any[] = [{ type: 'text', text: cleanText }]
           for (const att of m.attachments) {
@@ -209,7 +214,7 @@ export function useChat() {
           }
         }
         if (fileTexts) {
-          dbContent += `\n\n<!-- FILES_CONTENT_START -->${fileTexts}<!-- FILES_CONTENT_END -->`
+          dbContent += `\n\n<files_content>${fileTexts}</files_content>`
         }
       }
 
@@ -283,17 +288,29 @@ export function useChat() {
     chatStore.startStreaming(assistantMsgId)
     sending.value = false
 
-    // ── 4. Build request ────────────────────────────────────────────────────
+    // ── 4. Build request + RAG context injection ──────────────────────────────
     const aiMessages = buildAIMessages(chatStore.messages)
 
-    // ── 5. Stream ───────────────────────────────────────────────────────────
+    // Căutăm semantic în documentele utilizatorului (opt-in, silencios la erori)
+    const ragResult = await ragSearch(content)
+
+    // Construim systemPrompt îmbogățit cu contextul RAG (Anthropic XML structure)
+    let enrichedSystemPrompt = settings.systemPrompt || ''
+    if (ragResult.hasContext) {
+      // Injectăm contextul înainte de instrucțiunile sistemului existente,
+      // aşa încât LLM-ul să aibă contextul documentelor în prim plan
+      enrichedSystemPrompt = `${ragResult.contextBlock}\n\n${enrichedSystemPrompt}`.trim()
+      console.debug(`[RAG] Injected ${ragResult.chunkCount} chunks into system prompt`)
+    }
+
+    // ── 5. Stream ─────────────────────────────────────────────────────────────────────
     if (settings.streamEnabled) {
       const controller = ChatService.stream(
         {
           provider,
           model,
           messages: aiMessages,
-          systemPrompt: settings.systemPrompt || undefined,
+          systemPrompt: enrichedSystemPrompt || undefined,
           temperature: settings.temperature,
           topP: settings.topP,
           topK: settings.topK || undefined,
@@ -357,7 +374,7 @@ export function useChat() {
           provider,
           model,
           messages: aiMessages,
-          systemPrompt: settings.systemPrompt || undefined,
+          systemPrompt: enrichedSystemPrompt || undefined,
           temperature: settings.temperature,
           maxTokens: settings.maxTokens,
         })

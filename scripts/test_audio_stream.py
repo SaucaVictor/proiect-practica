@@ -3,6 +3,7 @@ import sys
 import math
 import time
 import asyncio
+import argparse
 import numpy as np
 import websockets
 import av
@@ -10,6 +11,8 @@ import av
 # Path to the shared test audio file relative to the script location
 DEFAULT_MUSIC_PATH = os.path.join(os.path.dirname(__file__), "audio-test.mp3")
 WS_URI = "ws://127.0.0.1:8001/ws/audio"
+
+# ─── Audio Generators ──────────────────────────────────────────────────────────
 
 async def stream_tone(websocket):
     print("Streaming simulated 440Hz tone in real-time...")
@@ -88,22 +91,125 @@ async def stream_music_file(websocket, file_path):
         print("Finished file playback. Restarting track...")
         await asyncio.sleep(1.0) # Short delay before restart
 
+
+# ─── Live Transcription Test ───────────────────────────────────────────────────
+
+async def stream_with_live_transcription(websocket, file_path, duration_secs: int = 30):
+    """
+    Send RECORD_START, stream audio for `duration_secs`, then RECORD_STOP.
+    This exercises the full live-transcription pipeline:
+      1. Audio server receives RECORD_START → opens Deepgram WebSocket relay.
+      2. PCM frames arrive → forwarded to Deepgram.
+      3. Deepgram returns transcript JSON → audio server saves to Supabase live_transcripts.
+      4. After `duration_secs`, RECORD_STOP is sent → relay closes, WAV saved, batch
+         transcription runs via Deepgram's REST API.
+
+    Watch the audio server console for [Deepgram] log lines.
+    Check Supabase live_transcripts table for rows accumulating in real-time.
+    """
+    print(f"\n{'='*60}")
+    print(f"  Live Transcription Test  ({duration_secs}s)")
+    print(f"{'='*60}")
+    print("  Sending RECORD_START ...")
+    await websocket.send("RECORD_START")
+    await asyncio.sleep(0.2)  # small delay so server opens WLK connection first
+
+    print(f"  Streaming audio for {duration_secs}s — check Supabase live_transcripts for live rows")
+    print(f"  (Ctrl+C to abort early)\n")
+
+    # Stream for a fixed duration then stop
+    start = time.time()
+
+    if not os.path.exists(file_path):
+        print(f"  No audio file at {file_path}, using 440Hz tone instead.")
+        stream_coro = stream_tone(websocket)
+    else:
+        stream_coro = stream_music_file(websocket, file_path)
+
+    stream_task = asyncio.create_task(stream_coro)
+
+    try:
+        await asyncio.sleep(duration_secs)
+    except asyncio.CancelledError:
+        pass
+    finally:
+        stream_task.cancel()
+        try:
+            await stream_task
+        except (asyncio.CancelledError, Exception):
+            pass
+
+    elapsed = round(time.time() - start, 1)
+    print(f"\n  Sending RECORD_STOP after {elapsed}s ...")
+    await websocket.send("RECORD_STOP")
+    print("  Done! Check the audio server logs for the batch transcription result.")
+    print(f"{'='*60}\n")
+
+
+# ─── Main ──────────────────────────────────────────────────────────────────────
+
 async def main():
-    # Use path from argument if provided, otherwise default
-    music_path = sys.argv[1] if len(sys.argv) > 1 else DEFAULT_MUSIC_PATH
-    
+    parser = argparse.ArgumentParser(
+        description="ClassMonitor Audio Stream Test Client",
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        epilog="""
+Modes:
+  stream  (default)  Continuously stream audio to the server, simulating the
+                     ESP32 microphone. Use this to test WebRTC live audio.
+
+  live               Send RECORD_START, stream for --duration seconds, then
+                     RECORD_STOP. Tests the full WhisperLiveKit live-transcript
+                     pipeline. Check Supabase live_transcripts table for rows.
+
+Examples:
+  python scripts/test_audio_stream.py
+  python scripts/test_audio_stream.py stream
+  python scripts/test_audio_stream.py live
+  python scripts/test_audio_stream.py live --duration 60
+  python scripts/test_audio_stream.py stream scripts/audio-test.mp3
+        """
+    )
+    parser.add_argument(
+        "mode",
+        nargs="?",
+        default="stream",
+        choices=["stream", "live"],
+        help="Test mode (default: stream)"
+    )
+    parser.add_argument(
+        "audio_file",
+        nargs="?",
+        default=DEFAULT_MUSIC_PATH,
+        help="Path to audio file (default: scripts/audio-test.mp3)"
+    )
+    parser.add_argument(
+        "--duration",
+        type=int,
+        default=30,
+        help="Seconds to stream in 'live' mode before sending RECORD_STOP (default: 30)"
+    )
+
+    args = parser.parse_args()
+    music_path = args.audio_file
+
     try:
         async with websockets.connect(WS_URI) as websocket:
             print(f"Connected to ClassMonitor audio server on {WS_URI}")
-            if os.path.exists(music_path):
-                await stream_music_file(websocket, music_path)
+
+            if args.mode == "live":
+                await stream_with_live_transcription(websocket, music_path, args.duration)
             else:
-                print(f"No audio file found at: {music_path}")
-                print("Falling back to simulated tone...")
-                await stream_tone(websocket)
-                
+                # Default: continuous stream (original behaviour)
+                if os.path.exists(music_path):
+                    await stream_music_file(websocket, music_path)
+                else:
+                    print(f"No audio file found at: {music_path}")
+                    print("Falling back to simulated tone...")
+                    await stream_tone(websocket)
+
     except ConnectionRefusedError:
-        print("Error: Could not connect to the server. Is it running on ws://127.0.0.1:8001?")
+        print(f"Error: Could not connect to the server. Is it running on {WS_URI}?")
+        print("Start it with: python servers/audio-server/server.py")
     except websockets.exceptions.ConnectionClosed:
         print("WebSocket connection was closed by the server.")
     except KeyboardInterrupt:

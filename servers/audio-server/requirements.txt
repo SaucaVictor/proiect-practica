@@ -1,0 +1,15 @@
+# ClassMonitor — Audio Server Dependencies
+# Install with: pip install -r requirements.txt
+
+# ── Core WebRTC & Audio ────────────────────────────────────────────────────────
+fastapi
+uvicorn[standard]
+aiortc
+av
+numpy
+
+# ── HTTP Client ────────────────────────────────────────────────────────────────
+httpx
+
+# ── WebSocket Client (for Deepgram relay) ──────────────────────────────────────
+websockets>=12.0

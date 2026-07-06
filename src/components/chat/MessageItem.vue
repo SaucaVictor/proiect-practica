@@ -89,7 +89,7 @@ const displayContent = computed(() => {
   if (isTeachAI.value) return ''
   const raw = props.message.content
   if (!raw) return ''
-  let clean = raw.replace(/<!-- FILES_CONTENT_START -->[\s\S]*<!-- FILES_CONTENT_END -->/, '')
+  let clean = raw.replace(/<files_content>[\s\S]*<\/files_content>/, '')
   clean = clean.replace(/^\[Reference: [\s\S]*?\n\n---\n\n/, '')
   return clean.trim()
 })

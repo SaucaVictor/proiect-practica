@@ -14,7 +14,8 @@ import { supabase } from '@/services/supabase/client'
 import { useReferencesStore } from '@/stores/references.store'
 import { useToast } from '@/composables/useToast'
 import UserResourceTree from './UserResourceTree.vue'
-import { extractTextFromPdfUrl } from '@/utils/pdf'
+import { extractTextFromPdfUrl, extractTextFromPdf } from '@/utils/pdf'
+import { generateEmbedding, chunkText } from '@/services/ai/embeddings'
 
 // Node representation in the local panel state
 export interface ResourceNode {
@@ -31,6 +32,8 @@ export interface ResourceNode {
   previewFile: ResourceNode | null
   previewContent: string | null
   previewLoading: boolean
+  isIndexing?: boolean
+  indexingProgress?: number
 }
 
 defineProps<{
@@ -248,6 +251,21 @@ async function handleFileChange(event: Event) {
       const uploaded = await uploadUserResource(file, parentId)
       if (uploaded) {
         successCount++
+        
+        // Reload folder/refresh tree so the node is added to the UI tree
+        if (parentId) {
+          await reloadFolderById(parentId)
+          const parent = findNode(tree.value, parentId)
+          if (parent) parent.expanded = true
+        } else {
+          await refresh()
+        }
+
+        // Find the newly created node in the tree and trigger ingestion
+        const node = findNode(tree.value, uploaded.id)
+        if (node) {
+          processIngestion(node, file)
+        }
       } else {
         failCount++
       }
@@ -262,13 +280,72 @@ async function handleFileChange(event: Event) {
 
   if (successCount > 0) {
     toast.success('Upload Completed', `Successfully uploaded ${successCount} file(s).`)
-    if (parentId) {
-      await reloadFolderById(parentId)
-      const parent = findNode(tree.value, parentId)
-      if (parent) parent.expanded = true
-    } else {
-      await refresh()
+  }
+}
+
+async function processIngestion(node: ResourceNode, file: File) {
+  node.isIndexing = true
+  node.indexingProgress = 0
+
+  try {
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) throw new Error('User not logged in')
+
+    let fullText = ''
+    const isPdf = file.type === 'application/pdf' || file.name.toLowerCase().endsWith('.pdf')
+    const isTxt = file.type === 'text/plain' || file.name.toLowerCase().endsWith('.txt')
+
+    if (isPdf) {
+      fullText = await extractTextFromPdf(file)
+    } else if (isTxt) {
+      fullText = await file.text()
     }
+
+    if (fullText.trim().length === 0) {
+      node.isIndexing = false
+      return
+    }
+
+    const chunks = chunkText(fullText)
+    if (chunks.length === 0) {
+      node.isIndexing = false
+      return
+    }
+
+    let ingested = 0
+    for (let i = 0; i < chunks.length; i++) {
+      // Check if the resource was deleted during indexing
+      if (!findNode(tree.value, node.id)) {
+        console.log(`[RAG] Ingestion aborted for deleted resource: ${node.name} (${node.id})`)
+        return
+      }
+
+      const chunk = chunks[i]
+      const embedding = await generateEmbedding(chunk, 'passage')
+
+      const { error } = await supabase.from('document_chunks').insert({
+        resource_id: node.id,
+        user_id: user.id,
+        content: chunk,
+        embedding,
+        metadata: { chunk_index: i, total_chunks: chunks.length }
+      })
+
+      if (error) {
+        console.error(`[RAG] Failed to insert chunk ${i}:`, error)
+      } else {
+        ingested++
+      }
+
+      // Update real-time progress
+      node.indexingProgress = Math.round(((i + 1) / chunks.length) * 100)
+    }
+
+    console.log(`[RAG] Ingestion complete: ${ingested}/${chunks.length} chunks.`)
+  } catch (err: any) {
+    console.error('[RAG] Ingestion failed:', err)
+  } finally {
+    node.isIndexing = false
   }
 }
 

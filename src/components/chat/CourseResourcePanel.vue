@@ -665,6 +665,7 @@ function transcriptKey(subject: string, date: string, filename: string) {
                           class="ref-whole-btn"
                           title="Reference this whole file in chat"
                           @click.stop="addWholeFileRef(file)"
+                          v-if="file.type !== 'audio'"
                         >
                           <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">
                             <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" />
