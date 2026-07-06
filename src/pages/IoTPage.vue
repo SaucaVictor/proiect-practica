@@ -29,23 +29,22 @@ const currentTab = ref<"dashboard" | "analytics">("dashboard");
       <header class="flex flex-wrap items-center justify-between gap-6 pb-6 border-b border-white/5">
         <div class="logo">
           <h1 class="text-2xl font-bold tracking-tight text-[var(--iot-text)] flex items-center gap-2">
-            <span>🏫</span> Wemos Control
+            Wemos Control
           </h1>
-          <p class="text-xs text-[var(--iot-text-muted)] mt-1">Panou IoT - Monitorizare și Automatizare Sală Curs</p>
+          <p class="text-xs text-[var(--iot-text-muted)] mt-1">Panou IoT — Monitorizare și Automatizare Sală Curs</p>
         </div>
 
-        <!-- Navigation Tabs -->
-        <div class="flex bg-white/5 border border-white/5 rounded-2xl p-1">
+        <div class="flex bg-[var(--iot-surface)] border border-[var(--iot-border)] rounded-2xl p-1">
           <button
             class="px-5 py-2 rounded-xl border-0 bg-transparent text-xs font-semibold text-[var(--iot-text-muted)] cursor-pointer transition-all duration-200 hover:text-[var(--iot-text)]"
-            :class="{ 'bg-[var(--iot-accent)]/15 text-[var(--iot-accent)]': currentTab === 'dashboard' }"
+            :class="{ 'bg-[var(--iot-accent-subtle)] text-[var(--iot-accent)] border border-[var(--iot-accent-border)]': currentTab === 'dashboard' }"
             @click="currentTab = 'dashboard'"
           >
             Panou Principal
           </button>
           <button
             class="px-5 py-2 rounded-xl border-0 bg-transparent text-xs font-semibold text-[var(--iot-text-muted)] cursor-pointer transition-all duration-200 hover:text-[var(--iot-text)]"
-            :class="{ 'bg-[var(--iot-accent)]/15 text-[var(--iot-accent)]': currentTab === 'analytics' }"
+            :class="{ 'bg-[var(--iot-accent-subtle)] text-[var(--iot-accent)] border border-[var(--iot-accent-border)]': currentTab === 'analytics' }"
             @click="currentTab = 'analytics'"
           >
             Analiză Detaliată
@@ -126,13 +125,11 @@ const currentTab = ref<"dashboard" | "analytics">("dashboard");
 .iot-page {
   font-family: 'Inter', sans-serif;
   scrollbar-width: thin;
-  scrollbar-color: rgba(255, 255, 255, 0.05) transparent;
+  scrollbar-color: var(--iot-border-hover) transparent;
 }
-.iot-page::-webkit-scrollbar {
-  width: 4px;
-}
+.iot-page::-webkit-scrollbar { width: 4px; }
 .iot-page::-webkit-scrollbar-thumb {
-  background-color: rgba(255, 255, 255, 0.05);
+  background-color: var(--iot-border-hover);
   border-radius: 4px;
 }
 </style>

@@ -89,44 +89,53 @@ export function useScenarios() {
     supabase.removeChannel(channel);
   });
 
-  async function addScenario(s: Omit<Scenario, "id">) {
-    const dbRow = {
-      name: s.name,
-      enabled: s.enabled,
-      type: s.type,
+  async function addScenario(s: Omit<Scenario, "id">): Promise<string | null> {
+    const dbRow: any = {
+      name:      s.name,
+      enabled:   s.enabled,
+      type:      s.type,
       conditions: s.conditions,
-      actions: s.actions,
-      thermostat_target: s.thermostatTarget,
-      deadband: s.deadband,
-      max_range: s.maxRange,
-      high_threshold: s.highThreshold,
-      low_threshold: s.lowThreshold,
-      mid_brightness: s.midBrightness,
-      full_brightness: s.fullBrightness,
-      off_delay: s.offDelay,
+      actions:    s.actions,
     };
+    if (s.thermostatTarget !== undefined) dbRow.thermostat_target = s.thermostatTarget;
+    if (s.deadband         !== undefined) dbRow.deadband           = s.deadband;
+    if (s.maxRange         !== undefined) dbRow.max_range          = s.maxRange;
+    if (s.highThreshold    !== undefined) dbRow.high_threshold     = s.highThreshold;
+    if (s.lowThreshold     !== undefined) dbRow.low_threshold      = s.lowThreshold;
+    if (s.midBrightness    !== undefined) dbRow.mid_brightness     = s.midBrightness;
+    if (s.fullBrightness   !== undefined) dbRow.full_brightness    = s.fullBrightness;
+    if (s.offDelay         !== undefined) dbRow.off_delay          = s.offDelay;
 
     const { error } = await supabase.from("iot_scenarios").insert(dbRow);
-    if (error) console.error("Error adding scenario:", error);
+    if (error) {
+      console.error("Error adding scenario:", error);
+      return error.message;
+    }
+    return null;
   }
 
-  async function updateScenario(id: string, updates: Partial<Scenario>) {
+  async function updateScenario(id: string, updates: Partial<Scenario>): Promise<string | null> {
     const dbRow: any = {};
-    if (updates.name !== undefined) dbRow.name = updates.name;
-    if (updates.enabled !== undefined) dbRow.enabled = updates.enabled;
-    if (updates.conditions !== undefined) dbRow.conditions = updates.conditions;
-    if (updates.actions !== undefined) dbRow.actions = updates.actions;
+    if (updates.name        !== undefined) dbRow.name              = updates.name;
+    if (updates.enabled     !== undefined) dbRow.enabled           = updates.enabled;
+    if (updates.type        !== undefined) dbRow.type              = updates.type;
+    if (updates.conditions  !== undefined) dbRow.conditions        = updates.conditions;
+    if (updates.actions     !== undefined) dbRow.actions           = updates.actions;
     if (updates.thermostatTarget !== undefined) dbRow.thermostat_target = updates.thermostatTarget;
-    if (updates.deadband !== undefined) dbRow.deadband = updates.deadband;
-    if (updates.maxRange !== undefined) dbRow.max_range = updates.maxRange;
-    if (updates.highThreshold !== undefined) dbRow.high_threshold = updates.highThreshold;
-    if (updates.lowThreshold !== undefined) dbRow.low_threshold = updates.lowThreshold;
-    if (updates.midBrightness !== undefined) dbRow.mid_brightness = updates.midBrightness;
+    if (updates.deadband    !== undefined) dbRow.deadband          = updates.deadband;
+    if (updates.maxRange    !== undefined) dbRow.max_range         = updates.maxRange;
+    if (updates.highThreshold !== undefined) dbRow.high_threshold  = updates.highThreshold;
+    if (updates.lowThreshold  !== undefined) dbRow.low_threshold   = updates.lowThreshold;
+    if (updates.midBrightness !== undefined) dbRow.mid_brightness  = updates.midBrightness;
     if (updates.fullBrightness !== undefined) dbRow.full_brightness = updates.fullBrightness;
-    if (updates.offDelay !== undefined) dbRow.off_delay = updates.offDelay;
+    if (updates.offDelay    !== undefined) dbRow.off_delay         = updates.offDelay;
 
     const { error } = await supabase.from("iot_scenarios").update(dbRow).eq("id", id);
-    if (error) console.error("Error updating scenario:", error);
+    if (error) {
+      console.error("Error updating scenario:", error);
+      return error.message;
+    }
+    return null;
   }
 
   async function deleteScenario(id: string) {

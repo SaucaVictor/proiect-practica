@@ -1,17 +1,45 @@
+/* ── IoT Theme Design Tokens ────────────────────────────────────────────── */
+
 /* Dark mode (default) */
 :root {
-  --iot-accent: #5c72f3;
-  --iot-accent-hover: #4453e7;
-  --iot-bg: #0e0f11;
-  --iot-bg-subtle: #1a1b1e;
-  --iot-card-bg: #212328;
-  --iot-text: #e8eaf0;
-  --iot-text-muted: #9aa0b2;
-  --iot-border: rgba(255, 255, 255, 0.08);
-  --iot-border-hover: rgba(255, 255, 255, 0.16);
-  --iot-slider-track: rgba(255, 255, 255, 0.12);
+  /* Brand accent */
+  --iot-accent:         #5c72f3;
+  --iot-accent-hover:   #4453e7;
+  --iot-accent-subtle:  rgba(92, 114, 243, 0.08);
+  --iot-accent-border:  rgba(92, 114, 243, 0.22);
 
-  /* Audio page variables */
+  /* Semantic */
+  --iot-success:        #10b981;
+  --iot-success-subtle: rgba(16, 185, 129, 0.08);
+  --iot-success-border: rgba(16, 185, 129, 0.22);
+  --iot-warning:        #f59e0b;
+  --iot-warning-subtle: rgba(245, 158, 11, 0.08);
+  --iot-danger:         #ef4444;
+  --iot-danger-subtle:  rgba(239, 68, 68, 0.08);
+  --iot-danger-border:  rgba(239, 68, 68, 0.22);
+
+  /* Backgrounds */
+  --iot-bg:             #0e0f11;
+  --iot-bg-subtle:      #141517;
+  --iot-surface:        #1a1b1e;
+  --iot-surface-raised: #212328;
+  --iot-card-bg:        #212328;
+
+  /* Text */
+  --iot-text:           #e8eaf0;
+  --iot-text-muted:     #9aa0b2;
+  --iot-text-dim:       #555b6e;
+
+  /* Borders */
+  --iot-border:         rgba(255, 255, 255, 0.07);
+  --iot-border-hover:   rgba(255, 255, 255, 0.14);
+  --iot-border-strong:  rgba(255, 255, 255, 0.2);
+
+  /* Controls */
+  --iot-slider-track:   rgba(255, 255, 255, 0.10);
+  --iot-toggle-bg:      rgba(255, 255, 255, 0.10);
+
+  /* Audio page variables (unchanged) */
   --audio-bg: #0e0f11;
   --audio-text: #e8eaf0;
   --audio-text-muted: #737c8e;
@@ -41,16 +69,36 @@
 
 /* Light mode overrides */
 html:not(.dark) {
-  --iot-accent: #5c72f3;
-  --iot-accent-hover: #4453e7;
-  --iot-bg: #f0f2f7;
-  --iot-bg-subtle: #e5e8ef;
-  --iot-card-bg: #e5e8ef;
-  --iot-text: #0f172a;
-  --iot-text-muted: #475569;
-  --iot-border: rgba(0, 0, 0, 0.07);
-  --iot-border-hover: rgba(0, 0, 0, 0.14);
-  --iot-slider-track: #cdd1db;
+  --iot-accent:         #4355c7;
+  --iot-accent-hover:   #3344b8;
+  --iot-accent-subtle:  rgba(67, 85, 199, 0.07);
+  --iot-accent-border:  rgba(67, 85, 199, 0.2);
+
+  --iot-success:        #059669;
+  --iot-success-subtle: rgba(5, 150, 105, 0.07);
+  --iot-success-border: rgba(5, 150, 105, 0.22);
+  --iot-warning:        #d97706;
+  --iot-warning-subtle: rgba(217, 119, 6, 0.07);
+  --iot-danger:         #dc2626;
+  --iot-danger-subtle:  rgba(220, 38, 38, 0.07);
+  --iot-danger-border:  rgba(220, 38, 38, 0.2);
+
+  --iot-bg:             #f0f2f7;
+  --iot-bg-subtle:      #e8eaf0;
+  --iot-surface:        #eceef4;
+  --iot-surface-raised: #ffffff;
+  --iot-card-bg:        #ffffff;
+
+  --iot-text:           #0f172a;
+  --iot-text-muted:     #475569;
+  --iot-text-dim:       #94a3b8;
+
+  --iot-border:         rgba(0, 0, 0, 0.07);
+  --iot-border-hover:   rgba(0, 0, 0, 0.13);
+  --iot-border-strong:  rgba(0, 0, 0, 0.2);
+
+  --iot-slider-track:   #cdd1db;
+  --iot-toggle-bg:      #cdd1db;
 
   /* Audio page variables — light mode */
   --audio-bg: #f0f2f7;
@@ -79,3 +127,4 @@ html:not(.dark) {
   --audio-spinner-border: #d1d5db;
   --audio-grid-line: rgba(0, 0, 0, 0.035);
 }
+
