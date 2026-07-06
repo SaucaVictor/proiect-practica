@@ -1,4 +1,6 @@
 import { supabase } from './client'
+import { ingestDocument, hasDocumentChunks, deleteDocumentChunks } from './vectorStore'
+import { extractTextFromPdf } from '@/utils/pdf'
 
 export interface UserResource {
   id: string
@@ -180,7 +182,13 @@ export async function deleteUserResource(id: string): Promise<boolean> {
       await collectNestedFiles(item.id)
     }
 
-    // 1. Delete from Supabase Storage
+    // 1a. Cleanup chunk-uri RAG din document_chunks
+    //    (CASCADE DELETE din SQL face asta automat, dar apelăm explicit pentru robustete)
+    if (item.type === 'file') {
+      await deleteDocumentChunks(item.id)
+    }
+
+    // 1b. Delete from Supabase Storage
     if (filePathsToClean.length > 0) {
       const { error: storageError } = await supabase.storage
         .from('user_resources')

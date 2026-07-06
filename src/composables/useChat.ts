@@ -14,6 +14,7 @@ import { supabase } from '@/services/supabase/client'
 import type { PendingAttachment } from '@/composables/useAttachments'
 import { extractTextFromPdf } from '@/utils/pdf'
 import { transcribeAudio } from '@/utils/audio'
+import { useRag } from '@/composables/useRag'
 
 export function useChat() {
   const chatStore = useChatStore()
@@ -21,6 +22,7 @@ export function useChat() {
   const settingsStore = useSettingsStore()
   const providerStore = useProviderStore()
   const toast = useToast()
+  const { ragSearch } = useRag()
 
   const sending = ref(false)
 
@@ -286,17 +288,29 @@ export function useChat() {
     chatStore.startStreaming(assistantMsgId)
     sending.value = false
 
-    // ── 4. Build request ────────────────────────────────────────────────────
+    // ── 4. Build request + RAG context injection ──────────────────────────────
     const aiMessages = buildAIMessages(chatStore.messages)
 
-    // ── 5. Stream ───────────────────────────────────────────────────────────
+    // Căutăm semantic în documentele utilizatorului (opt-in, silencios la erori)
+    const ragResult = await ragSearch(content)
+
+    // Construim systemPrompt îmbogățit cu contextul RAG (Anthropic XML structure)
+    let enrichedSystemPrompt = settings.systemPrompt || ''
+    if (ragResult.hasContext) {
+      // Injectăm contextul înainte de instrucțiunile sistemului existente,
+      // aşa încât LLM-ul să aibă contextul documentelor în prim plan
+      enrichedSystemPrompt = `${ragResult.contextBlock}\n\n${enrichedSystemPrompt}`.trim()
+      console.debug(`[RAG] Injected ${ragResult.chunkCount} chunks into system prompt`)
+    }
+
+    // ── 5. Stream ─────────────────────────────────────────────────────────────────────
     if (settings.streamEnabled) {
       const controller = ChatService.stream(
         {
           provider,
           model,
           messages: aiMessages,
-          systemPrompt: settings.systemPrompt || undefined,
+          systemPrompt: enrichedSystemPrompt || undefined,
           temperature: settings.temperature,
           topP: settings.topP,
           topK: settings.topK || undefined,
@@ -360,7 +374,7 @@ export function useChat() {
           provider,
           model,
           messages: aiMessages,
-          systemPrompt: settings.systemPrompt || undefined,
+          systemPrompt: enrichedSystemPrompt || undefined,
           temperature: settings.temperature,
           maxTokens: settings.maxTokens,
         })
