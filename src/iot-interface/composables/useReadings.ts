@@ -37,17 +37,17 @@ export function useReadings(sensorName: string, count = 40) {
     .on(
       "postgres_changes",
       {
-        event: "INSERT",
+        event: "UPDATE",
         schema: "public",
-        table: "iot_sensor_readings",
-        filter: `sensor_name=eq.${sensorName}`,
+        table: "iot_sensors",
+        filter: `name=eq.${sensorName}`,
       },
       (payload) => {
         const newRow = payload.new as any;
         if (newRow) {
           readings.value.push({
-            value: Number(newRow.value),
-            timestamp: wrapTimestamp(newRow.timestamp),
+            value: Number(newRow.latest_value),
+            timestamp: wrapTimestamp(newRow.last_updated),
           });
           if (readings.value.length > count) {
             readings.value.shift();

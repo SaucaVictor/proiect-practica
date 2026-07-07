@@ -59,7 +59,7 @@ const client = mqtt.connect("mqtt://broker.hivemq.com");
 
 // TOPIC-uri sincronizate cu codul Arduino nou
 const TELEMETRY_TOPIC = "iot/classmonitor/telemetry"; // Subscrie pentru a primi datele de la Wemos
-const CONTROL_TOPIC   = "iot/classmonitor/control";   // Publica comenzile catre Wemos
+const CONTROL_TOPIC = "iot/classmonitor/control";   // Publica comenzile catre Wemos
 
 let isDeviceConnected = false;
 let currentMode: "manual" | "auto" = "manual";
@@ -87,24 +87,24 @@ function evalCondition(c: Condition, sensors: SensorValues): boolean {
   // Daca senzorul este lumina si unitatea este %, mapam pragul de la 0-100 la 0-1023
   const threshold = c.unit === "percent" && c.sensor === "Light" ? c.value * 10.23 : c.value;
   switch (c.operator) {
-    case ">":  return raw > threshold;
-    case "<":  return raw < threshold;
+    case ">": return raw > threshold;
+    case "<": return raw < threshold;
     case ">=": return raw >= threshold;
     case "<=": return raw <= threshold;
     case "==": return raw === threshold;
     case "!=": return raw !== threshold;
-    default:   return false;
+    default: return false;
   }
 }
 
 function evaluateLightControl(s: ScenarioData): number {
-  const highThreshold  = s.highThreshold  ?? 75;
-  const lowThreshold   = s.lowThreshold   ?? 25;
-  const midBrightness  = Math.round((s.midBrightness  ?? 70)  / 100 * 255);
+  const highThreshold = s.highThreshold ?? 75;
+  const lowThreshold = s.lowThreshold ?? 25;
+  const midBrightness = Math.round((s.midBrightness ?? 70) / 100 * 255);
   const fullBrightness = Math.round((s.fullBrightness ?? 100) / 100 * 255);
 
   const lightPct = (lastSensorValues.Light / 1023) * 100;
-  const persons  = lastSensorValues.Persons;
+  const persons = lastSensorValues.Persons;
 
   if (lightPct > highThreshold) {
     return 0; // Prea multa lumina naturala, oprim banda LED
@@ -128,13 +128,13 @@ function evaluateLightControl(s: ScenarioData): number {
 }
 
 function evaluateTempControl(s: ScenarioData): { fan: number; ptc: number } {
-  const target   = s.thermostatTarget ?? thermostatTarget;
+  const target = s.thermostatTarget ?? thermostatTarget;
   const deadband = s.deadband ?? 0.5;
   const maxRange = s.maxRange ?? 10;
 
   const ECO_CAP = Math.round(0.7 * 255); // Reducere la 70% putere maxima daca sunt putine persoane
 
-  const diff    = lastSensorValues.Temperature - target;
+  const diff = lastSensorValues.Temperature - target;
   const persons = lastSensorValues.Persons;
 
   if (persons === 0) return { fan: 0, ptc: 0 }; // Sala goala, oprim ventilarea/incalzirea
@@ -164,7 +164,7 @@ function evaluateTempControl(s: ScenarioData): { fan: number; ptc: number } {
 function evaluateScenarios() {
   const persons = lastSensorValues.Persons;
   const prev = prevPersons;
-  
+
   if (persons > 0) {
     roomEmptiedTime = null;
   } else if (persons === 0 && prev > 0) {
@@ -231,7 +231,7 @@ function evaluateScenarios() {
 
 async function initializeState() {
   console.log("🔋 Incarcare configuratii initiale...");
-  
+
   // 1. Incarcare iot_settings
   const { data: settingsData, error: settingsError } = await supabase
     .from("iot_settings")
@@ -258,7 +258,7 @@ async function initializeState() {
       { event: "UPDATE", schema: "public", table: "iot_settings", filter: "id=eq.1" },
       (payload) => {
         const d = payload.new;
-        
+
         if (d.mode !== undefined) {
           const prevMode = currentMode;
           currentMode = d.mode as "manual" | "auto";
@@ -270,18 +270,18 @@ async function initializeState() {
             evaluateScenarios();
           }
         }
-        
+
         if (d.thermostat_target !== undefined) {
           thermostatTarget = Number(d.thermostat_target);
         }
 
         if (!isDeviceConnected) return;
-        
+
         // Daca ecranul a fost schimbat din site, trimitem comanda pe Wemos
         if (d.display !== undefined) {
           sendMQTT(`CMD;LCD:${d.display}`);
         }
-        
+
         // Daca suntem in mod manual, scriem direct comenzile pe hardware
         if (currentMode === "manual") {
           if (d.fan !== undefined) sendMQTT(`CMD;${PIN.fan}:${d.fan}`);
@@ -355,6 +355,16 @@ async function reloadScenarios() {
 
 const TRACKED = new Set(["Persons", "Temperature", "Light", "Curent"]);
 
+const lastSavedValues: Record<string, number> = {};
+const deltaThresholds: Record<string, number> = {
+  Temperature: 0.3,
+  Light: 30,
+  Persons: 1,
+  Curent: 0.1
+};
+
+let lastHistorySaveTime = 0;
+
 client.on("connect", () => {
   console.log(`🚀 Conectat la Brokerul MQTT | Ascult pe topicul: ${TELEMETRY_TOPIC}`);
   client.subscribe(TELEMETRY_TOPIC, (err) => {
@@ -364,7 +374,7 @@ client.on("connect", () => {
 
 client.on("message", async (topic, payload) => {
   if (topic !== TELEMETRY_TOPIC) return;
-  
+
   isDeviceConnected = true;
   const message = payload.toString();
   console.log(`📩 [MQTT] Primit: ${message}`);
@@ -380,7 +390,7 @@ client.on("message", async (topic, payload) => {
   for (const pair of pairs) {
     const ci = pair.indexOf(":");
     if (ci === -1) continue;
-    const name  = pair.substring(0, ci).trim();
+    const name = pair.substring(0, ci).trim();
     const value = pair.substring(ci + 1).trim();
     if (!name || !value) continue;
 
@@ -396,10 +406,14 @@ client.on("message", async (topic, payload) => {
     .from("iot_devices")
     .upsert({ id: "wemos", address: deviceIp, last_seen: new Date(), online: true });
 
+  const now = Date.now();
+  const shouldSaveHistory = (now - lastHistorySaveTime >= 60000);
+  let savedAny = false;
+
   // Pregatim scrierea compacta (batch/bulks) in Supabase
   for (const [name, value] of Object.entries(parsedMap)) {
     const parsedVal = parseFloat(value);
-    
+
     // Tabela public.iot_sensors (starea curenta)
     sensorsToUpsert.push({
       name: name,
@@ -411,16 +425,25 @@ client.on("message", async (topic, payload) => {
     // Tabela public.iot_sensor_readings (istoric masuratori)
     if (TRACKED.has(name) && !isNaN(parsedVal)) {
       lastSensorValues[name as keyof SensorValues] = parsedVal;
-      readingsToInsert.push({
-        sensor_name: name,
-        value: parsedVal,
-        timestamp: new Date(),
-        device_ip: deviceIp
-      });
+
+      const lastSaved = lastSavedValues[name];
+      const delta = lastSaved !== undefined ? Math.abs(parsedVal - lastSaved) : Infinity;
+      const isSignificantChange = delta >= (deltaThresholds[name] ?? 0);
+
+      if (shouldSaveHistory || isSignificantChange) {
+        readingsToInsert.push({
+          sensor_name: name,
+          value: parsedVal,
+          timestamp: new Date(),
+          device_ip: deviceIp
+        });
+        lastSavedValues[name] = parsedVal;
+        savedAny = true;
+      }
     }
   }
 
-  // Scriem toate datele intrun singur query compact (satisfacand restrictia de 1-2 secunde per write)
+  // Scriem toate datele intrun singur query compact
   if (sensorsToUpsert.length > 0) {
     const { error } = await supabase.from("iot_sensors").upsert(sensorsToUpsert);
     if (error) console.error("❌ Eroare la scrierea senzorilor in Supabase:", error);
@@ -428,7 +451,16 @@ client.on("message", async (topic, payload) => {
 
   if (readingsToInsert.length > 0) {
     const { error } = await supabase.from("iot_sensor_readings").insert(readingsToInsert);
-    if (error) console.error("❌ Eroare la scrierea istoricului in Supabase:", error);
+    if (error) {
+      console.error("❌ Eroare la scrierea istoricului in Supabase:", error);
+    } else {
+      if (shouldSaveHistory) {
+        lastHistorySaveTime = now;
+        console.log("💾 Istoric salvat in Supabase (Heartbeat 60s).");
+      } else if (savedAny) {
+        console.log("⚡ Istoric salvat la schimbare semnificativa (Delta Trigger).");
+      }
+    }
   }
 
   // Daca modul este auto, evaluam scenariile dupa noile date
