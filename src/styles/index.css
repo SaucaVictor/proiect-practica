@@ -382,3 +382,73 @@ html:not(.dark) .audio-call-container .spinner {
   border-color: #d1d5db !important;
   border-top-color: #5c72f3 !important;
 }
+
+/* ── OCEAN THEME ──────────────────────────────────────────────────────────── */
+html.ocean body, html.ocean .app-layout, html.ocean .chat-page, html.ocean .chat-body, html.ocean .chat-panel, html.ocean .messages-container, html.ocean .settings-page, html.ocean .profile-page, html.ocean .schedule-page, html.ocean .iot-page, html.ocean .audio-call-container {
+  background-color: #021024 !important;
+  color: #dbeafe !important;
+}
+
+html.ocean .app-rail, html.ocean .chat-topbar, html.ocean .input-wrapper, html.ocean .drawer-panel, html.ocean .sidebar, html.ocean .section-body, html.ocean .theme-btn, html.ocean .profile-card, html.ocean .day-card {
+  background-color: #010c1c !important;
+  border-color: #081d3d !important;
+}
+
+html.ocean .search-input, html.ocean .system-prompt-input, html.ocean .field-input, html.ocean .add-form, html.ocean .form-input, html.ocean .form-select, html.ocean .btn--loading {
+  background-color: #010916 !important;
+  border-color: #081d3d !important;
+  color: #dbeafe !important;
+}
+
+html.ocean .iot-page .bg-white\/5, html.ocean .iot-page .bg-white\/10 {
+  background-color: #010c1c !important;
+}
+html.ocean .iot-page .border-white\/5, html.ocean .iot-page .border-white\/10, html.ocean .iot-page .border-white\/15 {
+  border-color: #081d3d !important;
+}
+
+html.ocean .rail-item:hover, html.ocean .resources-toggle-btn:hover, html.ocean .new-chat-btn:hover {
+  background-color: #081d3d !important;
+}
+
+html.ocean .drag-handle { background-color: #081d3d !important; }
+html.ocean .drag-handle:hover { background-color: #1d4ed8 !important; }
+
+/* ── FOREST THEME ─────────────────────────────────────────────────────────── */
+html.forest body, html.forest .app-layout, html.forest .chat-page, html.forest .chat-body, html.forest .chat-panel, html.forest .messages-container, html.forest .settings-page, html.forest .profile-page, html.forest .schedule-page, html.forest .iot-page, html.forest .audio-call-container {
+  background-color: #011f15 !important;
+  color: #d1fae5 !important;
+}
+
+html.forest .app-rail, html.forest .chat-topbar, html.forest .input-wrapper, html.forest .drawer-panel, html.forest .sidebar, html.forest .section-body, html.forest .theme-btn, html.forest .profile-card, html.forest .day-card {
+  background-color: #00170f !important;
+  border-color: #022e20 !important;
+}
+
+html.forest .search-input, html.forest .system-prompt-input, html.forest .field-input, html.forest .add-form, html.forest .form-input, html.forest .form-select, html.forest .btn--loading {
+  background-color: #00120b !important;
+  border-color: #022e20 !important;
+  color: #d1fae5 !important;
+}
+
+html.forest .iot-page .bg-white\/5, html.forest .iot-page .bg-white\/10 {
+  background-color: #00170f !important;
+}
+html.forest .iot-page .border-white\/5, html.forest .iot-page .border-white\/10, html.forest .iot-page .border-white\/15 {
+  border-color: #022e20 !important;
+}
+
+html.forest .rail-item:hover, html.forest .resources-toggle-btn:hover, html.forest .new-chat-btn:hover {
+  background-color: #022e20 !important;
+}
+
+html.forest .drag-handle { background-color: #022e20 !important; }
+html.forest .drag-handle:hover { background-color: #059669 !important; }
+
+/* ── ACTIVE BUTTON FIXES ──────────────────────────────────────────────────── */
+html:not(.dark) .theme-btn--active,
+html.ocean .theme-btn--active,
+html.forest .theme-btn--active {
+  background-color: #5c72f3 !important;
+  color: #ffffff !important;
+}

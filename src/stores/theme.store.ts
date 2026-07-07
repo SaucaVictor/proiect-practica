@@ -13,15 +13,20 @@ export const useThemeStore = defineStore('theme', () => {
     if (theme.value === 'system') {
       return window.matchMedia('(prefers-color-scheme: dark)').matches
     }
-    return theme.value === 'dark'
+    return theme.value === 'dark' || theme.value === 'ocean' || theme.value === 'forest'
   })
 
   function applyTheme(): void {
+    document.documentElement.classList.remove('dark', 'ocean', 'forest')
+    
     if (isDark.value) {
       document.documentElement.classList.add('dark')
-    } else {
-      document.documentElement.classList.remove('dark')
     }
+    
+    if (theme.value === 'ocean' || theme.value === 'forest') {
+      document.documentElement.classList.add(theme.value)
+    }
+    
     document.documentElement.setAttribute('data-accent', accentColor.value)
   }
 
