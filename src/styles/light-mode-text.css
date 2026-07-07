@@ -12,15 +12,23 @@ html:not(.dark) .empty-state-desc { color: #475569 !important; }
 
 /* Model Selector specific (din cauza Tailwind @apply) */
 html:not(.dark) .model-name { color: #0f172a !important; }
+html:not(.dark) .model-btn  { color: #334155 !important; }
+html:not(.dark) .model-btn:hover { color: #0f172a !important; }
 html:not(.dark) .model-option-name { color: #0f172a !important; }
 html:not(.dark) .model-dropdown-header { color: #0f172a !important; }
 html:not(.dark) .model-option-desc { color: #475569 !important; }
 html:not(.dark) .model-chevron { color: #64748b !important; }
 html:not(.dark) .badge:not(.badge--vision):not(.badge--reasoning) { background-color: #cbd5e1 !important; color: #020617 !important; }
 
+/* Chat Input toolbar specific */
+html:not(.dark) .toolbar-btn { color: #475569 !important; }
+html:not(.dark) .toolbar-btn:hover { color: #0f172a !important; background-color: #e2e8f0 !important; }
+html:not(.dark) .toolbar-divider { background-color: #e2e8f0 !important; }
+html:not(.dark) .input-toolbar { border-color: #dde1ea !important; }
+
 /* Chat Topbar specific */
 html:not(.dark) .chat-conv-title { color: #0f172a !important; }
-html:not(.dark) .resources-toggle-btn:hover { background-color: #cbd5e1 !important; color: #020617 !important; }
+/* resources-toggle-btn overrides are in index.css */
 
 /* Resources Panel specific */
 html:not(.dark) .tree-label { color: #0f172a !important; }
@@ -51,17 +59,43 @@ html:not(.dark) button.theme-btn.theme-btn--active {
 }
 
 /* Chat Pages specific */
-html:not(.dark) .message-body,
-html:not(.dark) .message-user-text,
-html:not(.dark) .markdown-content,
-html:not(.dark) .message-assistant-text,
-html:not(.dark) .chat-textarea,
-html:not(.dark) .reasoning-toggle { color: #0f172a !important; }
+html:not(.dark) .message-body { color: #1e293b !important; }
+html:not(.dark) .message-time  { color: #94a3b8 !important; }
+html:not(.dark) .chat-textarea { color: #1e293b !important; }
+html:not(.dark) .chat-textarea::placeholder { color: #94a3b8 !important; }
+html:not(.dark) .reasoning-block { border-color: #e2e8f0 !important; }
+html:not(.dark) .reasoning-toggle { background-color: #f1f5f9 !important; color: #475569 !important; }
+html:not(.dark) .reasoning-toggle:hover { background-color: #e2e8f0 !important; }
+html:not(.dark) .reasoning-token-count { color: #64748b !important; }
+html:not(.dark) .reasoning-content { background-color: #f8fafc !important; border-top-color: #e2e8f0 !important; color: #334155 !important; }
+/* User bubble text MUST stay white */
+html:not(.dark) .message-user-text { color: #ffffff !important; }
 
-html:not(.dark) .chat-textarea::placeholder { color: #475569 !important; }
+/* Scroll to bottom button */
+html:not(.dark) .scroll-to-bottom-btn {
+  background-color: #ffffff !important;
+  border-color: #cbd5e1 !important;
+  color: #475569 !important;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06) !important;
+}
+html:not(.dark) .scroll-to-bottom-btn:hover {
+  background-color: #f8fafc !important;
+  color: #0f172a !important;
+}
 
-html:not(.dark) .markdown-content blockquote,
-html:not(.dark) .reasoning-content { color: #334155 !important; border-left-color: #cbd5e1 !important; }
+/* ── Markdown light-mode overrides (MarkdownRenderer uses hard-coded dark hex) ── */
+html:not(.dark) .markdown-content                  { color: #1e293b !important; }
+html:not(.dark) .markdown-content h1,
+html:not(.dark) .markdown-content h2,
+html:not(.dark) .markdown-content h3,
+html:not(.dark) .markdown-content h4              { color: #0f172a !important; }
+html:not(.dark) .markdown-content strong          { color: #0f172a !important; }
+html:not(.dark) .markdown-content blockquote      { color: #64748b !important; border-left-color: #cbd5e1 !important; }
+html:not(.dark) .markdown-content hr              { border-color: #e2e8f0 !important; }
+html:not(.dark) .markdown-content a               { color: #4453e7 !important; }
+html:not(.dark) .markdown-content :not(pre) code  { background: #f1f5f9 !important; color: #4453e7 !important; border-color: #e2e8f0 !important; }
+html:not(.dark) .markdown-content th              { background: #f1f5f9 !important; color: #334155 !important; border-bottom-color: #e2e8f0 !important; }
+html:not(.dark) .markdown-content td              { border-bottom-color: #f1f5f9 !important; }
 
 /* Conversation List specific (Tailwind @apply overrides) */
 html:not(.dark) .conv-item { color: #1e293b !important; }
@@ -118,11 +152,11 @@ html:not(.dark) .panel-refresh-btn:hover,
 html:not(.dark) .teach-btn:hover,
 html:not(.dark) .ref-whole-btn:hover,
 html:not(.dark) .conv-item:hover,
-html:not(.dark) .conv-item--active { background-color: #e2e8f0 !important; }
+html:not(.dark) .conv-item--active,
+html:not(.dark) .model-btn:hover,
+html:not(.dark) .model-option:hover { background-color: #e2e8f0 !important; }
 
 html:not(.dark) [class*="bg-surface-300"],
-html:not(.dark) .model-btn:hover,
-html:not(.dark) .model-option:hover,
 html:not(.dark) .toggle:not(.toggle--on),
 html:not(.dark) .conv-action-btn:hover,
 html:not(.dark) .slider { background-color: #cbd5e1 !important; }
@@ -132,3 +166,86 @@ html:not(.dark) .model-dropdown-header,
 html:not(.dark) .model-dropdown,
 html:not(.dark) .section-body { border-color: #e2e8f0 !important; }
 html:not(.dark) [class*="border-surface-300"] { border-color: #cbd5e1 !important; }
+
+/* Mobile bottom rail light mode */
+html:not(.dark) .app-rail-mobile {
+  background-color: #eaecf2 !important;
+  border-color: #dde1ea !important;
+}
+html:not(.dark) .rail-mobile-item {
+  color: #475569 !important;
+}
+html:not(.dark) .rail-mobile-item--active {
+  color: #4453e7 !important;
+}
+
+/* ── CourseResourcePanel & UserResourcePanel light mode (uses hard-coded dark hex) ────────────── */
+html:not(.dark) .course-panel {
+  background-color: #f8fafc !important;
+  border-left-color: #e2e8f0 !important;
+}
+html:not(.dark) .user-panel {
+  background-color: #f8fafc !important;
+  border-bottom-color: #e2e8f0 !important;
+}
+html:not(.dark) .panel-header {
+  background-color: #f8fafc !important;
+  border-bottom-color: #e2e8f0 !important;
+}
+html:not(.dark) .panel-header-left            { color: #475569 !important; }
+html:not(.dark) .panel-header-left:hover      { color: #0f172a !important; }
+html:not(.dark) .panel-refresh-btn            { color: #64748b !important; }
+html:not(.dark) .panel-refresh-btn:hover      { color: #0f172a !important; background-color: #e2e8f0 !important; }
+html:not(.dark) .panel-action-btn             { color: #64748b !important; }
+html:not(.dark) .panel-action-btn:hover       { color: #4453e7 !important; background-color: #e2e8f0 !important; }
+html:not(.dark) .panel-state                  { color: #94a3b8 !important; }
+
+/* Tree rows */
+html:not(.dark) .tree-row                     { color: #334155 !important; }
+html:not(.dark) .tree-row:hover               { background-color: #e2e8f0 !important; color: #0f172a !important; }
+html:not(.dark) .tree-row--subject            { color: #0f172a !important; }
+html:not(.dark) .tree-row--date               { color: #475569 !important; }
+html:not(.dark) .tree-row--file               { color: #64748b !important; }
+html:not(.dark) .tree-row--file:hover         { color: #334155 !important; }
+html:not(.dark) .tree-row--file-active        { background-color: rgba(68,83,231,0.08) !important; color: #3640ce !important; }
+html:not(.dark) .tree-chevron                 { color: #94a3b8 !important; }
+html:not(.dark) .tree-file-row                { background-color: #f8fafc !important; }
+html:not(.dark) .file-size                    { color: #94a3b8 !important; }
+html:not(.dark) .tree-empty                   { color: #94a3b8 !important; }
+
+/* Action buttons — always a bit visible in light mode */
+html:not(.dark) .action-btn                   { color: #94a3b8 !important; }
+html:not(.dark) .action-btn:hover             { background-color: #e2e8f0 !important; color: #334155 !important; }
+
+/* Teach AI / ref whole btn */
+html:not(.dark) .teach-btn                    { color: #4453e7 !important; }
+html:not(.dark) .teach-btn:hover              { background-color: rgba(68,83,231,0.08) !important; }
+html:not(.dark) .ref-whole-btn                { color: #94a3b8 !important; }
+html:not(.dark) .ref-whole-btn:hover          { color: #4453e7 !important; background-color: rgba(68,83,231,0.08) !important; }
+
+/* File preview */
+html:not(.dark) .file-preview                 { background-color: #ffffff !important; border-color: #e2e8f0 !important; }
+html:not(.dark) .preview-text                 { color: #334155 !important; }
+html:not(.dark) .preview-loading              { color: #64748b !important; }
+
+/* Drag handles on AudioCallPage and other split pages in light mode */
+html:not(.dark) .drag-handle-horizontal,
+html:not(.dark) .drag-handle-vertical,
+html:not(.dark) .drag-handle-chat,
+html:not(.dark) .resize-bar {
+  background-color: #cbd5e1 !important; /* clear solid grey separator */
+  border-color: #e2e8f0 !important;
+}
+html:not(.dark) .drag-handle-horizontal:hover,
+html:not(.dark) .drag-handle-vertical:hover,
+html:not(.dark) .drag-handle-chat:hover,
+html:not(.dark) .resize-bar:hover {
+  background-color: #4453e7 !important; /* solid accent color on hover */
+}
+html:not(.dark) .drag-handle-horizontal-bar,
+html:not(.dark) .drag-handle-vertical-bar,
+html:not(.dark) .drag-handle-chat-bar {
+  background-color: #64748b !important;
+}
+
+/* Tooltip */

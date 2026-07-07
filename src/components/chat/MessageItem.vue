@@ -309,38 +309,45 @@ const displayContent = computed(() => {
   @apply flex-1 min-w-0;
 }
 
-/* Reasoning */
+/* Reasoning — dark-mode base (surface palette is dark-first) */
 .reasoning-block {
-  @apply mb-3 rounded-lg border border-surface-300 dark:border-surface-300 overflow-hidden;
+  margin-bottom: 0.75rem;
+  border-radius: 0.5rem;
+  border: 1px solid #212328; /* surface-200 */
+  overflow: hidden;
 }
 
 .reasoning-toggle {
-  @apply flex items-center gap-2 w-full px-3 py-2 text-xs text-surface-600 dark:text-surface-600
-         bg-surface-100 dark:bg-surface-100
-         hover:bg-surface-200 dark:hover:bg-surface-200
-         transition-colors duration-100;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  width: 100%;
+  padding: 0.5rem 0.75rem;
+  font-size: 0.75rem;
+  background: #1a1b1e; /* surface-100 */
+  color: #565d6b; /* surface-600 */
+  transition: background 0.1s;
 }
+.reasoning-toggle:hover { background: #212328; }
 
-.reasoning-chevron {
-  @apply transition-transform duration-200;
-}
-
-.reasoning-chevron--open {
-  @apply rotate-180;
-}
+.reasoning-chevron { transition: transform 0.2s; }
+.reasoning-chevron--open { transform: rotate(180deg); }
 
 .reasoning-token-count {
-  @apply ml-auto text-surface-500 dark:text-surface-500;
+  margin-left: auto;
+  color: #464b55; /* surface-500 */
 }
 
 .reasoning-content {
-  @apply px-3 py-2 border-t border-surface-300 dark:border-surface-300
-         text-surface-700 dark:text-surface-700 text-xs;
+  padding: 0.5rem 0.75rem;
+  border-top: 1px solid #212328;
+  color: #737c8e; /* surface-700 */
+  font-size: 0.75rem;
 }
 
-/* Message body */
-.message-body { @apply text-surface-900 dark:text-surface-900; }
-.message-body--error { @apply text-red-400; }
+/* Message body — dark mode: near-white; light mode: overridden below */
+.message-body { color: #c4c9d4; /* surface-900 = light in dark mode */ }
+.message-body--error { color: #f87171; }
 
 /* Streaming cursors */
 .streaming-cursor {
@@ -362,18 +369,18 @@ const displayContent = computed(() => {
 
 .msg-action {
   @apply flex items-center justify-center w-6 h-6 rounded-md
-         text-surface-600 dark:text-surface-600
-         hover:bg-surface-200 dark:hover:bg-surface-200
-         hover:text-surface-950 dark:hover:text-surface-950
+         text-surface-400 dark:text-surface-500
+         hover:bg-surface-100 dark:hover:bg-surface-200
+         hover:text-surface-800 dark:hover:text-surface-100
          transition-colors duration-100;
 }
 
 .msg-action--danger:hover {
-  @apply text-red-400 bg-red-500/10;
+  @apply text-red-500 dark:text-red-400 bg-red-500/10;
 }
 
 .message-meta { @apply flex items-center gap-2; }
-.message-time { @apply text-xs text-surface-600 dark:text-surface-600; }
+.message-time { @apply text-xs text-surface-400 dark:text-surface-500; }
 
 .msg-attachments-container {
   @apply flex flex-col gap-1.5 mt-2 pt-2 border-t border-white/10;

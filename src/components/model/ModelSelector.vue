@@ -96,51 +96,53 @@ function select(modelId: string) {
 .model-selector { @apply relative; }
 
 .model-btn {
-  @apply flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm
-         text-surface-800 dark:text-surface-800
-         hover:bg-surface-200 dark:hover:bg-surface-200
+  @apply flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs
+         text-surface-700
+         hover:bg-surface-200
+         hover:text-surface-900
          transition-colors duration-150;
 }
 
-.model-name { @apply font-medium text-surface-950 dark:text-surface-950; }
+.model-name { @apply font-semibold text-surface-900; }
 
 .model-tag {
   @apply text-xs px-1.5 py-0.5 rounded bg-accent-500/15 text-accent-400 font-medium;
 }
 
 .model-tag--vision {
-  @apply bg-sky-500/15 text-sky-400 dark:bg-sky-500/15 dark:text-sky-400 !important;
+  @apply bg-sky-500/15 text-sky-400 !important;
 }
 
 .model-tag--reasoning {
-  @apply bg-violet-500/15 text-violet-400 dark:bg-violet-500/15 dark:text-violet-400 !important;
+  @apply bg-violet-500/15 text-violet-400 !important;
 }
 
 .model-chevron { @apply text-surface-600 transition-transform duration-200; }
 
 /* Dropdown */
 .model-dropdown-overlay {
-  @apply fixed inset-0 z-50 flex items-start justify-center pt-16;
+  @apply fixed inset-0 z-50 flex items-start justify-center pt-14 px-4;
 }
 
 .model-dropdown {
-  @apply w-[540px] max-h-[60vh] overflow-y-auto
-         bg-surface-100 dark:bg-surface-100
-         border border-surface-300 dark:border-surface-300
+  @apply max-h-[65vh] overflow-y-auto
+         bg-surface-100
+         border border-surface-200
          rounded-2xl shadow-2xl;
+  width: min(540px, calc(100vw - 2rem));
 }
 
 .model-dropdown-header {
-  @apply px-4 py-3 border-b border-surface-200 dark:border-surface-200
-         text-sm font-semibold text-surface-950 dark:text-surface-950
-         sticky top-0 bg-surface-100 dark:bg-surface-100;
+  @apply px-4 py-3 border-b border-surface-200
+         text-sm font-semibold text-surface-950
+         sticky top-0 bg-surface-100;
 }
 
 .model-list { @apply p-2; }
 
 .model-option {
   @apply w-full flex items-start gap-3 px-3 py-3 rounded-xl text-left
-         hover:bg-surface-200 dark:hover:bg-surface-200
+         hover:bg-surface-200
          transition-colors duration-100;
 }
 
@@ -153,11 +155,11 @@ function select(modelId: string) {
 }
 
 .model-option-name {
-  @apply text-sm font-medium text-surface-950 dark:text-surface-950;
+  @apply text-sm font-medium text-surface-950;
 }
 
 .model-option-desc {
-  @apply text-xs text-surface-600 dark:text-surface-600 mt-0.5 leading-snug;
+  @apply text-xs text-surface-600 mt-0.5 leading-snug;
 }
 
 .model-option-badges {
@@ -165,14 +167,35 @@ function select(modelId: string) {
 }
 
 .badge {
-  @apply text-xs px-1.5 py-0.5 rounded bg-surface-200 dark:bg-surface-200
-         text-surface-700 dark:text-surface-700 font-medium;
+  @apply text-xs px-1.5 py-0.5 rounded bg-surface-200
+         text-surface-700 font-medium;
 }
 
-.badge--vision    { @apply bg-sky-500/15 text-sky-400 dark:bg-sky-500/15 dark:text-sky-400; }
-.badge--reasoning { @apply bg-violet-500/15 text-violet-400 dark:bg-violet-500/15 dark:text-violet-400; }
+.badge--vision    { @apply bg-sky-500/15 text-sky-400; }
+.badge--reasoning { @apply bg-violet-500/15 text-violet-400; }
 
 /* Fade */
 .fade-enter-active, .fade-leave-active { @apply transition-opacity duration-150; }
 .fade-enter-from, .fade-leave-to { @apply opacity-0; }
+
+/* ── Mobile UI Enhancements ── */
+@media (max-width: 480px) {
+  .model-btn .model-tag {
+    display: none !important;
+  }
+  .model-name {
+    max-width: 120px;
+    @apply truncate;
+  }
+}
+
+@media (max-width: 640px) {
+  .model-dropdown-overlay {
+    @apply items-end justify-center pt-0 px-0;
+  }
+  .model-dropdown {
+    @apply rounded-t-2xl rounded-b-none border-x-0 border-b-0 max-h-[55vh];
+    width: 100% !important;
+  }
+}
 </style>

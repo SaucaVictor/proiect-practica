@@ -66,38 +66,40 @@ async function handleDeleteMessage(id: string) {
 </script>
 
 <template>
-  <div
-    ref="containerRef"
-    class="messages-container"
-    role="log"
-    aria-label="Conversation messages"
-    aria-live="polite"
-    @scroll="handleScroll"
-  >
-    <!-- Empty state -->
-    <EmptyState v-if="!loading && messages.length === 0" />
+  <div class="chat-messages-wrapper">
+    <div
+      ref="containerRef"
+      class="messages-container"
+      role="log"
+      aria-label="Conversation messages"
+      aria-live="polite"
+      @scroll="handleScroll"
+    >
+      <!-- Empty state -->
+      <EmptyState v-if="!loading && messages.length === 0" />
 
-    <!-- Messages -->
-    <TransitionGroup v-else tag="div" name="message" class="messages-list">
-      <MessageItem
-        v-for="(message, index) in messages"
-        :key="message.id"
-        :message="message"
-        :show-timestamps="settings.showTimestamps"
-        :is-last-assistant="message.role === 'assistant' && index === messages.length - 1"
-        class="group"
-        @delete="handleDeleteMessage"
-        @edit="(id) => emit('edit-message', id)"
-        @regenerate="emit('regenerate')"
-      />
-    </TransitionGroup>
+      <!-- Messages -->
+      <TransitionGroup v-else tag="div" name="message" class="messages-list">
+        <MessageItem
+          v-for="(message, index) in messages"
+          :key="message.id"
+          :message="message"
+          :show-timestamps="settings.showTimestamps"
+          :is-last-assistant="message.role === 'assistant' && index === messages.length - 1"
+          class="group"
+          @delete="handleDeleteMessage"
+          @edit="(id) => emit('edit-message', id)"
+          @regenerate="emit('regenerate')"
+        />
+      </TransitionGroup>
 
-    <!-- Typing indicator (streaming but no content yet) -->
-    <div v-if="isStreaming && !messages[messages.length - 1]?.content" class="typing-wrapper">
-      <TypingIndicator />
+      <!-- Typing indicator (streaming but no content yet) -->
+      <div v-if="isStreaming && !messages[messages.length - 1]?.content" class="typing-wrapper">
+        <TypingIndicator />
+      </div>
     </div>
 
-    <!-- Scroll to bottom button -->
+    <!-- Scroll to bottom button (outside messages-container, so it remains fixed) -->
     <Transition name="fade">
       <button
         v-if="!isAtBottom && messages.length > 0"
@@ -115,8 +117,12 @@ async function handleDeleteMessage(id: string) {
 </template>
 
 <style scoped>
+.chat-messages-wrapper {
+  @apply flex-1 flex flex-col min-h-0 relative overflow-hidden;
+}
+
 .messages-container {
-  @apply flex-1 overflow-y-auto overflow-x-hidden relative;
+  @apply flex-1 overflow-y-auto overflow-x-hidden;
   scroll-behavior: smooth;
 }
 
@@ -129,14 +135,15 @@ async function handleDeleteMessage(id: string) {
 }
 
 .scroll-to-bottom-btn {
-  @apply fixed bottom-24 right-6 w-9 h-9 rounded-full
-         bg-surface-200 dark:bg-surface-300
-         border border-surface-300 dark:border-surface-400
-         shadow-lg flex items-center justify-center
-         text-surface-700 dark:text-surface-700
-         hover:bg-surface-300 dark:hover:bg-surface-400
-         hover:text-surface-950 dark:hover:text-surface-950
-         transition-all duration-150 z-10;
+  @apply absolute bottom-2 left-1/2 -translate-x-1/2 z-10
+         flex items-center justify-center w-8 h-8 rounded-full
+         bg-surface-100 dark:bg-surface-200
+         border border-surface-300 dark:border-surface-600
+         shadow-lg
+         text-surface-600 dark:text-surface-300
+         hover:bg-surface-200 dark:hover:bg-surface-300
+         hover:text-surface-900 dark:hover:text-surface-100
+         transition-all duration-150;
 }
 
 /* Message transitions */

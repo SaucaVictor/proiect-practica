@@ -6,9 +6,9 @@ import { useConversationStore } from '@/stores/conversation.store'
 import { useProviderStore } from '@/stores/provider.store'
 import { useChat } from '@/composables/useChat'
 import { useKeyboard } from '@/composables/useKeyboard'
+import { useBreakpoint } from '@/composables/useBreakpoint'
 import ChatMessages from '@/components/chat/ChatMessages.vue'
 import ChatInput from '@/components/chat/ChatInput.vue'
-import ModelSelector from '@/components/model/ModelSelector.vue'
 import ResourcesPanel from '@/components/chat/ResourcesPanel.vue'
 import type { RealtimeChannel } from '@supabase/supabase-js'
 import { subscribeToMessages, unsubscribe } from '@/services/supabase/realtime'
@@ -24,7 +24,7 @@ const providerStore = useProviderStore()
 const refStore = useReferencesStore()
 const settingsStore = useSettingsStore()
 const { sendMessage, regenerate, abort } = useChat()
-
+const { isMobile } = useBreakpoint()
 
 watch(
   () => refStore.focusRef,
@@ -156,9 +156,9 @@ watch(
   }
 )
 
-// ─── Split panel logic ────────────────────────────────────────────────────────
+// ─── Split panel / drawer logic ───────────────────────────────────────────────
 const resourcePanelOpen = ref(false)
-const chatPanelWidth = ref(65) // percent
+const chatPanelWidth = ref(65) // percent (desktop split only)
 const isDragging = ref(false)
 const chatPanelRef = ref<HTMLElement | null>(null)
 const splitRef = ref<HTMLElement | null>(null)
@@ -172,7 +172,9 @@ async function handleSendMessage(content: string, metadata?: Record<string, any>
   await handleSend(content, [], metadata)
 }
 
+// Desktop drag-to-resize (disabled on mobile)
 function startDrag(e: MouseEvent) {
+  if (isMobile.value) return
   isDragging.value = true
   document.addEventListener('mousemove', onDrag)
   document.addEventListener('mouseup', stopDrag)
@@ -198,6 +200,16 @@ onUnmounted(() => {
   document.removeEventListener('mousemove', onDrag)
   document.removeEventListener('mouseup', stopDrag)
 })
+
+// Close mobile resources drawer on ESC
+function onKeydown(e: KeyboardEvent) {
+  if (e.key === 'Escape' && resourcePanelOpen.value && isMobile.value) {
+    resourcePanelOpen.value = false
+  }
+}
+
+onMounted(() => window.addEventListener('keydown', onKeydown))
+onUnmounted(() => window.removeEventListener('keydown', onKeydown))
 </script>
 
 <template>
@@ -206,10 +218,7 @@ onUnmounted(() => {
     <div class="chat-topbar">
       <div class="chat-topbar-left">
         <span v-if="conv" class="chat-conv-title">{{ conv.title }}</span>
-        <span v-else class="chat-conv-title text-surface-600 dark:text-surface-600">New conversation</span>
-      </div>
-      <div class="chat-topbar-center">
-        <ModelSelector />
+        <span v-else class="chat-conv-title chat-conv-title--placeholder">New conversation</span>
       </div>
       <div class="chat-topbar-right">
         <button
@@ -224,14 +233,18 @@ onUnmounted(() => {
             <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z" />
             <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z" />
           </svg>
-          Resources
+          <span class="resources-btn-label">Resources</span>
         </button>
       </div>
     </div>
 
-    <!-- Split body -->
-    <div ref="splitRef" class="chat-body" :class="{ 'is-dragging': isDragging }">
-
+    <!-- ── Desktop: split panel ── -->
+    <div
+      v-if="!isMobile"
+      ref="splitRef"
+      class="chat-body"
+      :class="{ 'is-dragging': isDragging }"
+    >
       <!-- Chat panel -->
       <div
         ref="chatPanelRef"
@@ -258,7 +271,7 @@ onUnmounted(() => {
         <div class="drag-handle-bar" />
       </div>
 
-      <!-- Resource panel -->
+      <!-- Resource panel (split) -->
       <Transition name="panel-slide">
         <div
           v-show="resourcePanelOpen"
@@ -269,44 +282,87 @@ onUnmounted(() => {
         </div>
       </Transition>
     </div>
+
+    <!-- ── Mobile: full-width chat + overlay drawer ── -->
+    <div v-else class="chat-body">
+      <!-- Chat panel (always full width on mobile) -->
+      <div class="chat-panel" style="width: 100%">
+        <ChatMessages class="chat-messages" @regenerate="handleRegenerate" />
+        <ChatInput
+          :conversation-id="conversationId() ?? ''"
+          class="chat-input-area"
+          @send="handleSend"
+          @abort="abort"
+        />
+      </div>
+
+      <!-- Mobile resources drawer (slides in from right) -->
+      <Transition name="mobile-resources-slide">
+        <div v-if="resourcePanelOpen" class="mobile-resources-wrapper" role="dialog" aria-label="Course resources" aria-modal="true">
+          <!-- Backdrop -->
+          <div class="mobile-resources-backdrop" aria-hidden="true" @click="resourcePanelOpen = false" />
+          <!-- Panel -->
+          <aside class="mobile-resources-panel">
+            <ResourcesPanel @send-message="handleSendMessage" />
+          </aside>
+        </div>
+      </Transition>
+    </div>
   </div>
 </template>
 
 <style scoped>
 .chat-page {
-  @apply flex flex-col h-full overflow-hidden;
+  @apply flex flex-col flex-1 min-h-0 overflow-hidden;
 }
 
 /* ─── Top bar ──────────────────────────────────────────────────────────── */
 .chat-topbar {
-  @apply flex items-center justify-between px-4 py-3
+  @apply flex items-center px-3 py-2
          border-b border-surface-200 dark:border-surface-200
-         bg-surface-50 dark:bg-surface-0
-         flex-shrink-0 gap-4;
+         bg-surface-50 dark:bg-surface-50
+         flex-shrink-0 gap-2;
+  overflow: hidden; /* prevent any overflow from pushing layout */
 }
 
-.chat-topbar-left  { @apply flex-1 min-w-0; }
-.chat-topbar-center { @apply flex items-center justify-center; }
-.chat-topbar-right { @apply flex-1 flex items-center justify-end gap-2; }
+/* Left: takes remaining space, title truncates cleanly */
+.chat-topbar-left  {
+  @apply flex-1 min-w-0 overflow-hidden;
+}
+
+/* Right: fixed size, never gets compressed or pushed off screen */
+.chat-topbar-right {
+  @apply flex-shrink-0 flex items-center gap-2;
+}
 
 .chat-conv-title {
-  @apply text-sm font-medium text-surface-900 dark:text-surface-900 truncate;
+  @apply text-sm font-medium text-surface-950 truncate block;
+}
+
+.chat-conv-title--placeholder {
+  @apply text-surface-600;
 }
 
 /* ─── Resources toggle ─────────────────────────────────────────────────── */
 .resources-toggle-btn {
   @apply flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium
-         text-surface-600 dark:text-surface-700
-         hover:bg-surface-200 dark:hover:bg-surface-200
-         hover:text-surface-950 dark:hover:text-surface-950
+         text-surface-700
+         hover:bg-surface-200
+         hover:text-surface-950
          border border-transparent
+         whitespace-nowrap
          transition-colors duration-150;
 }
 
 .resources-toggle-btn--active {
-  @apply bg-accent-500/10 dark:bg-accent-500/15
-         text-accent-600 dark:text-accent-400
+  @apply bg-accent-500/10
+         text-accent-500
          border-accent-500/30;
+}
+
+/* Hide the text label on small screens, keep just the icon */
+@media (max-width: 480px) {
+  .resources-btn-label { display: none; }
 }
 
 /* ─── Split body ───────────────────────────────────────────────────────── */
@@ -320,7 +376,7 @@ onUnmounted(() => {
 
 /* ─── Chat panel ───────────────────────────────────────────────────────── */
 .chat-panel {
-  @apply flex flex-col min-w-0 overflow-hidden flex-shrink-0;
+  @apply flex flex-col flex-1 min-h-0 overflow-hidden;
   transition: width 0.0s; /* no transition during drag */
 }
 
@@ -331,7 +387,7 @@ onUnmounted(() => {
 .drag-handle {
   @apply relative flex-shrink-0 flex items-center justify-center
          w-1 hover:w-1 cursor-col-resize z-10
-         bg-surface-200 dark:bg-surface-200
+         bg-surface-200 dark:bg-surface-700
          hover:bg-accent-400 dark:hover:bg-accent-400
          transition-colors duration-150;
 }
@@ -344,12 +400,12 @@ onUnmounted(() => {
   @apply w-0.5 h-8 rounded-full bg-current opacity-50;
 }
 
-/* ─── Resource panel ───────────────────────────────────────────────────── */
+/* ─── Desktop resource panel ───────────────────────────────────────────── */
 .resource-panel {
   @apply flex-shrink-0 overflow-hidden min-w-0;
 }
 
-/* Slide-in animation */
+/* Desktop slide-in animation */
 .panel-slide-enter-active,
 .panel-slide-leave-active {
   transition: width 0.2s cubic-bezier(0.4, 0, 0.2, 1),
@@ -360,5 +416,42 @@ onUnmounted(() => {
 .panel-slide-leave-to {
   width: 0 !important;
   opacity: 0;
+}
+
+/* ─── Mobile resources drawer ──────────────────────────────────────────── */
+.mobile-resources-wrapper {
+  @apply fixed inset-0 z-40 flex justify-end;
+}
+
+.mobile-resources-backdrop {
+  @apply absolute inset-0 bg-black/40;
+  /* No backdrop-blur for performance on mobile */
+}
+
+.mobile-resources-panel {
+  @apply relative z-10 flex flex-col h-full shadow-2xl;
+  width: min(320px, 88vw);
+  background: inherit; /* inherits from ResourcesPanel's own bg */
+}
+
+/* Mobile drawer slide-in from right */
+.mobile-resources-slide-enter-active,
+.mobile-resources-slide-leave-active {
+  transition: opacity 0.22s ease;
+}
+
+.mobile-resources-slide-enter-active .mobile-resources-panel,
+.mobile-resources-slide-leave-active .mobile-resources-panel {
+  transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.mobile-resources-slide-enter-from,
+.mobile-resources-slide-leave-to {
+  opacity: 0;
+}
+
+.mobile-resources-slide-enter-from .mobile-resources-panel,
+.mobile-resources-slide-leave-to .mobile-resources-panel {
+  transform: translateX(100%);
 }
 </style>

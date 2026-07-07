@@ -7,6 +7,7 @@ import { useReferencesStore } from '@/stores/references.store'
 import { useAttachments } from '@/composables/useAttachments'
 import { useKeyboard } from '@/composables/useKeyboard'
 import Button from '@/components/ui/Button.vue'
+import ModelSelector from '@/components/model/ModelSelector.vue'
 
 defineProps<{
   conversationId: string
@@ -231,67 +232,78 @@ function openFilePicker() {
 
       <!-- ── Toolbar ────────────────────────────────────────────────── -->
       <div class="input-toolbar">
-        <!-- Attach button -->
-        <button
-          id="attach-file-btn"
-          class="toolbar-btn"
-          aria-label="Attach file"
-          title="Attach file"
-          type="button"
-          @click="openFilePicker"
-        >
-          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
-            <path d="M13.5 8.5l-6 6a4 4 0 0 1-5.66-5.66l7-7a2.5 2.5 0 0 1 3.54 3.54l-7 7a1 1 0 0 1-1.41-1.41l6-6" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" />
-          </svg>
-        </button>
+        <!-- Scrollable tools on the left -->
+        <div class="toolbar-left-scroll">
+          <!-- Attach button -->
+          <button
+            id="attach-file-btn"
+            class="toolbar-btn"
+            aria-label="Attach file"
+            title="Attach file"
+            type="button"
+            @click="openFilePicker"
+          >
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+              <path d="M13.5 8.5l-6 6a4 4 0 0 1-5.66-5.66l7-7a2.5 2.5 0 0 1 3.54 3.54l-7 7a1 1 0 0 1-1.41-1.41l6-6" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" />
+            </svg>
+          </button>
 
-        <!-- ASR Mode Toggle -->
-        <button
-          class="toolbar-btn asr-toggle-btn"
-          :class="{ 'local-mode': asrMode === 'local' }"
-          :title="asrMode === 'local' ? 'Speech-to-Text: Local Server (FastAPI)' : 'Speech-to-Text: Hugging Face Cloud'"
-          type="button"
-          @click="toggleAsrMode"
-        >
-          <svg v-if="asrMode === 'local'" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-            <rect x="2" y="3" width="20" height="14" rx="2" ry="2" /><line x1="8" y1="21" x2="16" y2="21" /><line x1="12" y1="17" x2="12" y2="21" />
-          </svg>
-          <svg v-else width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z" />
-          </svg>
-          <span class="asr-badge-text">{{ asrMode === 'local' ? 'ASR: Local' : 'ASR: Cloud' }}</span>
-        </button>
+          <!-- Model selector (inline in toolbar) -->
+          <ModelSelector class="toolbar-model-selector" />
+
+          <!-- Divider -->
+          <span class="toolbar-divider" aria-hidden="true" />
+
+          <!-- ASR Mode Toggle -->
+          <button
+            class="asr-toggle-btn"
+            :class="{ 'local-mode': asrMode === 'local' }"
+            :title="asrMode === 'local' ? 'Speech-to-Text: Local Server (FastAPI)' : 'Speech-to-Text: Hugging Face Cloud'"
+            type="button"
+            @click="toggleAsrMode"
+          >
+            <svg v-if="asrMode === 'local'" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="2" y="3" width="20" height="14" rx="2" ry="2" /><line x1="8" y1="21" x2="16" y2="21" /><line x1="12" y1="17" x2="12" y2="21" />
+            </svg>
+            <svg v-else width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z" />
+            </svg>
+            <span class="asr-badge-text">{{ asrMode === 'local' ? 'ASR: Local' : 'ASR: Cloud' }}</span>
+          </button>
+        </div>
 
         <span class="toolbar-hint"></span>
 
-        <!-- Abort / Send -->
-        <Button
-          v-if="isStreaming"
-          id="abort-btn"
-          variant="secondary"
-          size="sm"
-          aria-label="Stop generation"
-          @click="emit('abort')"
-        >
-          <svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true">
-            <rect x="2" y="2" width="8" height="8" rx="1.5" fill="currentColor" />
-          </svg>
-          Stop
-        </Button>
-        <Button
-          v-else
-          id="send-btn"
-          variant="primary"
-          size="sm"
-          :disabled="!canSend"
-          aria-label="Send message"
-          @click="submit"
-        >
-          <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
-            <path d="M12 7H2M7 2l5 5-5 5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
-          </svg>
-          Send
-        </Button>
+        <!-- Fixed Send/Abort actions on the right -->
+        <div class="toolbar-actions-right">
+          <Button
+            v-if="isStreaming"
+            id="abort-btn"
+            variant="secondary"
+            size="sm"
+            aria-label="Stop generation"
+            @click="emit('abort')"
+          >
+            <svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true">
+              <rect x="2" y="2" width="8" height="8" rx="1.5" fill="currentColor" />
+            </svg>
+            Stop
+          </Button>
+          <Button
+            v-else
+            id="send-btn"
+            variant="primary"
+            size="sm"
+            :disabled="!canSend"
+            aria-label="Send message"
+            @click="submit"
+          >
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
+              <path d="M12 7H2M7 2l5 5-5 5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
+            </svg>
+            Send
+          </Button>
+        </div>
       </div>
     </div>
   </div>
@@ -376,19 +388,46 @@ function openFilePicker() {
 
 /* ─── Toolbar ───────────────────────────────────────────────────────────── */
 .input-toolbar {
-  @apply flex items-center gap-2 px-3 py-2.5 border-t border-surface-200 dark:border-surface-200;
+  @apply flex items-center justify-between px-3 py-2 border-t border-surface-200 dark:border-surface-200
+         overflow-hidden flex-nowrap;
+}
+
+.toolbar-left-scroll {
+  @apply flex items-center gap-1.5 flex-1 min-w-0 flex-nowrap;
+  overflow-x: auto;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+.toolbar-left-scroll::-webkit-scrollbar { display: none; }
+
+.toolbar-actions-right {
+  @apply flex items-center flex-shrink-0 gap-1.5 ml-2;
 }
 
 .toolbar-btn {
   @apply flex items-center justify-center w-7 h-7 rounded-lg
-  text-surface-600 dark:text-surface-600
+  text-surface-500 dark:text-surface-400
   hover:bg-surface-200 dark:hover:bg-surface-200
-  hover:text-surface-950 dark:hover:text-surface-950
+  hover:text-surface-900 dark:hover:text-surface-100
   transition-colors duration-150;
 }
 
+/* Model selector placed inline in toolbar */
+.toolbar-model-selector {
+  @apply flex-shrink-0;
+}
+
+/* Thin vertical divider between left tools and right ASR */
+.toolbar-divider {
+  @apply w-px h-4 bg-surface-200 dark:bg-surface-700 mx-0.5 flex-shrink-0;
+}
+
 .asr-toggle-btn {
-  @apply gap-1 px-2 w-auto h-7 text-xs font-semibold rounded-lg border border-transparent;
+  @apply flex items-center justify-center gap-1 px-2.5 w-auto h-7 text-xs font-semibold rounded-lg border border-transparent
+         text-surface-500 dark:text-surface-400
+         hover:bg-surface-200 dark:hover:bg-surface-200
+         hover:text-surface-900 dark:hover:text-surface-100
+         transition-colors duration-150;
 }
 .asr-toggle-btn.local-mode {
   @apply bg-amber-500/10 text-amber-500 hover:bg-amber-500/20 hover:text-amber-600;
@@ -401,7 +440,13 @@ function openFilePicker() {
 }
 
 .toolbar-hint {
-  @apply flex-1 text-xs text-surface-500 dark:text-surface-500 hidden sm:block;
+  /* No longer strictly needed for spacing, but kept to prevent any layout breaking */
+  @apply hidden;
+}
+
+/* Hide ASR label text on very small screens */
+@media (max-width: 420px) {
+  .asr-badge-text { display: none !important; }
 }
 
 /* ─── Progress bar ──────────────────────────────────────────────────────── */

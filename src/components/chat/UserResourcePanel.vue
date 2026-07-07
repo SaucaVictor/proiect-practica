@@ -711,23 +711,24 @@ Răspunde integral în limba română.`
 
 <style scoped>
 .user-panel {
-  @apply flex flex-col h-full bg-surface-100 dark:bg-surface-50
-         border-b border-surface-200 dark:border-surface-200 overflow-hidden;
+  @apply flex flex-col h-full overflow-hidden;
+  background: #1a1b1e; /* surface-100 = dark bg */
+  border-bottom: 1px solid #212328; /* surface-200 */
 }
 
 .panel-header {
-  @apply flex items-center justify-between px-3 py-2.5
-         border-b border-surface-200 dark:border-surface-200 flex-shrink-0 bg-surface-100 dark:bg-surface-50;
+  @apply flex items-center justify-between px-3 py-2.5 flex-shrink-0;
+  border-bottom: 1px solid #212328;
 }
 
 .panel-header-left {
-  @apply flex items-center gap-2 text-xs font-semibold
-         text-surface-700 dark:text-surface-700 uppercase tracking-wider
-         hover:text-surface-950 dark:hover:text-surface-900;
+  @apply flex items-center gap-2 text-xs font-semibold uppercase tracking-wider;
+  color: #737c8e; /* surface-700 = medium on dark */
 }
+.panel-header-left:hover { color: #c4c9d4; }
 
 .header-chevron {
-  @apply text-surface-400 transition-transform duration-150;
+  @apply text-current transition-transform duration-150;
 }
 
 .chevron-closed {
@@ -740,25 +741,32 @@ Răspunde integral în limba română.`
 
 .panel-action-btn,
 .panel-refresh-btn {
-  @apply flex items-center justify-center w-6 h-6 rounded
-         text-surface-500 hover:text-accent-600 dark:hover:text-accent-400
-         hover:bg-surface-200 dark:hover:bg-surface-200 transition-colors;
+  @apply flex items-center justify-center w-6 h-6 rounded transition-colors;
+  color: #565d6b;
 }
+.panel-action-btn:hover,
+.panel-refresh-btn:hover { color: #7c97f8; background: #212328; }
 
 .uploading-banner {
-  @apply flex items-center justify-center gap-2 py-1.5 px-3 bg-accent-500/10 border-b border-accent-500/20 text-xs text-accent-700 dark:text-accent-400 font-medium;
+  @apply flex items-center justify-center gap-2 py-1.5 px-3 border-b text-xs font-medium;
+  background: rgba(92, 114, 243, 0.1);
+  border-color: rgba(92, 114, 243, 0.2);
+  color: #7c97f8;
 }
 
 .panel-state {
-  @apply flex flex-col items-center justify-center gap-3 py-8 px-4 text-center text-sm text-surface-500 dark:text-surface-600;
+  @apply flex flex-col items-center justify-center gap-3 py-8 px-4 text-center text-sm;
+  color: #464b55; /* surface-500 */
 }
 
 .panel-state--error {
-  @apply text-red-500;
+  color: #f87171;
 }
 
 .panel-spinner {
-  @apply w-5 h-5 border-2 border-surface-300 border-t-accent-500 rounded-full animate-spin;
+  @apply w-5 h-5 border-2 rounded-full animate-spin;
+  border-color: #363a42;
+  border-top-color: #5c72f3;
 }
 
 .panel-spinner--sm {
