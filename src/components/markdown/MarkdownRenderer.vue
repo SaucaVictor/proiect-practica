@@ -63,7 +63,7 @@ const parts = computed<ContentPart[]>(() => {
 </script>
 
 <template>
-  <div v-if="!inline" class="markdown-content prose prose-invert max-w-none">
+  <div v-if="!inline" class="markdown-content">
     <template v-for="(part, idx) in parts" :key="idx">
       <div v-if="part.type === 'html'" v-html="part.content" />
       <CodeBlock
@@ -78,7 +78,7 @@ const parts = computed<ContentPart[]>(() => {
 
 <style scoped>
 .markdown-content {
-  @apply text-sm leading-relaxed text-surface-900 dark:text-surface-900;
+  @apply text-sm leading-relaxed text-surface-100 dark:text-surface-900;
 }
 
 .markdown-inline {
@@ -87,32 +87,69 @@ const parts = computed<ContentPart[]>(() => {
 </style>
 
 <style>
-/* Global prose styles for markdown content */
-.markdown-content h1 { @apply text-xl font-bold mt-4 mb-2; }
-.markdown-content h2 { @apply text-lg font-bold mt-4 mb-2; }
-.markdown-content h3 { @apply text-base font-semibold mt-3 mb-1.5; }
-.markdown-content p  { @apply mb-3 last:mb-0; }
-.markdown-content ul { @apply list-disc pl-5 mb-3; }
-.markdown-content ol { @apply list-decimal pl-5 mb-3; }
-.markdown-content li { @apply mb-1; }
+/* ── Markdown global styles ─────────────────────────────────────────────────
+   Surface palette is DARK-FIRST:
+     surface-0  = #0e0f11 (near black)   surface-950 = #e8eaf0 (near white)
+   So in DARK mode: high numbers = light text, low numbers = dark bg
+   In LIGHT mode: the light-mode-text.css wildcards remap surface-NNN to real light values
+   ─────────────────────────────────────────────────────────────────────────── */
+
+/* Body text — surface-950 in dark = near white (#e8eaf0). In light, overridden to dark. */
+.markdown-content { color: #e8eaf0; } /* dark-mode base */
+
+/* Headings */
+.markdown-content h1,
+.markdown-content h2,
+.markdown-content h3,
+.markdown-content h4 { color: #f4f5f8; font-weight: 700; margin-top: 1rem; margin-bottom: 0.5rem; }
+.markdown-content h1 { font-size: 1.25rem; }
+.markdown-content h2 { font-size: 1.125rem; }
+.markdown-content h3 { font-size: 1rem; }
+
+/* Paragraphs / lists */
+.markdown-content p  { margin-bottom: 0.75rem; }
+.markdown-content p:last-child { margin-bottom: 0; }
+.markdown-content ul { list-style-type: disc; padding-left: 1.25rem; margin-bottom: 0.75rem; }
+.markdown-content ol { list-style-type: decimal; padding-left: 1.25rem; margin-bottom: 0.75rem; }
+.markdown-content li { margin-bottom: 0.25rem; }
+
+/* Bold */
+.markdown-content strong { font-weight: 700; color: #f4f5f8; }
+
+/* Blockquote */
 .markdown-content blockquote {
-  @apply border-l-2 border-surface-400 pl-4 italic text-surface-700 dark:text-surface-700 my-3;
+  border-left: 2px solid #363a42;
+  padding-left: 1rem;
+  font-style: italic;
+  color: #9aa0b2;
+  margin: 0.75rem 0;
 }
-.markdown-content table { @apply w-full text-sm border-collapse my-3; }
+
+/* Horizontal rule */
+.markdown-content hr { border-color: #2a2d33; margin: 1rem 0; }
+
+/* Links */
+.markdown-content a { color: #7c97f8; text-decoration: none; }
+.markdown-content a:hover { text-decoration: underline; }
+
+/* Inline code */
+.markdown-content :not(pre) code {
+  font-family: 'JetBrains Mono', 'Fira Code', monospace;
+  font-size: 0.75rem;
+  background: #212328;
+  color: #a4b9fc;
+  padding: 0.125rem 0.375rem;
+  border-radius: 0.25rem;
+  border: 1px solid #2a2d33;
+}
+
+/* Table */
+.markdown-content table { width: 100%; font-size: 0.875rem; border-collapse: collapse; margin: 0.75rem 0; }
 .markdown-content th {
-  @apply text-left px-3 py-2 bg-surface-200 dark:bg-surface-200
-         border-b border-surface-300 dark:border-surface-300 font-semibold;
+  text-align: left; padding: 0.5rem 0.75rem; font-weight: 600;
+  background: #1a1b1e; color: #9aa0b2; border-bottom: 1px solid #363a42;
 }
 .markdown-content td {
-  @apply px-3 py-2 border-b border-surface-200 dark:border-surface-200;
+  padding: 0.5rem 0.75rem; border-bottom: 1px solid #212328;
 }
-.markdown-content a {
-  @apply text-accent-400 hover:underline;
-}
-.markdown-content :not(pre) code {
-  @apply font-mono text-xs bg-surface-200 dark:bg-surface-200 px-1.5 py-0.5 rounded
-         text-accent-300;
-}
-.markdown-content strong { @apply font-semibold text-surface-950 dark:text-surface-950; }
-.markdown-content hr { @apply border-surface-300 dark:border-surface-300 my-4; }
 </style>

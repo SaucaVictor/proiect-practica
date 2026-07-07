@@ -2,6 +2,7 @@
 import { ref, computed, watch, onMounted, onUnmounted, nextTick } from 'vue'
 import { useAudioCall } from '@/composables/useAudioCall'
 import { useLiveTranscript } from '@/composables/useLiveTranscript'
+import { useBreakpoint } from '@/composables/useBreakpoint'
 
 // Chat and ASR Stores
 import { useChatStore } from '@/stores/chat.store'
@@ -18,7 +19,6 @@ const themeStore = useThemeStore()
 // Sub-components
 import ChatMessages from '@/components/chat/ChatMessages.vue'
 import ChatInput from '@/components/chat/ChatInput.vue'
-import ModelSelector from '@/components/model/ModelSelector.vue'
 import ResourcesPanel from '@/components/chat/ResourcesPanel.vue'
 
 const { status, error, stream, connect, disconnect } = useAudioCall()
@@ -268,6 +268,25 @@ const refStore = useReferencesStore()
 const { sendMessage, regenerate, abort } = useChat()
 
 const chatOpen = ref(false)
+const { isMobile } = useBreakpoint()
+const activeMobileTab = ref<'call' | 'transcript' | 'chat'>('call')
+
+function selectChatTab() {
+  activeMobileTab.value = 'chat'
+  chatOpen.value = true
+}
+
+// Watch chatOpen: if user toggles it via the footer button, auto-switch tab to chat if it was opened
+watch(chatOpen, (isOpen) => {
+  if (isMobile.value) {
+    if (isOpen) {
+      activeMobileTab.value = 'chat'
+    } else if (activeMobileTab.value === 'chat') {
+      activeMobileTab.value = 'call'
+    }
+  }
+})
+
 const embeddedActiveId = ref<string | undefined>(undefined)
 const showConvDropdown = ref(false)
 const isDraggingHorizontal = ref(false)
@@ -527,7 +546,7 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <div class="audio-call-container" :class="{ 'p-6': !chatOpen }">
+  <div class="audio-call-container" :class="{ 'p-6': !chatOpen && !isMobile, '': isMobile }">
 
     <!-- Animated background glows -->
     <div class="bg-glow bg-glow--left"></div>
@@ -539,16 +558,41 @@ onUnmounted(() => {
     <!-- Hidden audio element -->
     <audio ref="audioRef" autoplay></audio>
 
+    <!-- Mobile Navigation Tabs (visible only on mobile) -->
+    <div v-if="isMobile" class="mobile-tabs-nav">
+      <button 
+        class="mobile-tab-btn" 
+        :class="{ 'mobile-tab-btn--active': activeMobileTab === 'call' }"
+        @click="activeMobileTab = 'call'"
+      >
+        Apel
+      </button>
+      <button 
+        class="mobile-tab-btn" 
+        :class="{ 'mobile-tab-btn--active': activeMobileTab === 'transcript' }"
+        @click="activeMobileTab = 'transcript'"
+      >
+        Transcriere
+      </button>
+      <button 
+        class="mobile-tab-btn" 
+        :class="{ 'mobile-tab-btn--active': activeMobileTab === 'chat' }"
+        @click="selectChatTab"
+      >
+        Chat Curs
+      </button>
+    </div>
+
     <div 
       ref="contentWrapperRef" 
       class="content-wrapper" 
-      :class="{ 'chat-mode-active': chatOpen }"
-      :style="chatOpen ? { '--left-col-width': leftColumnWidth + '%', '--top-panel-height': topPanelHeight + '%' } : {}"
+      :class="{ 'chat-mode-active': chatOpen && !isMobile }"
+      :style="chatOpen && !isMobile ? { '--left-col-width': leftColumnWidth + '%', '--top-panel-height': topPanelHeight + '%' } : {}"
     >
       <!-- LEFT SIDE CONTAINER -->
-      <div class="left-side-container">
+      <div class="left-side-container" v-show="!isMobile || activeMobileTab !== 'chat'">
         <!-- COLUMN 1 (LEFT / TOP PANEL): Controls and Visualizer -->
-        <div ref="leftColumnRef" class="control-column">
+        <div ref="leftColumnRef" class="control-column" v-show="!isMobile || activeMobileTab === 'call'">
         <!-- Top Title section -->
         <header class="page-header">
         
@@ -584,10 +628,10 @@ onUnmounted(() => {
                 <span v-if="status === 'connecting'" class="ripple ripple--indigo"></span>
 
                 <span class="status-icon">
-                  <span v-if="status === 'connected'">🎙️</span>
-                  <span v-else-if="status === 'connecting'">⏳</span>
-                  <span v-else-if="status === 'failed'">⚠️</span>
-                  <span v-else>🔇</span>
+                  <svg v-if="status === 'connected'" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" x2="12" y1="19" y2="22"/></svg>
+                  <svg v-else-if="status === 'connecting'" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="animate-spin"><circle cx="12" cy="12" r="10"/><path d="M12 2a10 10 0 0 1 10 10"/></svg>
+                  <svg v-else-if="status === 'failed'" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><line x1="12" x2="12" y1="9" y2="13"/><line x1="12" x2="12.01" y1="17" y2="17"/></svg>
+                  <svg v-else width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="2" x2="22" y1="2" y2="22"/><path d="M18.89 13.23A7.12 7.12 0 0 0 19 12v-2"/><path d="M5 10v2a7 7 0 0 0 12 5.79"/><path d="M15 9.34V5a3 3 0 0 0-5.68-1.33"/><path d="M9 9v3a3 3 0 0 0 5.12 2.12"/><line x1="12" x2="12" y1="19" y2="22"/></svg>
                 </span>
               </div>
 
@@ -667,16 +711,19 @@ onUnmounted(() => {
               :class="{ 'btn--chat-active': chatOpen }"
               title="Comută interfața de chat cu AI-ul și resursele cursului"
             >
-              <span class="chat-btn-icon">{{ chatOpen ? '✕' : '💬' }}</span>
+              <span class="chat-btn-icon">
+                <svg v-if="chatOpen" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                <svg v-else width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+              </span>
               <span>{{ chatOpen ? 'Închide Chat' : 'Chat Curs' }}</span>
             </button>
           </div>
         </footer>
       </div>
 
-      <!-- VERTICAL SPLITTER: Only in chatOpen mode -->
+      <!-- VERTICAL SPLITTER: Only in chatOpen mode (desktop only) -->
       <div 
-        v-if="chatOpen" 
+        v-if="chatOpen && !isMobile" 
         class="drag-handle-vertical"
         :class="{ 'drag-handle-vertical--dragging': isDraggingVertical }"
         @mousedown="startVerticalDrag"
@@ -685,7 +732,7 @@ onUnmounted(() => {
       </div>
 
       <!-- COLUMN 2 (RIGHT / BOTTOM PANEL): Live Transcript -->
-      <section class="transcript-column">
+      <section class="transcript-column" v-show="!isMobile || activeMobileTab === 'transcript'">
         <div class="transcript-header">
           <span class="transcript-title">
             <span class="transcript-dot" :class="{ 'transcript-dot--live': isListening }"></span>
@@ -734,7 +781,9 @@ onUnmounted(() => {
 
         <!-- Connected empty state -->
         <div v-else-if="!segments.length" class="transcript-empty">
-          <span class="transcript-empty-icon">🎙️</span>
+          <span class="transcript-empty-icon">
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="text-surface-600 dark:text-surface-800"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" x2="12" y1="19" y2="22"/></svg>
+          </span>
           <span>Așteptând transcrierea... Cursul nu a început sau nu s-a detectat audio.</span>
         </div>
 
@@ -770,9 +819,9 @@ onUnmounted(() => {
       </section>
       </div>
 
-      <!-- HORIZONTAL SPLITTER: Only in chatOpen mode -->
+      <!-- HORIZONTAL SPLITTER: Only in chatOpen mode (desktop only) -->
       <div 
-        v-if="chatOpen" 
+        v-if="chatOpen && !isMobile" 
         class="drag-handle-horizontal"
         :class="{ 'drag-handle-horizontal--dragging': isDraggingHorizontal }"
         @mousedown="startHorizontalDrag"
@@ -780,17 +829,18 @@ onUnmounted(() => {
         <div class="drag-handle-horizontal-bar" />
       </div>
 
-      <!-- COLUMN 3 (EMBEDDED CHAT COLUMN): Only in chatOpen mode -->
+      <!-- COLUMN 3 (EMBEDDED CHAT COLUMN): Keeps rendered in background for tab-switching -->
       <div 
-        v-if="chatOpen" 
+        v-show="chatOpen && (!isMobile || activeMobileTab === 'chat')" 
         class="embedded-chat-column"
       >
         <div ref="chatSplitRef" class="chat-split-container" :class="{ 'is-dragging': isDraggingChatSplit }">
           
           <!-- Embedded Chat main panel -->
           <div 
+            v-show="!isMobile || !resourcePanelOpen"
             class="chat-main-panel"
-            :style="resourcePanelOpen ? { width: chatPanelWidth + '%' } : { width: '100%' }"
+            :style="isMobile ? { width: '100%' } : (resourcePanelOpen ? { width: chatPanelWidth + '%' } : { width: '100%' })"
           >
             <!-- Chat top bar -->
             <div class="embedded-chat-topbar">
@@ -829,10 +879,6 @@ onUnmounted(() => {
                 </div>
               </div>
 
-              <div class="chat-topbar-center">
-                <ModelSelector />
-              </div>
-
               <div class="chat-topbar-right">
                 <button
                   class="resources-toggle-btn"
@@ -861,9 +907,9 @@ onUnmounted(() => {
             </div>
           </div>
 
-          <!-- Drag handle inside chat -->
+          <!-- Drag handle inside chat (desktop only) -->
           <div 
-            v-if="resourcePanelOpen" 
+            v-if="resourcePanelOpen && !isMobile" 
             class="drag-handle-chat"
             :class="{ 'drag-handle-chat--dragging': isDraggingChatSplit }"
             @mousedown="startChatDrag"
@@ -872,12 +918,22 @@ onUnmounted(() => {
           </div>
 
           <!-- Resource panel inside chat -->
-          <Transition name="panel-slide">
+          <Transition :name="isMobile ? '' : 'panel-slide'">
             <div 
               v-show="resourcePanelOpen" 
               class="embedded-resource-panel"
-              :style="{ width: (100 - chatPanelWidth) + '%' }"
+              :style="isMobile ? { width: '100%' } : { width: (100 - chatPanelWidth) + '%' }"
             >
+              <!-- Mobile Back to Chat bar -->
+              <div v-if="isMobile" class="resources-mobile-header">
+                <button @click="toggleResourcePanel" class="resources-back-btn">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="19" y1="12" x2="5" y2="12"></line>
+                    <polyline points="12 19 5 12 12 5"></polyline>
+                  </svg>
+                  <span>Înapoi la Chat</span>
+                </button>
+              </div>
               <ResourcesPanel @send-message="handleSendMessage" />
             </div>
           </Transition>
@@ -1102,8 +1158,7 @@ onUnmounted(() => {
 
 .transcript-scroll {
   @apply flex-1 min-h-0 overflow-y-auto flex flex-col gap-1.5 p-3 rounded-2xl
-         bg-surface-900/85 dark:bg-surface-50/30 border border-surface-800 dark:border-surface-200/10;
-  backdrop-filter: blur(12px);
+         bg-transparent dark:bg-surface-50/30 border border-surface-800 dark:border-surface-200/10;
   scroll-behavior: smooth;
 }
 .transcript-scroll::-webkit-scrollbar {
@@ -1208,6 +1263,7 @@ onUnmounted(() => {
 .volume-slider::-webkit-slider-thumb {
   @apply w-3.5 h-3.5 rounded-full bg-accent-500 shadow-[0_0_6px_rgba(92,114,243,0.5)] cursor-pointer border-none;
   appearance: none;
+  margin-top: -5px;
 }
 .volume-slider::-moz-range-thumb {
   @apply w-3.5 h-3.5 rounded-full bg-accent-500 shadow-[0_0_6px_rgba(92,114,243,0.5)] cursor-pointer border-none;
@@ -1355,6 +1411,9 @@ onUnmounted(() => {
 .chat-mode-active .control-column .volume-slider {
   @apply h-0.5;
 }
+.chat-mode-active .control-column .volume-slider::-webkit-slider-thumb {
+  margin-top: -6px;
+}
 .chat-mode-active .control-column .mute-btn {
   @apply p-0.5;
 }
@@ -1410,8 +1469,8 @@ onUnmounted(() => {
 
 /* Top bar / header inside embedded chat */
 .embedded-chat-topbar {
-  @apply flex items-center justify-between p-3 px-6 relative z-20 gap-4 flex-shrink-0
-         border-b border-surface-800 dark:border-surface-200/30 bg-surface-900 dark:bg-surface-50/10;
+  @apply flex items-center justify-between w-full p-3 px-6 relative z-20 gap-4 flex-shrink-0
+         border-b border-white dark:border-surface-200/30 bg-white dark:bg-surface-50/10;
   backdrop-filter: blur(10px);
 }
 .chat-topbar-left {
@@ -1431,8 +1490,8 @@ onUnmounted(() => {
 
 .conv-selector-btn {
   @apply inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold cursor-pointer max-w-full transition-all duration-150
-         bg-surface-900 dark:bg-surface-100/10 border border-surface-800 dark:border-surface-200/10
-         text-surface-50 dark:text-surface-950 hover:bg-surface-800 dark:hover:bg-surface-100/20 hover:text-surface-50 dark:hover:text-surface-900;
+         bg-white dark:bg-surface-100/10 border border-surface-900 dark:border-surface-200/10
+         text-surface-50 dark:text-surface-950  dark:hover:bg-surface-100/20 hover:text-surface-50 dark:hover:text-surface-900;
 }
 
 .conv-selector-title {
@@ -1446,7 +1505,7 @@ onUnmounted(() => {
 /* Dropdown Menu */
 .conv-dropdown-menu {
   @apply absolute left-0 w-72 rounded-xl shadow-2xl overflow-hidden z-[50]
-         bg-surface-950 dark:bg-surface-0 border border-surface-800 dark:border-surface-200/50;
+         bg-surface-950 dark:bg-surface-0 border border-surface-900 dark:border-surface-200/50;
   top: calc(100% + 6px);
   backdrop-filter: blur(20px);
   animation: dropdown-in 0.15s cubic-bezier(0.16, 1, 0.3, 1);
@@ -1500,8 +1559,8 @@ onUnmounted(() => {
 /* Resources toggle button */
 .resources-toggle-btn {
   @apply flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold cursor-pointer transition-all duration-150
-         bg-surface-900 dark:bg-surface-100/10 border border-surface-800 dark:border-surface-200/10
-         text-surface-50 dark:text-surface-950 hover:bg-surface-800 dark:hover:bg-surface-100/20 hover:text-surface-50 dark:hover:text-surface-900;
+         bg-white dark:bg-surface-100/10 border border-surface-900 dark:border-surface-200/10
+         text-surface-50 dark:text-surface-950 hover:bg-surface-900 dark:hover:bg-surface-100/20 hover:text-surface-50 dark:hover:text-surface-900;
 }
 .resources-toggle-btn--active {
   @apply bg-accent-500/10 border-accent-500/30 text-accent-600 dark:text-accent-400;
@@ -1526,7 +1585,26 @@ onUnmounted(() => {
 }
 
 .embedded-resource-panel {
-  @apply flex-shrink-0 overflow-hidden min-w-0 h-full;
+  @apply flex-shrink-0 overflow-hidden min-w-0 h-full flex flex-col;
+}
+
+/* Resources mobile header */
+.resources-mobile-header {
+  @apply flex items-center p-3 border-b border-surface-800 dark:border-surface-200/20 bg-surface-900 dark:bg-surface-50/10 flex-shrink-0;
+}
+html:not(.dark) .resources-mobile-header {
+  background-color: #f1f5f9 !important;
+  border-bottom-color: #e2e8f0 !important;
+}
+.resources-back-btn {
+  @apply inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold cursor-pointer transition-all duration-150
+         bg-surface-900 dark:bg-surface-100/10 border border-surface-800 dark:border-surface-200/10
+         text-surface-50 dark:text-surface-950 hover:bg-surface-800 dark:hover:bg-surface-100/20 hover:text-surface-50 dark:hover:text-surface-900;
+}
+html:not(.dark) .resources-back-btn {
+  background-color: #ffffff !important;
+  border-color: #cbd5e1 !important;
+  color: #475569 !important;
 }
 
 /* Slide transition for resources panel */
@@ -1542,7 +1620,7 @@ onUnmounted(() => {
 
 @container (max-width: 540px) {
   .embedded-chat-topbar {
-    @apply flex-wrap gap-y-2 py-2 px-3 justify-center;
+    @apply flex-wrap gap-y-2 py-2 px-3 justify-between;
   }
   .chat-topbar-left, .chat-topbar-center, .chat-topbar-right {
     @apply flex-none w-auto justify-center;
@@ -1555,6 +1633,65 @@ onUnmounted(() => {
   }
   .resources-toggle-btn {
     @apply p-1.5 px-2.5;
+  }
+}
+
+/* ── Mobile Tab Navigation Bar ── */
+.mobile-tabs-nav {
+  @apply flex items-center justify-around gap-1 px-1 py-2 rounded-b-xl flex-shrink-0 z-20 relative bg-white dark:bg-surface-50/10 border-b border-white dark:border-surface-200/30;
+}
+
+.mobile-tab-btn {
+  @apply flex-1 py-1.5 px-2.5 rounded-lg text-xs font-bold transition-all duration-150 text-center cursor-pointer border-0 bg-transparent;
+  color: #737c8e; /* surface-700 */
+}
+html:not(.dark) .mobile-tab-btn {
+  color: #475569 !important;
+}
+
+.mobile-tab-btn--active {
+  @apply bg-accent-500 text-white shadow-sm;
+}
+html:not(.dark) .mobile-tab-btn--active {
+  background-color: #4453e7 !important;
+  color: #ffffff !important;
+}
+
+/* ── Mobile Layout Media Queries ── */
+@media (max-width: 767px) {
+  .left-side-container {
+    @apply flex flex-col gap-0 w-full h-full;
+  }
+  .control-column {
+    @apply w-full h-full p-2 box-border;
+    flex: 1 1 100%;
+  }
+  .transcript-column {
+    @apply w-full h-full p-2 box-border;
+    flex: 1 1 100%;
+  }
+  .embedded-chat-column {
+    @apply w-full h-full border-0 rounded-none bg-transparent;
+    flex: 1 1 100%;
+    backdrop-filter: none;
+  }
+  .embedded-chat-topbar {
+    @apply px-2 py-1.5;
+  }
+  .visualizer-card {
+    @apply aspect-auto h-28 rounded-2xl p-4;
+  }
+  .controls-footer {
+    @apply mt-auto pb-6 w-full;
+  }
+  .volume-panel {
+    @apply max-w-none w-full;
+  }
+  .action-row {
+    @apply w-full justify-center;
+  }
+  .btn {
+    @apply flex-1 justify-center;
   }
 }
 </style>

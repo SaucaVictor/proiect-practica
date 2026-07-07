@@ -13,21 +13,23 @@
     box-sizing: border-box;
   }
 
-  html {
-    @apply h-full;
+  html, body {
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
     font-family: 'Inter', system-ui, -apple-system, sans-serif;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
   }
 
   body {
-    @apply h-full bg-surface-50 dark:bg-surface-0 text-surface-950 dark:text-surface-950;
-    margin: 0;
-    padding: 0;
+    @apply bg-surface-50 dark:bg-surface-0 text-surface-950 dark:text-surface-950;
   }
 
   #app {
-    @apply h-full;
+    height: 100%;
+    overflow: hidden;
   }
 
   /* Custom scrollbar */
@@ -112,11 +114,26 @@ html:not(.dark) .rail-item:hover {
 
 /* ── Chat topbar ───────────────────────────────────────────────────────────── */
 html:not(.dark) .chat-topbar {
-  background-color: #eaecf2 !important;
-  border-color: #cdd1db !important;
+  background-color: #f5f7fb !important;
+  border-color: #dde1ea !important;
 }
 html:not(.dark) .chat-conv-title {
   color: #0f172a !important;
+}
+html:not(.dark) .chat-conv-title--placeholder {
+  color: #94a3b8 !important;
+}
+html:not(.dark) .resources-toggle-btn {
+  color: #475569 !important;
+  border-color: transparent !important;
+}
+html:not(.dark) .resources-toggle-btn:hover {
+  background-color: #e2e8f0 !important;
+  color: #0f172a !important;
+}
+html:not(.dark) .resources-toggle-btn--active {
+  color: #4453e7 !important;
+  border-color: rgba(68,83,231,0.3) !important;
 }
 
 /* ── Chat page / messages area ─────────────────────────────────────────────── */
@@ -170,7 +187,10 @@ html:not(.dark) .search-icon {
 
 /* ── Drag handle ───────────────────────────────────────────────────────────── */
 html:not(.dark) .drag-handle {
-  background-color: #cdd1db !important;
+  background-color: #d1d9e6 !important;
+}
+html:not(.dark) .drag-handle:hover {
+  background-color: #93a5cf !important;
 }
 
 /* ── Settings page ─────────────────────────────────────────────────────────── */
