@@ -1,69 +1,153 @@
 # ClassMonitor 🖥️🔊
 
-**ClassMonitor** transformă o sală de curs clasică într-un ecosistem inteligent: monitorizare IoT în timp real, conferință audio WebRTC live, **transcriere automată a cursurilor în timp real (Speech-to-Text)** și un chat AI bazat pe RAG care permite studenților să interogheze conținutul cursurilor.
+**ClassMonitor** transformă o sală de curs clasică într-un ecosistem inteligent: monitorizare IoT în timp real, conferință audio WebRTC live, **transcriere automată a cursurilor (Speech-to-Text)** și un chat AI bazat pe RAG care permite studenților să interogheze conținutul cursurilor.
+
+> **Practică — UTCB x DeviDevs, 2026**
+
+---
+
+## 🏗️ Stack Tehnologic
+
+| Layer              | Tehnologii                                         |
+| ------------------ | -------------------------------------------------- |
+| **Frontend**       | Vue 3 · TypeScript · Tailwind CSS · Vite           |
+| **Backend**        | FastAPI (Python) · WebSocket · WebRTC (`aiortc`)   |
+| **Bază de Date**   | Supabase (PostgreSQL + RLS + Realtime + Storage)   |
+| **IoT / Embedded** | ESP32 (Wemos D1 R32) · Arduino · MQTT              |
+| **AI / NLP**       | NVIDIA NIM (LLM) · Deepgram (ASR) · pgvector (RAG) |
+| **Infrastructură** | Vercel (frontend) · ngrok (tunnel audio-server)    |
 
 ---
 
 ## 🧩 Arhitectura Sistemului
 
 ```
-ESP32 (INMP441 mic)
-  │
-  │  WebSocket — raw PCM 16kHz mono s16le
-  ▼
-audio-server :8001          ← Serverul audio local
-  ├── WebRTC broadcast      → Browser (Live Audio)
-  ├── WAV recording buffer  → Supabase Storage (după stop)
-  └── WLK relay             → whisperlivekit :8000/asr
-                                  │
-                             Transcript JSON
-                                  │
-                             Supabase: live_transcripts ← Realtime → Browser (Live Transcript)
-
-mqtt-server                 ← Bridge MQTT ↔ Supabase (senzori IoT)
-
-Frontend (Vue 3 + Vite)     ← Supabase Auth, Realtime, Storage, REST
+┌─────────────────────────────────────────────────────────────────────┐
+│  ESP32 (Wemos D1 R32)                                              │
+│  ├── Senzori: DHT11, LDR, ACS712, IR×2                            │
+│  ├── Actuatori: LED strip, Ventilatoare×2, PTC Heater (via MOSFET) │
+│  ├── INMP441 Mic → I2S → PCM 16kHz mono s16le                     │
+│  └── OLED 0.96" (afișaj local)                                     │
+└───────┬────────────────────────┬────────────────────────────────────┘
+        │ MQTT (telemetrie)      │ WebSocket (audio PCM)
+        ▼                       ▼
+┌───────────────┐    ┌──────────────────────────────────────────┐
+│  mqtt-server  │    │  audio-server :8001  (FastAPI + aiortc)  │
+│  (TS/Node)    │    │  ├── WebRTC broadcast → Browser (audio)  │
+│  MQTT ↔ Supa  │    │  ├── WAV buffer → Supabase Storage       │
+│               │    │  └── Deepgram WS → live transcript        │
+└───────┬───────┘    └──────────────┬───────────────────────────┘
+        │                           │
+        ▼                           ▼
+┌───────────────────────────────────────────────────────────────┐
+│  Supabase                                                     │
+│  ├── PostgreSQL: profiles, conversations, messages, iot_*     │
+│  ├── pgvector: document_chunks (embeddings RAG)               │
+│  ├── live_transcripts (Realtime → frontend)                   │
+│  ├── Storage: bucket "courses" (WAV + transcript JSON)        │
+│  └── Auth (email/password + RLS)                              │
+└───────────────────────────────────────────────────────────────┘
+        ▲
+        │ Supabase JS SDK
+        │
+┌───────────────────────────────────────────────────────────────┐
+│  Frontend (Vue 3 + Vite)                                      │
+│  ├── /chat         → AI Chat cu RAG pe transcripturi          │
+│  ├── /audio-call   → Conferință audio + transcriere live      │
+│  ├── /iot          → Dashboard senzori + control actuatori    │
+│  ├── /schedule     → Orar săptămânal                          │
+│  ├── /workspace    → Upload resurse (PDF, text)               │
+│  └── /settings     → Configurare model LLM, preferințe       │
+└───────────────────────────────────────────────────────────────┘
 ```
 
 ---
 
 ## 🚀 Funcționalități
 
-| Funcționalitate                                    | Stare      |
-| -------------------------------------------------- | ---------- |
-| Conferință Audio Live (WebRTC)                     | ✅         |
-| **Transcriere Live în Timp Real (WhisperLiveKit)** | ✅ **Nou** |
-| Transcriere Batch după înregistrare                | ✅         |
-| Upload audio + transcript în Supabase Storage      | ✅         |
-| Monitoring senzori IoT (DHT11, LDR, ACS712)        | ✅         |
-| Control actuatori (LED, ventilator, PTC)           | ✅         |
-| Chat AI cu RAG pe transcripturi                    | ✅         |
+| Funcționalitate            | Descriere                                                                       | Stare |
+| -------------------------- | ------------------------------------------------------------------------------- | ----- |
+| **Conferință Audio Live**  | Stream audio WebRTC de la ESP32/INMP441 direct în browser                       | ✅    |
+| **Transcriere Live (STT)** | Deepgram WebSocket → segmente live în Supabase Realtime → afișare instant       | ✅    |
+| **Transcriere Batch**      | Upload WAV → Deepgram REST → transcript JSON salvat                             | ✅    |
+| **Chat AI cu RAG**         | Întrebări despre conținutul cursurilor; embedding-uri pgvector + NVIDIA NIM LLM | ✅    |
+| **Dashboard IoT**          | Vizualizare real-time: temperatură, umiditate, lumină, curent, prezență         | ✅    |
+| **Control Actuatori**      | PWM: bandă LED, ventilatoare, PTC heater — cu scenarii automatizare             | ✅    |
+| **Workspace Resurse**      | Upload PDF/text → chunking automat → indexare vectorială RAG                    | ✅    |
+| **Orar Săptămânal**        | Configurare materii și intervale orare pe săptămână                             | ✅    |
+| **Autentificare**          | Supabase Auth (email/parolă) cu RLS pe toate tabelele                           | ✅    |
 
 ---
 
-## 🛠️ Instalare & Prerechizite
+## 🤖 Cum Funcționează Chat-ul AI (RAG)
 
-Înainte de a rula proiectul, trebuie să instalezi dependențele pentru frontend și pentru servere, și să configurezi variabilele de mediu.
+Sistemul **Retrieval-Augmented Generation** permite studenților să pună întrebări despre cursurile transcrise:
 
-### 1. Dependențe Frontend (Node.js)
+1. **Indexare** — Transcrierile live și resursele uploadate sunt fragmentate în chunk-uri și convertite în embeddings vectoriale (NVIDIA NIM) stocate în `document_chunks` (pgvector).
+2. **Căutare Semantică** — La fiecare întrebare, query-ul este transformat în embedding și comparat cosinus cu chunk-urile existente.
+3. **Generare Răspuns** — Chunk-urile cele mai relevante sunt injectate ca context XML în system prompt-ul LLM-ului (NVIDIA NIM), care generează un răspuns fundamentat pe conținutul real al cursurilor.
 
-Instalează modulele NodeJS din rădăcina proiectului:
+---
+
+## 🔌 Componentă Hardware
+
+Proiectul include o machetă fizică completă bazată pe **ESP32 (Wemos D1 R32)**. Documentația detaliată se găsește în directorul [`hardware/`](hardware/):
+
+- **[BOM (Bill of Materials)](hardware/BOM.md)** — Lista completă de componente cu specificații
+- **[Schemă Fritzing](hardware/schematic.fzz)** — Schema electrică editabilă
+- **Firmware** — Două versiuni: de bază (MQTT telemetrie) și finală (MQTT + Audio I2S)
+- **Test Sketches** — Cod Arduino individual pentru testarea fiecărei componente
+
+### Componente Principale
+
+| Categorie          | Componente                                                                                     |
+| ------------------ | ---------------------------------------------------------------------------------------------- |
+| **Microcontroler** | Wemos D1 R32 (ESP32), WiFi/BT integrat                                                         |
+| **Senzori**        | DHT11 (temp/umiditate), LDR (lumină), ACS712 (curent), IR×2 (prezență), INMP441 (microfon I2S) |
+| **Actuatori**      | Bandă LED 12V, Ventilatoare DC×2, PTC Heater — toate prin MOSFET IR540N                        |
+| **Afișaj**         | OLED 0.96" I2C                                                                                 |
+| **Alimentare**     | Sursă 12V DC + regulator step-down 5V/3.3V                                                     |
+
+---
+
+## 📋 Prerechizite
+
+Înainte de a rula proiectul, asigură-te că ai instalate:
+
+| Cerință     | Versiune Minimă | Utilizare                              |
+| ----------- | --------------- | -------------------------------------- |
+| **Node.js** | ≥ 18            | Frontend Vue 3 + servere TS            |
+| **Python**  | ≥ 3.10          | Audio-server (FastAPI), scripturi test |
+| **pip**     | —               | Dependențe Python                      |
+| **ffmpeg**  | —               | Conversie audio (test scripts)         |
+| **Git**     | —               | Clonare proiect                        |
+
+---
+
+## 🛠️ Instalare
+
+### 1. Clonare Proiect
 
 ```bash
-npm install
+git clone https://github.com/SaucaVictor/proiect-practica.git
+cd proiect-practica
 ```
 
 ### 2. Variabile de Mediu
 
-Copiază fișierul `.env.example` în `.env` și completează credențialele tale de Supabase, API keys, etc.:
+Copiază fișierul `.env.example` în `.env` și completează credențialele:
 
 ```bash
 cp .env.example .env
 ```
 
-### 3. Dependențe Python (Servere & Scripturi de Test)
+### 3. Dependențe Frontend (Node.js)
 
-Instalează pachetele de Python pentru serverul audio, serverul MQTT și testarea simulărilor:
+```bash
+npm install
+```
+
+### 4. Dependențe Python (Audio Server)
 
 ```bash
 pip install -r servers/audio-server/requirements.txt
@@ -71,127 +155,142 @@ pip install -r servers/audio-server/requirements.txt
 
 ---
 
-## 🚀 Pornirea Serverelor
+## ⚙️ Variabile de Mediu (`.env`)
 
-Poți rula separat componentele aplicației din rădăcina proiectului utilizând comenzile de mai jos:
+Consultă [`.env.example`](.env.example) pentru template-ul complet. Variabilele principale:
 
-### 1. Serverul Audio — WebRTC + Deepgram ASR _(port 8001)_
+```env
+# ─── Supabase ────────────────────────────────────────────────────
+VITE_SUPABASE_URL=https://xxxx.supabase.co
+VITE_SUPABASE_ANON_KEY=eyJ...
 
-- **Pornire Standard** (așteaptă explicit semnalul `RECORD_START` pentru a activa conexiunea de transcriere):
-  ```bash
-  npm run audio-server
-  ```
-- **Pornire cu Auto-Transcriere** (transcrierea live pornește instant la prima conectare a microfonului):
-  ```bash
-  npm run audio-server:auto
-  ```
+# ─── NVIDIA NIM (LLM pentru Chat AI) ────────────────────────────
+VITE_NVIDIA_API_KEY=nvapi-...
 
-### 2. Serverul MQTT (Bridge Senzori/Actuatori IoT)
+# ─── Deepgram (Transcriere live & batch) ─────────────────────────
+DEEPGRAM=your_deepgram_api_key_here
 
-Pornește bridge-ul MQTT către baza de date Supabase:
+# ─── Hugging Face (ASR alternativ, opțional) ────────────────────
+VITE_HF_TOKEN=hf_...
+
+# ─── App ─────────────────────────────────────────────────────────
+VITE_APP_NAME=ClassMonitor
+VITE_APP_URL=http://localhost:5173
+
+# ─── ASR Endpoint (ngrok tunnel, opțional) ───────────────────────
+VITE_ASR_ENDPOINT=https://your-domain.ngrok-free.dev/transcribe
+```
+
+---
+
+## 🚀 Pornirea Aplicației
+
+### 1. Frontend (Vue 3 + Vite) — port 5173
+
+```bash
+npm run dev
+```
+
+### 2. Audio Server (FastAPI + WebRTC + Deepgram) — port 8001
+
+```bash
+# Standard — așteaptă semnalul RECORD_START pentru transcriere
+npm run audio-server
+
+# Cu auto-transcriere — pornește transcrierea instant la prima conectare
+npm run audio-server:auto
+```
+
+### 3. MQTT Server (Bridge Senzori/Actuatori ↔ Supabase)
 
 ```bash
 npx tsx servers/mqtt-server/server.ts
 ```
 
-### 3. Pornire Rapidă (Audio-Server + MQTT-Server deodată)
-
-Pornește simultan Audio-Server și MQTT-Server în mod paralel:
+### 4. Pornire Rapidă (Audio + MQTT simultan)
 
 ```bash
 npm run servers
-```
-
-### 4. Frontend Vue 3 (Aplicația Web de client)
-
-Pornește serverul local de development pentru frontend:
-
-```bash
-npm run dev
 ```
 
 ---
 
 ## 🗄️ Migrări Supabase
 
-Aplică migrările în ordine în **Supabase SQL Editor** (`supabase/migrations/`):
+Aplică migrările în ordine în **Supabase SQL Editor** din directorul [`supabase/migrations/`](supabase/migrations/):
 
-| Fișier                            | Conținut                                           |
-| --------------------------------- | -------------------------------------------------- |
-| `001_initial_schema.sql`          | Tabele de bază (profiles, conversations, messages) |
-| `002_rls_policies.sql`            | Politici RLS                                       |
-| `003_schedule.sql`                | Orar săptămânal (materii și intervale orare)       |
-| `004_webrtc_signaling.sql`        | Semnalizare WebRTC                                 |
-| `005_storage_courses.sql`         | Bucket Supabase Storage `courses`                  |
-| `006_update_default_model.sql`    | Model LLM implicit                                 |
-| `007_user_resources.sql`          | Resurse utilizator                                 |
-| `008_settings_open_resources.sql` | Setări deschise                                    |
-| **`009_live_transcripts.sql`**    | **Segmente transcriere live (nou)**                |
+| Fișier                            | Conținut                                            |
+| --------------------------------- | --------------------------------------------------- |
+| `001_initial_schema.sql`          | Tabele de bază: profiles, conversations, messages   |
+| `002_rls_policies.sql`            | Politici Row Level Security                         |
+| `003_iot_schema.sql`              | Tabele senzori, dispozitive, setări și scenarii IoT |
+| `003_schedule.sql`                | Orar săptămânal (materii, intervale orare)          |
+| `004_webrtc_signaling.sql`        | Semnalizare WebRTC                                  |
+| `005_storage_courses.sql`         | Bucket Supabase Storage `courses`                   |
+| `006_update_default_model.sql`    | Model LLM implicit                                  |
+| `007_user_resources.sql`          | Resurse utilizator                                  |
+| `008_settings_open_resources.sql` | Setări deschise resurse                             |
+| `009_live_transcripts.sql`        | Segmente transcriere live                           |
+| `010_rag_second_brain.sql`        | pgvector, document_chunks, căutare semantică        |
+| `011_autotranscribe_rag.sql`      | Indexare automată RAG pentru transcrieri live       |
 
 ---
 
-## 🧪 Testare Manuală (Fără Hardware ESP32)
+## 🧪 Testare (Fără Hardware ESP32)
 
-Poți simula comportamentul microfonului fizic (ESP32) streamuind fișierul audio de probă **`scripts/audio-test.mp3`** către servere.
+Poți simula comportamentul microfonului fizic ESP32 folosind fișierul audio de probă `scripts/audio-test.mp3`.
 
-### A. Test Streaming Live (WebRTC Audio)
+### A. Test Streaming Audio Live (WebRTC)
 
-Simulează microfonul ESP32 trimițând fluxul audio în buclă:
+Simulează microfonul ESP32 trimițând flux audio în buclă:
 
 ```bash
-# Rulare implicită stream
+# Stream implicit
 npm run test-audio
 
-# Rulare explicită modul stream
-npm run test-audio -- stream
-
-# Rulare cu un fișier audio custom
+# Stream cu fișier custom
 npm run test-audio -- stream /cale/catre/fisier.mp3
 ```
 
-_Ghid de utilizare:_
+**Pași:**
 
-1. Pornește serverul audio: `npm run audio-server`
-2. Rulează comanda de test-audio de mai sus.
-3. Deschide site-ul → accesează **Live Audio** → click pe **Conectare la Curs** pentru a auzi audio în browser în timp real.
+1. Pornește `npm run audio-server`
+2. Rulează comanda de test-audio
+3. Deschide site-ul → **Live Audio** → **Conectare la Curs** → audio în browser
 
-### B. Test Transcriere Live (Deepgram/WLK) ⭐ Nou
+### B. Test Transcriere Live (Deepgram STT)
 
-Simulează o sesiune activă de curs cu înregistrare și transcriere live:
+Simulează o sesiune de curs cu înregistrare + transcriere live:
 
 ```bash
-# Rulare standard (30 de secunde)
+# Sesiune standard (30 secunde)
 npm run test-audio -- live
 
-# Durată specifică (ex. 60 de secunde)
+# Durată personalizată
 python scripts/test_audio_stream.py live scripts/audio-test.mp3 --duration 60
 ```
 
-_Ce face:_
+**Ce se întâmplă:**
 
-1. Trimite comanda `RECORD_START` → audio-server-ul deschide conexiunea cu serviciul de transcriere.
-2. Transmite audio PCM în timp real, iar transcrierea apare în tabelele `live_transcripts` din Supabase.
-3. Panoul **Transcriere Live** din frontend afișează textul în timp real cu latență minimă.
-4. La finalul duratei trimite `RECORD_STOP`, salvează fișierul WAV și finalizează transcrierea.
+1. Trimite `RECORD_START` → audio-server deschide conexiunea Deepgram
+2. Audio PCM este transmis în timp real, transcrierea apare în `live_transcripts`
+3. Panoul **Transcriere Live** din frontend afișează textul cu latență minimă
+4. La final: `RECORD_STOP` → salvare WAV + finalizare transcript
 
-### C. Test Flow Înregistrare + Upload + Transcriere Batch
-
-Testarea automată a fluxului de înregistrare locală, upload în Supabase Storage și transcriere post-înregistrare:
+### C. Test Înregistrare + Upload + Transcriere Batch
 
 ```bash
-# 1. Pornește serverele de bază
+# 1. Pornește serverele
 npm run servers
 
 # 2. Pornește stream-ul de simulare
 python scripts/test_audio_stream.py stream
 
-# 3. Declanșează înregistrarea (durată fixă de 30s)
+# 3. Declanșează înregistrarea (30s)
 python scripts/test_recording_flow.py
 ```
 
-### D. Test Transcriere Batch Directă
-
-Efectuează o transcriere batch rapidă a fișierului de test local către REST API:
+### D. Transcriere Batch Directă
 
 ```bash
 python scripts/test_transcribe_flow.py
@@ -199,78 +298,109 @@ python scripts/test_transcribe_flow.py
 
 ---
 
-## ⚙️ Variabile de Mediu (`.env`)
+## 🌐 Deploy
 
-```env
-# Supabase
-VITE_SUPABASE_URL=https://xxxx.supabase.co
-VITE_SUPABASE_ANON_KEY=eyJ...
+### Frontend — Vercel
 
-# AI Chat (NVIDIA NIM)
-VITE_NVIDIA_API_KEY=nvapi-...
+Frontend-ul este configurat pentru deploy pe **Vercel** cu rewrite-uri pentru proxy NVIDIA NIM API:
 
-# Hugging Face (transcriere cloud, opțional)
-VITE_HF_TOKEN=hf_...
+```bash
+# Build producție
+npm run build
 
-# Deepgram (transcriere live & batch cloud)
-DEEPGRAM=your_deepgram_api_key_here
+# Preview local
+npm run preview
 ```
 
-> Copiază `.env.example` → `.env` și completează valorile tale.
+Configurare în [`vercel.json`](vercel.json) — include rewrite `/v1/*` → `integrate.api.nvidia.com` pentru a evita expunerea API key-ului client-side.
+
+### Audio Server — ngrok Tunnel
+
+Pentru a expune audio-server-ul local către frontend-ul pe Vercel:
+
+```bash
+# Instalare ngrok (o singură dată)
+npm install --save-dev ngrok
+
+# Configurare auth token
+npx ngrok config add-authtoken <YOUR_AUTHTOKEN>
+
+# Pornire tunnel pe port 8001
+npm run tunnel
+```
 
 ---
 
 ## 📁 Structura Proiectului
 
 ```
-├── src/                        # Frontend Vue 3
-│   ├── pages/AudioCallPage.vue # Conferință audio + panou transcriere live
+proiect-practica/
+├── src/                            # Frontend Vue 3 + TypeScript
+│   ├── pages/
+│   │   ├── ChatPage.vue            # Chat AI cu RAG
+│   │   ├── AudioCallPage.vue       # Conferință audio + transcriere live
+│   │   ├── IoTPage.vue             # Dashboard senzori + control actuatori
+│   │   ├── SchedulePage.vue        # Orar săptămânal
+│   │   ├── WorkspacePage.vue       # Upload și gestiune resurse
+│   │   ├── SettingsPage.vue        # Configurare model LLM
+│   │   ├── ProfilePage.vue         # Profil utilizator
+│   │   ├── LoginPage.vue           # Autentificare
+│   │   ├── RegisterPage.vue        # Înregistrare cont
+│   │   └── ForgotPasswordPage.vue  # Recuperare parolă
 │   ├── composables/
-│   │   ├── useAudioCall.ts     # WebRTC client
-│   │   └── useLiveTranscript.ts# Supabase Realtime → segmente live
-│   └── ...
+│   │   ├── useChat.ts              # Logică chat + integrare RAG
+│   │   ├── useAudioCall.ts         # Client WebRTC
+│   │   ├── useLiveTranscript.ts    # Supabase Realtime → transcriere
+│   │   ├── useRag.ts              # Căutare semantică + context XML
+│   │   └── ...                     # useToast, useClipboard, etc.
+│   ├── services/
+│   │   ├── ai/                     # ChatService, embeddings, modele LLM
+│   │   └── supabase/               # Client, auth, vectorStore, courses...
+│   ├── iot-interface/              # Componente + composables IoT
+│   ├── stores/                     # Pinia stores
+│   ├── router/                     # Vue Router + guards autentificare
+│   ├── styles/                     # Stiluri globale
+│   └── types/                      # TypeScript interfaces
+│
 ├── servers/
-│   ├── audio-server/           # FastAPI: WebRTC + Deepgram ASR (port 8001)
-│   │   ├── server.py
+│   ├── audio-server/               # FastAPI: WebRTC + Deepgram ASR (port 8001)
+│   │   ├── server.py               # ~960 linii — server principal
 │   │   └── requirements.txt
-│   └── mqtt-server/            # Bridge MQTT ↔ Supabase
-├── scripts/
-│   ├── test_audio_stream.py    # Test streaming + live transcription
-│   ├── test_recording_flow.py  # Test înregistrare + batch upload
-│   ├── test_transcribe_flow.py # Test transcriere directă
-│   └── audio-test.mp3          # Fișier audio de test
-├── supabase/migrations/        # Migrări SQL Supabase
-└── docs/product_brief.md       # Document de produs complet
-```
-
-## 🌐 Setup Tunneling Public (ngrok)
-
-Pentru a permite unei versiuni de frontend deployate public (de exemplu pe Vercel) să comunice securizat cu serverul tău audio local (`audio-server` pe portul 8001), urmează acești pași de configurare:
-
-### 1. Instalare locală ngrok
-
-Instalează clientul ngrok local în proiect ca devDependency (pentru a evita erorile de PATH pe Windows):
-
-```bash
-npm install --save-dev ngrok
-```
-
-### 2. Configurare Authtoken (O singură dată)
-
-Autentifică clientul local ngrok folosind token-ul tău gratuit obținut de pe [ngrok Dashboard](https://dashboard.ngrok.com/):
-
-```bash
-npx ngrok config add-authtoken <YOUR_AUTHTOKEN>
-```
-
-### 3. Pornirea Tunnelului Static
-
-Rulați comanda preconfigurată din `package.json` care pornește proxy-ul ngrok pe portul 8001 cu domeniul tău static rezervat:
-
-```bash
-npm run tunnel
+│   └── mqtt-server/                # Bridge MQTT ↔ Supabase (TypeScript)
+│
+├── hardware/                       # Documentație + firmware ESP32
+│   ├── BOM.md                      # Bill of Materials
+│   ├── schematic.fzz               # Schemă Fritzing
+│   ├── schematic_preview.png       # Preview schemă electrică
+│   ├── classmonitor_firmware/      # Firmware de bază (MQTT)
+│   ├── classmonitor_firmware_final/# Firmware final (MQTT + Audio I2S)
+│   └── test-sketches/              # Teste individuale componente
+│
+├── scripts/                        # Scripturi de test și utilități
+│   ├── test_audio_stream.py        # Test streaming + live transcription
+│   ├── test_recording_flow.py      # Test înregistrare + batch upload
+│   ├── test_transcribe_flow.py     # Test transcriere directă
+│   └── audio-test.mp3              # Fișier audio de probă
+│
+├── supabase/migrations/            # Migrări SQL (001–011)
+├── docs/product_brief.md           # Document de produs
+├── vercel.json                     # Configurare deploy Vercel
+├── .env.example                    # Template variabile de mediu
+└── package.json                    # Scripts npm + dependențe
 ```
 
 ---
 
-DEPLOY TRIGGER = 5
+## 👥 Echipă
+
+| Membru                | Rol                                                |
+| --------------------- | -------------------------------------------------- |
+| **Săuca Victor**      | Full-stack development, AI/RAG, arhitectură sistem |
+| **Tuțu Cristian**     | Hardware, embedded, firmware ESP32                 |
+| **Bucura Ion-Bogdan** | Hardware, electronică de putere, testare senzori   |
+
+---
+
+## 📄 Licență
+
+Proiect realizat în cadrul practicii universitare — **UTCB x DeviDevs, 2026**.
