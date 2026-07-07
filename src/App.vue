@@ -49,8 +49,36 @@ onMounted(async () => {
   </AuthLayout>
 
   <AppLayout v-else-if="layout === 'app'">
-    <RouterView />
+    <RouterView v-slot="{ Component }">
+      <Transition name="page" mode="out-in">
+        <component
+          :is="Component"
+          :key="String(route.name).startsWith('chat') ? 'chat' : route.name"
+        />
+      </Transition>
+    </RouterView>
   </AppLayout>
 
   <RouterView v-else />
 </template>
+
+<style>
+/* ─── Page transition ──────────────────────────────────────────────────── */
+.page-enter-active {
+  transition: opacity 0.25s ease, transform 0.25s ease;
+}
+
+.page-leave-active {
+  transition: opacity 0.15s ease, transform 0.15s ease;
+}
+
+.page-enter-from {
+  opacity: 0;
+  transform: translateY(8px);
+}
+
+.page-leave-to {
+  opacity: 0;
+  transform: translateY(-4px);
+}
+</style>

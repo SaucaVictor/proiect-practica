@@ -120,11 +120,13 @@ html:not(.dark) .chat-conv-title {
 }
 
 /* ── Chat page / messages area ─────────────────────────────────────────────── */
-html:not(.dark) .chat-page,
+html:not(.dark) .chat-page {
+  background-color: transparent !important;
+}
 html:not(.dark) .chat-body,
 html:not(.dark) .chat-panel,
 html:not(.dark) .messages-container {
-  background-color: #f0f2f7 !important;
+  background-color: transparent !important;
 }
 
 /* ── Chat input box ────────────────────────────────────────────────────────── */
@@ -175,7 +177,7 @@ html:not(.dark) .drag-handle {
 
 /* ── Settings page ─────────────────────────────────────────────────────────── */
 html:not(.dark) .settings-page {
-  background-color: #f0f2f7 !important;
+  background-color: transparent !important;
   color: #0f172a !important;
 }
 html:not(.dark) .section-body {
@@ -197,7 +199,7 @@ html:not(.dark) .theme-btn {
 
 /* ── Profile page ──────────────────────────────────────────────────────────── */
 html:not(.dark) .profile-page {
-  background-color: #f0f2f7 !important;
+  background-color: transparent !important;
   color: #0f172a !important;
 }
 html:not(.dark) .profile-card {
@@ -229,7 +231,7 @@ html:not(.dark) .field-hint {
 
 /* ── Schedule page ─────────────────────────────────────────────────────────── */
 html:not(.dark) .schedule-page {
-  background-color: #f0f2f7 !important;
+  background-color: transparent !important;
   color: #0f172a !important;
 }
 html:not(.dark) .day-card {
@@ -269,7 +271,7 @@ html:not(.dark) .text-surface-500 { color: #64748b !important; }
 
 /* ─── IoT Page light mode ─────────────────────────────────────────────────── */
 html:not(.dark) .iot-page {
-  background-color: #f0f2f7 !important;
+  background-color: transparent !important;
   color: #0f172a !important;
   scrollbar-color: #cdd1db transparent !important;
 }
@@ -293,7 +295,7 @@ html:not(.dark) .iot-page .w-9.h-5 { background-color: #b8bdc9 !important; }
 
 /* ─── Audio Page light mode ───────────────────────────────────────────────── */
 html:not(.dark) .audio-call-container {
-  background-color: #f0f2f7 !important;
+  background-color: transparent !important;
   color: #0f172a !important;
 }
 html:not(.dark) .audio-call-container .bg-glow--left {

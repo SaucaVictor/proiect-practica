@@ -274,15 +274,20 @@ onUnmounted(() => {
 
 <style scoped>
 .chat-page {
-  @apply flex flex-col h-full overflow-hidden;
+  @apply flex flex-col h-full overflow-hidden relative;
 }
 
 /* ─── Top bar ──────────────────────────────────────────────────────────── */
 .chat-topbar {
   @apply flex items-center justify-between px-4 py-3
-         border-b border-surface-200 dark:border-surface-200
-         bg-surface-50 dark:bg-surface-0
-         flex-shrink-0 gap-4;
+         border-b border-surface-200/60 dark:border-surface-200/60
+         flex-shrink-0 gap-4 relative z-10;
+  background: rgba(248, 250, 252, 0.8);
+  backdrop-filter: blur(12px);
+}
+
+.dark .chat-topbar {
+  background: rgba(15, 23, 42, 0.8);
 }
 
 .chat-topbar-left  { @apply flex-1 min-w-0; }
@@ -311,7 +316,7 @@ onUnmounted(() => {
 
 /* ─── Split body ───────────────────────────────────────────────────────── */
 .chat-body {
-  @apply flex flex-1 min-h-0 overflow-hidden relative;
+  @apply flex flex-1 min-h-0 overflow-hidden relative z-10;
 }
 
 .chat-body.is-dragging {

@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { ref } from "vue";
-import ParticleScene from "@/iot-interface/components/ParticleScene.vue";
 import DeviceStatus from "@/iot-interface/components/DeviceStatus.vue";
 import SensorCard from "@/iot-interface/components/SensorCard.vue";
 import SensorChart from "@/iot-interface/components/SensorChart.vue";
@@ -19,8 +18,6 @@ const currentTab = ref<"dashboard" | "analytics">("dashboard");
 
 <template>
   <div class="iot-page flex-1 overflow-y-auto bg-[var(--iot-bg)] text-[var(--iot-text)] relative z-10 select-none">
-    <!-- Beautiful Animated canvas behind -->
-    <ParticleScene />
 
     <!-- Container -->
     <div class="relative z-10 max-w-7xl mx-auto px-6 py-10 flex flex-col gap-8">

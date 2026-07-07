@@ -3,6 +3,7 @@ import { ref } from 'vue'
 import AppRail from '@/components/layout/AppRail.vue'
 import ConversationDrawer from '@/components/layout/ConversationDrawer.vue'
 import ToastContainer from '@/components/ui/ToastContainer.vue'
+import ParticleScene from '@/iot-interface/components/ParticleScene.vue'
 
 const drawerOpen = ref(false)
 
@@ -13,6 +14,9 @@ function toggleDrawer() {
 
 <template>
   <div class="app-layout">
+    <!-- Global background animation -->
+    <ParticleScene />
+
     <!-- Permanent icon rail -->
     <AppRail @toggle-chat-drawer="toggleDrawer" />
 
@@ -31,10 +35,10 @@ function toggleDrawer() {
 
 <style scoped>
 .app-layout {
-  @apply flex h-screen w-screen overflow-hidden bg-surface-50 dark:bg-surface-0;
+  @apply flex h-screen w-screen overflow-hidden bg-surface-50 dark:bg-surface-0 relative;
 }
 
 .app-main {
-  @apply flex-1 flex flex-col min-w-0 overflow-hidden;
+  @apply flex-1 flex flex-col min-w-0 overflow-hidden relative z-10;
 }
 </style>

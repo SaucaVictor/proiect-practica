@@ -19,7 +19,7 @@
   --iot-danger-border:  rgba(239, 68, 68, 0.22);
 
   /* Backgrounds */
-  --iot-bg:             #0e0f11;
+  --iot-bg:             transparent;
   --iot-bg-subtle:      #141517;
   --iot-surface:        #1a1b1e;
   --iot-surface-raised: #212328;
@@ -83,7 +83,7 @@ html:not(.dark) {
   --iot-danger-subtle:  rgba(220, 38, 38, 0.07);
   --iot-danger-border:  rgba(220, 38, 38, 0.2);
 
-  --iot-bg:             #f0f2f7;
+  --iot-bg:             transparent;
   --iot-bg-subtle:      #e8eaf0;
   --iot-surface:        #eceef4;
   --iot-surface-raised: #ffffff;
