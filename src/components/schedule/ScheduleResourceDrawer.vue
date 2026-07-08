@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted, nextTick, watch, onUnmounted } from 'vue'
+import { ref, onMounted, watch, onUnmounted } from 'vue'
 import {
   listCourseDates,
   listCourseFiles,
@@ -8,7 +8,6 @@ import {
   uploadCourseFile,
   deleteCourseFile,
   ingestCourseFile,
-  hasCourseFileChunks,
   type CourseFile
 } from '@/services/supabase/courses'
 import { supabase } from '@/services/supabase/client'
@@ -208,7 +207,7 @@ async function handleFileChange(event: Event) {
   for (const file of filesList) {
     try {
       // 1. Upload to Supabase courses bucket
-      const uploadedFile = await uploadCourseFile(props.entry.subjectName, dateStr, file)
+      await uploadCourseFile(props.entry.subjectName, dateStr, file)
       toast.success('Încărcare reușită', `Fișierul "${file.name}" a fost încărcat.`)
 
       // Refresh files list
@@ -325,12 +324,7 @@ async function previewFile(dateNode: DateNode, fileNode: FileNode) {
 }
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
-function fileIcon(file: FileNode) {
-  if (file.type === 'transcript') return '📝'
-  if (file.type === 'pdf') return '📄'
-  if (file.type === 'audio') return '🎵'
-  return '📎'
-}
+
 
 function formatSize(bytes?: number) {
   if (!bytes) return ''
@@ -343,9 +337,7 @@ function getFileUrl(date: string, filename: string) {
   return getCourseFileUrl(props.entry.subjectName, date, filename)
 }
 
-function transcriptKey(date: string, filename: string) {
-  return `${date}/${filename}`
-}
+
 </script>
 
 <template>
