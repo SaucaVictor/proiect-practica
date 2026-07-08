@@ -34,7 +34,7 @@ const currentTab = ref<"dashboard" | "analytics">("dashboard");
           <p class="text-xs text-[var(--iot-text-muted)] mt-1">Panou IoT — Monitorizare și Automatizare Sală Curs</p>
         </div>
 
-        <div class="flex bg-[var(--iot-surface)] border border-[var(--iot-border)] rounded-2xl p-1">
+        <div class="flex bg-white dark:bg-transparent border border-[var(--iot-border)] rounded-2xl p-1">
           <button
             class="px-5 py-2 rounded-xl border-0 bg-transparent text-xs font-semibold text-[var(--iot-text-muted)] cursor-pointer transition-all duration-200 hover:text-[var(--iot-text)]"
             :class="{ 'bg-[var(--iot-accent-subtle)] text-[var(--iot-accent)] border border-[var(--iot-accent-border)]': currentTab === 'dashboard' }"

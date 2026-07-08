@@ -249,3 +249,145 @@ html:not(.dark) .drag-handle-chat-bar {
 }
 
 /* Tooltip */
+
+/* ── ScheduleResourceDrawer light mode ── */
+html:not(.dark) .drawer-container {
+  background-color: #f8fafc !important;
+  border-left-color: #e2e8f0 !important;
+}
+html:not(.dark) .drawer-header {
+  border-bottom-color: #e2e8f0 !important;
+}
+html:not(.dark) .drawer-title {
+  color: #0f172a !important;
+}
+html:not(.dark) .drawer-subtitle {
+  color: #64748b !important;
+}
+html:not(.dark) .close-btn {
+  color: #64748b !important;
+}
+html:not(.dark) .close-btn:hover {
+  background-color: #e2e8f0 !important;
+  color: #0f172a !important;
+}
+html:not(.dark) .drawer-actions {
+  border-bottom-color: #e2e8f0 !important;
+}
+html:not(.dark) .tree-date-node {
+  border-color: #e2e8f0 !important;
+  background-color: #f1f5f9 !important;
+}
+html:not(.dark) .date-header-row {
+  background-color: #f8fafc !important;
+}
+html:not(.dark) .date-header-row:hover {
+  background-color: #e2e8f0 !important;
+}
+html:not(.dark) .date-toggle-btn {
+  color: #0f172a !important;
+}
+html:not(.dark) .date-label {
+  color: #0f172a !important;
+}
+html:not(.dark) .upload-btn {
+  background-color: #e2e8f0 !important;
+  color: #475569 !important;
+}
+html:not(.dark) .upload-btn:hover {
+  background-color: #cbd5e1 !important;
+  color: #0f172a !important;
+}
+html:not(.dark) .files-container {
+  border-top-color: #e2e8f0 !important;
+  background-color: #f8fafc !important;
+}
+html:not(.dark) .file-row:hover {
+  background-color: #f1f5f9 !important;
+}
+html:not(.dark) .file-select-btn {
+  color: #334155 !important;
+}
+html:not(.dark) .file-name {
+  color: #334155 !important;
+}
+html:not(.dark) .file-size {
+  color: #64748b !important;
+}
+html:not(.dark) .file-preview-panel {
+  border-color: #e2e8f0 !important;
+  background-color: #ffffff !important;
+}
+html:not(.dark) .preview-text {
+  color: #334155 !important;
+}
+html:not(.dark) .date-input {
+  background-color: #ffffff !important;
+  border-color: #cbd5e1 !important;
+  color: #0f172a !important;
+}
+html:not(.dark) .cancel-date-btn {
+  background-color: #e2e8f0 !important;
+  color: #475569 !important;
+}
+html:not(.dark) .cancel-date-btn:hover {
+  background-color: #cbd5e1 !important;
+  color: #0f172a !important;
+}
+
+/* Toast Container light mode */
+html:not(.dark) .toast {
+  background-color: #ffffff !important;
+  border-color: #e2e8f0 !important;
+  color: #0f172a !important;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05), 0 4px 6px -2px rgba(0, 0, 0, 0.03) !important;
+}
+
+html:not(.dark) .toast-title {
+  color: #0f172a !important;
+}
+
+html:not(.dark) .toast-desc {
+  color: #475569 !important;
+}
+
+html:not(.dark) .toast-close {
+  color: #64748b !important;
+}
+
+html:not(.dark) .toast-close:hover {
+  color: #0f172a !important;
+}
+
+/* PDF Viewer light mode */
+html:not(.dark) .pdf-viewer {
+  background-color: #f1f5f9 !important;
+}
+
+html:not(.dark) .pdf-page {
+  border-color: #cbd5e1 !important;
+  background-color: #ffffff !important;
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.05) !important;
+}
+
+html:not(.dark) .pdf-page-toolbar {
+  background-color: #f8fafc !important;
+  border-bottom-color: #cbd5e1 !important;
+}
+
+html:not(.dark) .pdf-page-num {
+  color: #475569 !important;
+}
+
+html:not(.dark) .pdf-ref-btn {
+  color: #4453e7 !important;
+}
+
+html:not(.dark) .pdf-ref-btn:hover {
+  background-color: rgba(68, 83, 231, 0.08) !important;
+}
+
+html:not(.dark) .pdf-page--highlighted {
+  border-color: #4453e7 !important;
+}
+

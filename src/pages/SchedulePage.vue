@@ -5,10 +5,20 @@ import { useScheduleStore } from '@/stores/schedule.store'
 import { DAY_NAMES, DAY_LIST } from '@/types/schedule'
 import Button from '@/components/ui/Button.vue'
 import { useToast } from '@/composables/useToast'
+import ScheduleResourceDrawer from '@/components/schedule/ScheduleResourceDrawer.vue'
 
 const scheduleStore = useScheduleStore()
 const { entriesByDay, loading, saving } = storeToRefs(scheduleStore)
 const toast = useToast()
+
+// ─── Drawer state ─────────────────────────────────────────────────────────────
+const selectedEntry = ref<any>(null)
+const drawerOpen = ref(false)
+
+function openResourceManager(entry: any) {
+  selectedEntry.value = entry
+  drawerOpen.value = true
+}
 
 // ─── Form state ──────────────────────────────────────────────────────────────
 const formDay = ref(1)
@@ -189,6 +199,19 @@ function formatTime(time: string): string {
                 <span class="time-badge">{{ formatTime(entry.endTime) }}</span>
               </div>
               <div class="entry-subject">{{ entry.subjectName }}</div>
+              
+              <!-- Resources Button -->
+              <button
+                class="entry-resources"
+                title="Gestionare resurse curs (materiale PDF/TXT)"
+                aria-label="Resurse curs"
+                @click.stop="openResourceManager(entry)"
+              >
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z" />
+                </svg>
+              </button>
+
               <button
                 class="entry-delete"
                 title="Șterge"
@@ -204,6 +227,13 @@ function formatTime(time: string): string {
           </div>
         </div>
       </div>
+    <!-- Resource Manager Drawer -->
+    <ScheduleResourceDrawer
+      v-if="selectedEntry"
+      v-show="drawerOpen"
+      :entry="selectedEntry"
+      @close="drawerOpen = false"
+    />
     </div>
   </div>
 </template>
@@ -317,7 +347,7 @@ function formatTime(time: string): string {
 
 .entry-card {
   @apply flex items-center gap-4 px-5 py-3
-         border-b border-surface-200/50 dark:border-surface-200/50
+         border-b border-surface-900/50 dark:border-surface-200/50
          last:border-b-0
          hover:bg-surface-200/40 dark:hover:bg-surface-200/40
          transition-colors duration-100;
@@ -345,6 +375,15 @@ function formatTime(time: string): string {
   @apply flex items-center justify-center w-8 h-8 rounded-lg
          text-surface-400 dark:text-surface-500
          hover:bg-red-500/10 hover:text-red-500
+         opacity-0 group-hover:opacity-100
+         transition-all duration-150 cursor-pointer
+         flex-shrink-0;
+}
+
+.entry-resources {
+  @apply flex items-center justify-center w-8 h-8 rounded-lg
+         text-surface-400 dark:text-surface-500
+         hover:bg-accent-500/10 hover:text-accent-500
          opacity-0 group-hover:opacity-100
          transition-all duration-150 cursor-pointer
          flex-shrink-0;
