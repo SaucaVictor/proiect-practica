@@ -383,6 +383,39 @@ html:not(.dark) .audio-call-container .spinner {
   border-top-color: #5c72f3 !important;
 }
 
+/* ── Auth Pages / Layout light mode ────────────────────────────────────────── */
+html:not(.dark) .auth-layout {
+  background-color: #f8fafc !important;
+}
+
+html:not(.dark) .auth-card {
+  background-color: #ffffff !important;
+  border-color: #e2e8f0 !important;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.05) !important;
+}
+
+html:not(.dark) .auth-logo-text {
+  color: #020617 !important;
+}
+
+html:not(.dark) .forgot-link,
+html:not(.dark) .auth-switch-link {
+  color: #4453e7 !important;
+}
+
+html:not(.dark) .forgot-link:hover,
+html:not(.dark) .auth-switch-link:hover {
+  color: #3640ce !important;
+}
+
+html:not(.dark) .sent-banner {
+  color: #059669 !important;
+}
+
+html:not(.dark) .error-banner {
+  color: #dc2626 !important;
+}
+
 /* ── OCEAN THEME ──────────────────────────────────────────────────────────── */
 html.ocean body, html.ocean .app-layout, html.ocean .chat-page, html.ocean .chat-body, html.ocean .chat-panel, html.ocean .messages-container, html.ocean .settings-page, html.ocean .profile-page, html.ocean .schedule-page, html.ocean .iot-page, html.ocean .audio-call-container {
   background-color: #021024 !important;

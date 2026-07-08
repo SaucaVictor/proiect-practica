@@ -1,8 +1,14 @@
 <script setup lang="ts">
+import ThemeToggle from '@/components/ThemeToggle.vue'
 </script>
 
 <template>
   <div class="auth-layout">
+    <!-- Theme Toggle -->
+    <div class="auth-theme-toggle">
+      <ThemeToggle />
+    </div>
+
     <!-- Background gradient blobs -->
     <div class="auth-blob auth-blob-1" aria-hidden="true" />
     <div class="auth-blob auth-blob-2" aria-hidden="true" />
@@ -30,6 +36,10 @@
 <style scoped>
 .auth-layout {
   @apply min-h-screen bg-surface-50 dark:bg-surface-0 flex items-center justify-center p-4 relative overflow-hidden;
+}
+
+.auth-theme-toggle {
+  @apply absolute top-4 right-4 z-20;
 }
 
 .auth-blob {
