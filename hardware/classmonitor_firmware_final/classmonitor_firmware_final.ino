@@ -35,15 +35,15 @@
 #include <ESP_I2S.h>
 
 // ─── CONFIGURARE CONEXIUNI REȚEA ȘI SERVERE ───
-const char* ssid       = "C.O.C.O.";
-const char* password   = "tucorneltu";
+const char* ssid       = "your_ssid";
+const char* password   = "your_password";
 
 // Configurare Broker MQTT (pentru telemetrie si comenzi smart control)
 const char* mqttServer = "broker.hivemq.com";
 const int mqttPort     = 1883;
 
 // Configurare Server Audio (pentru streaming audio websocket)
-const char* wsHost     = "192.168.0.151"; // IP-ul local al calculatorului tau
+const char* wsHost     = "your_ip"; // IP-ul local al calculatorului tau
 const int wsPort       = 8001;
 
 // ─── INSTANȚE ȘI STATE CLIENT ───
