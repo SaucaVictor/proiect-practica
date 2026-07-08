@@ -83,7 +83,7 @@
 /* ═══════════════════════════════════════════════════════════════════════════ */
 /*  LIGHT MODE OVERRIDES                                                       */
 /*  Palette:                                                                   */
-/*    --bg-page   : #f0f2f7  (page background)                                */
+/*    --bg-page   : #ffffff  (page background)                                */
 /*    --bg-widget : #e5e8ef  (cards / widgets — slightly darker)              */
 /*    --bg-input  : #dde1e9  (inputs / interactive surfaces)                  */
 /*    --border    : #cdd1db  (borders)                                         */
@@ -91,24 +91,24 @@
 
 /* ── Base ──────────────────────────────────────────────────────────────────── */
 html:not(.dark) body {
-  background-color: #f0f2f7 !important;
+  background-color: #ffffff !important;
   color: #0f172a !important;
 }
 
 html:not(.dark) .app-layout {
-  background-color: #f0f2f7 !important;
+  background-color: #ffffff !important;
 }
 
 /* ── Sidebar rail ──────────────────────────────────────────────────────────── */
 html:not(.dark) .app-rail {
-  background-color: #eaecf2 !important;
-  border-color: #cdd1db !important;
+  background-color: #ffffff !important;
+  border-color: #e6e6e6 !important;
 }
 html:not(.dark) .rail-item {
   color: #475569 !important;
 }
 html:not(.dark) .rail-item:hover {
-  background-color: #d5d9e2 !important;
+  background-color: #ffffff !important;
   color: #0f172a !important;
 }
 
@@ -141,7 +141,7 @@ html:not(.dark) .chat-page,
 html:not(.dark) .chat-body,
 html:not(.dark) .chat-panel,
 html:not(.dark) .messages-container {
-  background-color: #f0f2f7 !important;
+  background-color: #ffffff !important;
 }
 
 /* ── Chat input box ────────────────────────────────────────────────────────── */
@@ -195,7 +195,7 @@ html:not(.dark) .drag-handle:hover {
 
 /* ── Settings page ─────────────────────────────────────────────────────────── */
 html:not(.dark) .settings-page {
-  background-color: #f0f2f7 !important;
+  background-color: #ffffff !important;
   color: #0f172a !important;
 }
 html:not(.dark) .section-body {
@@ -217,7 +217,7 @@ html:not(.dark) .theme-btn {
 
 /* ── Profile page ──────────────────────────────────────────────────────────── */
 html:not(.dark) .profile-page {
-  background-color: #f0f2f7 !important;
+  background-color: #ffffff !important;
   color: #0f172a !important;
 }
 html:not(.dark) .profile-card {
@@ -249,7 +249,7 @@ html:not(.dark) .field-hint {
 
 /* ── Schedule page ─────────────────────────────────────────────────────────── */
 html:not(.dark) .schedule-page {
-  background-color: #f0f2f7 !important;
+  background-color: #ffffff !important;
   color: #0f172a !important;
 }
 html:not(.dark) .day-card {
@@ -289,7 +289,7 @@ html:not(.dark) .text-surface-500 { color: #64748b !important; }
 
 /* ─── IoT Page light mode ─────────────────────────────────────────────────── */
 html:not(.dark) .iot-page {
-  background-color: #f0f2f7 !important;
+  background-color: #ffffff !important;
   color: #0f172a !important;
   scrollbar-color: #cdd1db transparent !important;
 }
@@ -313,7 +313,7 @@ html:not(.dark) .iot-page .w-9.h-5 { background-color: #b8bdc9 !important; }
 
 /* ─── Audio Page light mode ───────────────────────────────────────────────── */
 html:not(.dark) .audio-call-container {
-  background-color: #f0f2f7 !important;
+  background-color: #ffffff !important;
   color: #0f172a !important;
 }
 html:not(.dark) .audio-call-container .bg-glow--left {

@@ -83,7 +83,7 @@ html:not(.dark) {
   --iot-danger-subtle:  rgba(220, 38, 38, 0.07);
   --iot-danger-border:  rgba(220, 38, 38, 0.2);
 
-  --iot-bg:             #f0f2f7;
+  --iot-bg:             #ffffff;
   --iot-bg-subtle:      #e8eaf0;
   --iot-surface:        #eceef4;
   --iot-surface-raised: #ffffff;
@@ -101,7 +101,7 @@ html:not(.dark) {
   --iot-toggle-bg:      #cdd1db;
 
   /* Audio page variables — light mode */
-  --audio-bg: #f0f2f7;
+  --audio-bg: #ffffff;
   --audio-text: #0f172a;
   --audio-text-muted: #64748b;
   --audio-text-dim: #94a3b8;

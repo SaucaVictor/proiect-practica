@@ -399,7 +399,7 @@ onUnmounted(() => {
   <div class="flex flex-col gap-6">
     
     <!-- Timeframe Selection & Sensor toggles -->
-    <div class="flex flex-wrap items-center justify-between gap-4 bg-[var(--iot-bg-subtle)] border border-[var(--iot-border)] rounded-2xl p-4">
+    <div class="flex flex-wrap items-center justify-between gap-4 bg-white border border-[var(--iot-border)] rounded-2xl p-4">
       <!-- Period Selector -->
       <div class="flex bg-white/5 border border-white/5 rounded-xl p-1">
         <button
@@ -504,7 +504,7 @@ onUnmounted(() => {
 
         <div class="flex items-center gap-2">
           <!-- Dropdown -->
-          <select v-model="selectedLogSensor" class="bg-[var(--iot-bg-subtle)] border border-white/10 rounded-xl px-3 py-2 text-xs text-[var(--iot-text)] font-semibold outline-none cursor-pointer focus:border-[var(--iot-accent)]/50">
+          <select v-model="selectedLogSensor" class="bg-white border border-white/10 rounded-xl px-3 py-2 text-xs text-[var(--iot-text)] font-semibold outline-none cursor-pointer focus:border-[var(--iot-accent)]/50">
             <option v-for="(cfg, key) in SENSORS_CFG" :key="key" :value="key">
               {{ cfg.label }}
             </option>
@@ -512,7 +512,7 @@ onUnmounted(() => {
           <!-- Search -->
           <input
             v-model="searchQuery"
-            class="bg-[var(--iot-bg-subtle)] border border-white/10 rounded-xl px-3 py-2 text-xs text-[var(--iot-text)] outline-none focus:border-[var(--iot-accent)]/50 placeholder-[var(--iot-text-muted)]/40"
+            class="bg-white border border-white/10 rounded-xl px-3 py-2 text-xs text-[var(--iot-text)] outline-none focus:border-[var(--iot-accent)]/50 placeholder-[var(--iot-text-muted)]/40"
             placeholder="Căutare..."
             spellcheck="false"
           />

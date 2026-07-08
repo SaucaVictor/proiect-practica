@@ -321,7 +321,7 @@ watch(() => props.url, loadPdf)
 
 .tooltip-btn {
   @apply flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-semibold
-         bg-surface-950 dark:bg-surface-50
+         bg-white dark:bg-surface-50
          text-surface-50 dark:text-surface-950
          shadow-lg border border-surface-800 dark:border-surface-300
          whitespace-nowrap;

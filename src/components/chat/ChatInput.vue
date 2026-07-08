@@ -224,7 +224,7 @@ function openFilePicker() {
         ref="textareaRef"
         v-model="input"
         rows="1"
-        placeholder="Message NeuralChat…"
+        placeholder="Message ClassMonitor…"
         class="chat-textarea"
         aria-label="Message input"
         @keydown="handleKeydown"

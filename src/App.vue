@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, onMounted } from 'vue'
-import { useRoute } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth.store'
 import { useSettingsStore } from '@/stores/settings.store'
 import { useThemeStore } from '@/stores/theme.store'
@@ -10,6 +10,7 @@ import AppLayout from '@/layouts/AppLayout.vue'
 import AuthLayout from '@/layouts/AuthLayout.vue'
 
 const route = useRoute()
+const router = useRouter()
 const authStore = useAuthStore()
 const settingsStore = useSettingsStore()
 const themeStore = useThemeStore()
@@ -38,6 +39,10 @@ onMounted(async () => {
         themeStore.initialize()
         providerStore.initialize()
       })
+    } else {
+      if (route.meta.layout !== 'auth') {
+        router.push({ name: 'login' })
+      }
     }
   })
 })

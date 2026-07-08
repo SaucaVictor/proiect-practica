@@ -16,7 +16,7 @@
           <circle cx="16" cy="16" r="2.5" fill="white" />
           <path d="M16 10V12M16 20V22M10 16H12M20 16H22" stroke="white" stroke-width="1.5" stroke-linecap="round" />
         </svg>
-        <span class="auth-logo-text">NeuralChat</span>
+        <span class="auth-logo-text">ClassMonitor</span>
       </div>
 
       <!-- Card -->

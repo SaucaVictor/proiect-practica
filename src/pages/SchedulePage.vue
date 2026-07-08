@@ -338,7 +338,7 @@ function formatTime(time: string): string {
 }
 
 .entry-subject {
-  @apply flex-1 text-sm font-medium text-surface-900 dark:text-surface-950 truncate;
+  @apply flex-1 text-sm font-medium text-surface-200 dark:text-surface-950 truncate;
 }
 
 .entry-delete {

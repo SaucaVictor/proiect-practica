@@ -1031,7 +1031,7 @@ onUnmounted(() => {
 .visualizer-card {
   @apply relative w-full max-w-2xl aspect-[21/9] rounded-3xl p-6 overflow-hidden
          flex flex-col items-center justify-center shadow-2xl
-         bg-surface-900/60 dark:bg-surface-50/50 border border-surface-800 dark:border-surface-200/30;
+         bg-white/60 dark:bg-surface-50/50 border border-surface-800 dark:border-surface-200/30;
   backdrop-filter: blur(20px);
 }
 .card-glow {
@@ -1115,7 +1115,7 @@ onUnmounted(() => {
 
 .autoscroll-btn {
   @apply inline-flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-semibold cursor-pointer
-         bg-surface-900 dark:bg-surface-50 border border-surface-800 dark:border-surface-200/50
+         bg-white dark:bg-surface-50 border border-surface-800 dark:border-surface-200/50
          text-surface-600 dark:text-surface-800 hover:bg-surface-800 dark:hover:bg-surface-100/10
          hover:text-surface-50 dark:hover:text-surface-950 transition-all duration-150 ease-out;
 }
@@ -1151,7 +1151,7 @@ onUnmounted(() => {
 .transcript-empty {
   @apply flex-1 flex flex-col items-center justify-center gap-3 p-10 text-xs text-surface-500 dark:text-surface-800 text-center
          rounded-2xl border border-dashed border-surface-800 dark:border-surface-300/30
-         bg-surface-900/50 dark:bg-surface-50/10;
+         bg-white/50 dark:bg-surface-50/10;
   backdrop-filter: blur(12px);
 }
 .transcript-empty-icon { @apply text-2xl; }
@@ -1202,7 +1202,7 @@ onUnmounted(() => {
 }
 
 .reference-action-btn--secondary {
-  @apply bg-surface-900 dark:bg-surface-50 border border-surface-800 dark:border-surface-200/50 text-surface-600 dark:text-surface-800 hover:text-surface-50 dark:hover:text-surface-950 hover:bg-surface-800 dark:hover:bg-surface-100/10;
+  @apply bg-white dark:bg-surface-50 border border-surface-800 dark:border-surface-200/50 text-surface-600 dark:text-surface-800 hover:text-surface-50 dark:hover:text-surface-950 hover:bg-surface-800 dark:hover:bg-surface-100/10;
 }
 
 .animate-pulse-once {
@@ -1244,7 +1244,7 @@ onUnmounted(() => {
 }
 .volume-panel {
   @apply w-full max-w-xs flex items-center gap-3 p-3 px-5 rounded-2xl
-         bg-surface-900/80 dark:bg-surface-50/30 border border-surface-800 dark:border-surface-200/10;
+         bg-white/80 dark:bg-surface-50/30 border border-surface-800 dark:border-surface-200/10;
   backdrop-filter: blur(12px);
 }
 .mute-btn {
@@ -1283,7 +1283,7 @@ onUnmounted(() => {
          hover:from-accent-700 hover:to-accent-500 hover:-translate-y-0.5 hover:shadow-[0_12px_32px_rgba(92,114,243,0.4)];
 }
 .btn--loading {
-  @apply bg-surface-900 dark:bg-surface-50 border border-surface-800 dark:border-surface-200/50 text-surface-500 dark:text-surface-500 cursor-not-allowed;
+  @apply bg-white dark:bg-surface-50 border border-surface-800 dark:border-surface-200/50 text-surface-500 dark:text-surface-500 cursor-not-allowed;
 }
 .btn--disconnect {
   @apply bg-gradient-to-r from-red-500 to-red-600 text-white shadow-[0_8px_24px_rgba(239,68,68,0.25)]
@@ -1295,7 +1295,7 @@ onUnmounted(() => {
 
 /* ── Chat Toggle Button ── */
 .btn--chat {
-  @apply bg-surface-900 dark:bg-surface-50/50 border border-surface-800 dark:border-surface-200/30 text-surface-600 dark:text-surface-800 shadow-md;
+  @apply bg-white dark:bg-surface-50/50 border border-surface-800 dark:border-surface-200/30 text-surface-600 dark:text-surface-800 shadow-md;
 }
 .btn--chat:hover {
   @apply bg-surface-800 dark:bg-surface-100/10 text-surface-50 dark:text-surface-950 border-surface-900 dark:border-surface-200/50;
@@ -1364,7 +1364,7 @@ onUnmounted(() => {
 
 .embedded-chat-column {
   @apply h-full overflow-hidden flex flex-col
-         bg-surface-950 dark:bg-surface-50/50 border border-surface-800 dark:border-surface-200/30;
+         bg-white dark:bg-surface-50/50 border border-surface-800 dark:border-surface-200/30;
   backdrop-filter: blur(20px);
   grid-column: 3;
   grid-row: 1;
@@ -1373,7 +1373,7 @@ onUnmounted(() => {
 /* Adjustments for compressed left visualizer panel in chat mode */
 .chat-mode-active .control-column {
   @apply flex flex-col justify-start gap-2 p-4 h-full box-border
-         bg-surface-950 dark:bg-surface-50/50 border border-surface-800 dark:border-surface-200/30;
+         bg-white dark:bg-surface-50/50 border border-surface-800 dark:border-surface-200/30;
   backdrop-filter: blur(20px);
   grid-row: 1;
   grid-column: 1;
@@ -1433,7 +1433,7 @@ onUnmounted(() => {
 /* Adjustments for transcripts panel in chat mode */
 .chat-mode-active .transcript-column {
   @apply p-5 box-border h-full overflow-hidden
-         bg-surface-950 dark:bg-surface-50/50 border border-surface-800 dark:border-surface-200/30;
+         bg-white dark:bg-surface-50/50 border border-surface-800 dark:border-surface-200/30;
   backdrop-filter: blur(20px);
   grid-row: 3;
   grid-column: 1;
@@ -1470,7 +1470,7 @@ onUnmounted(() => {
 /* Top bar / header inside embedded chat */
 .embedded-chat-topbar {
   @apply flex items-center justify-between w-full p-3 px-6 relative z-20 gap-4 flex-shrink-0
-         border-b border-white dark:border-surface-200/30 bg-white dark:bg-surface-50/10;
+         border-b border-surface-950 dark:border-surface-200/30 bg-white dark:bg-surface-50/10;
   backdrop-filter: blur(10px);
 }
 .chat-topbar-left {
@@ -1505,7 +1505,7 @@ onUnmounted(() => {
 /* Dropdown Menu */
 .conv-dropdown-menu {
   @apply absolute left-0 w-72 rounded-xl shadow-2xl overflow-hidden z-[50]
-         bg-surface-950 dark:bg-surface-0 border border-surface-900 dark:border-surface-200/50;
+         bg-white dark:bg-surface-0 border border-surface-900 dark:border-surface-200/50;
   top: calc(100% + 6px);
   backdrop-filter: blur(20px);
   animation: dropdown-in 0.15s cubic-bezier(0.16, 1, 0.3, 1);
@@ -1537,7 +1537,7 @@ onUnmounted(() => {
 
 .conv-dropdown-item {
   @apply flex flex-col gap-0.5 p-2 px-2.5 rounded-lg cursor-pointer transition-colors duration-150
-         hover:bg-surface-900 dark:hover:bg-surface-100/10;
+         hover:bg-white dark:hover:bg-surface-100/10;
 }
 .conv-dropdown-item:hover {
   @apply bg-surface-800 dark:bg-surface-100/5;
@@ -1560,7 +1560,7 @@ onUnmounted(() => {
 .resources-toggle-btn {
   @apply flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold cursor-pointer transition-all duration-150
          bg-white dark:bg-surface-100/10 border border-surface-900 dark:border-surface-200/10
-         text-surface-50 dark:text-surface-950 hover:bg-surface-900 dark:hover:bg-surface-100/20 hover:text-surface-50 dark:hover:text-surface-900;
+         text-surface-50 dark:text-surface-950 hover:bg-white dark:hover:bg-surface-100/20 hover:text-surface-50 dark:hover:text-surface-900;
 }
 .resources-toggle-btn--active {
   @apply bg-accent-500/10 border-accent-500/30 text-accent-600 dark:text-accent-400;
@@ -1590,7 +1590,7 @@ onUnmounted(() => {
 
 /* Resources mobile header */
 .resources-mobile-header {
-  @apply flex items-center p-3 border-b border-surface-800 dark:border-surface-200/20 bg-surface-900 dark:bg-surface-50/10 flex-shrink-0;
+  @apply flex items-center p-3 border-b border-surface-800 dark:border-surface-200/20 bg-white dark:bg-surface-50/10 flex-shrink-0;
 }
 html:not(.dark) .resources-mobile-header {
   background-color: #f1f5f9 !important;
@@ -1598,7 +1598,7 @@ html:not(.dark) .resources-mobile-header {
 }
 .resources-back-btn {
   @apply inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold cursor-pointer transition-all duration-150
-         bg-surface-900 dark:bg-surface-100/10 border border-surface-800 dark:border-surface-200/10
+         bg-white dark:bg-surface-100/10 border border-surface-800 dark:border-surface-200/10
          text-surface-50 dark:text-surface-950 hover:bg-surface-800 dark:hover:bg-surface-100/20 hover:text-surface-50 dark:hover:text-surface-900;
 }
 html:not(.dark) .resources-back-btn {
