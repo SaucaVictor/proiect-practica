@@ -23,11 +23,13 @@ export default defineConfig({
   build: {
     rollupOptions: {
       output: {
-        manualChunks: {
-          vendor: ['vue', 'vue-router', 'pinia'],
-          supabase: ['@supabase/supabase-js'],
-          markdown: ['marked', 'marked-katex-extension'],
-          shiki: ['shiki'],
+        manualChunks(id) {
+          if (id.includes('node_modules')) {
+            if (id.includes('@supabase')) return 'supabase';
+            if (id.includes('marked')) return 'markdown';
+            if (id.includes('shiki')) return 'shiki';
+            return 'vendor';
+          }
         },
       },
     },

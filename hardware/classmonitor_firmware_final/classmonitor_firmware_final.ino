@@ -78,10 +78,12 @@ const int buttonPin = 14;   // Digital IN - Buton inregistrare extern (D7)
 #define I2S_PORT I2S_NUM_0
 #define SAMPLE_RATE 16000
 
-// Buffere pentru procesare date audio
-const int BLOCK_SIZE = 128;
-int32_t i2s_raw_buffer[BLOCK_SIZE];
-int16_t pcm16_buffer[BLOCK_SIZE];
+// Buffere pentru procesare date audio (cu acumulare pentru stabilitatea retelei)
+const int READ_BLOCK_SIZE = 128;
+const int SEND_BUFFER_SIZE = 1024;
+int32_t i2s_raw_buffer[READ_BLOCK_SIZE];
+int16_t send_buffer[SEND_BUFFER_SIZE];
+int send_buffer_index = 0;
 
 // ─── CONFIGURARE PARAMETRI DE FUNCTIONARE ───
 const int freq = 5000;
@@ -101,6 +103,7 @@ int current_persons = 0;
 float temperature = 0.0;
 int lightLevel = 0;
 float currentAmps = 0.0;
+float zeroCurrentVoltage = 2.340; // Valoare offset implicita pentru ACS712
 String displayField = "All";
 
 unsigned long lastSendTime = 0;
@@ -108,10 +111,13 @@ const int sendInterval = 2000;      // Trimite telemetrie la 2 secunde
 const unsigned long irTimeout = 500; // Fereastra directie trecere (ms)
 bool lastButtonState = HIGH;
 
+unsigned long lastMqttRetry = 0;
+const unsigned long mqttRetryInterval = 5000; // Incercare conectare MQTT la 5s
+
 // ─── INITIALIZARE I2S PENTRU MICROFON ───
 void initI2S() {
   i2s.setPins(I2S_SCK, I2S_WS, -1, I2S_SD, -1);
-  i2s.setTimeout(1000); // Setam timeout la 1000ms pentru a forta citirea de blocuri complete (128 esantioane / 8ms)
+  i2s.setTimeout(100); // Setam timeout mai mic la 100ms pentru a preveni blocarea in caz de eroare microfon
   if (!i2s.begin(I2S_MODE_STD, SAMPLE_RATE, I2S_DATA_BIT_WIDTH_32BIT, I2S_SLOT_MODE_MONO, I2S_STD_SLOT_LEFT)) {
     Serial.println("Eroare la initializarea I2S!");
   }
@@ -135,6 +141,17 @@ void webSocketEvent(WStype_t type, uint8_t * payload, size_t length) {
       break;
     case WStype_TEXT:
       Serial.printf("[WS] Mesaj text de la server: %s\n", payload);
+      {
+        String textCmd = String((char*)payload);
+        if (textCmd == "STATE;RECORDING:ACTIVE") {
+          isRecording = true;
+          Serial.println("[REC] Sincronizare: Inregistrare ACTIVA");
+        }
+        else if (textCmd == "STATE;RECORDING:INACTIVE") {
+          isRecording = false;
+          Serial.println("[REC] Sincronizare: Inregistrare INACTIVA");
+        }
+      }
       break;
   }
 }
@@ -203,7 +220,7 @@ void readSensors() {
 
   float voltageAtPin = (averageRaw / 4095.0) * 3.3;
   float sensorVoltage = voltageAtPin * 1.44; 
-  currentAmps = (sensorVoltage - 2.340) / 0.185; 
+  currentAmps = (sensorVoltage - zeroCurrentVoltage) / 0.185; 
   if (currentAmps < 0) currentAmps = 0.0;
 }
 
@@ -296,21 +313,25 @@ void callback(char* topic, byte* payload, unsigned int length) {
   handleCommand(message);
 }
 
-// ─── RECONECTARE MQTT ───
-void reconnect() {
-  while (!mqttClient.connected()) {
-    Serial.print("Connecting to MQTT...");
+// ─── RECONECTARE MQTT NON-BLOCANTĂ ───
+bool reconnectNonBlocking() {
+  if (mqttClient.connected()) return true;
+
+  unsigned long now = millis();
+  if (now - lastMqttRetry >= mqttRetryInterval) {
+    lastMqttRetry = now;
+    Serial.print("[MQTT] Incercare de conectare...");
     String clientId = "ESP32ClassMonitor-" + String(random(0xffff), HEX);
     if (mqttClient.connect(clientId.c_str())) {
-      Serial.println("connected");
+      Serial.println("conectat!");
       mqttClient.subscribe(controlTopic);
+      return true;
     } else {
-      Serial.print("failed, rc=");
-      Serial.print(mqttClient.state());
-      Serial.println(" reincercare in 5 secunde");
-      delay(5000);
+      Serial.print("esuat, rc=");
+      Serial.println(mqttClient.state());
     }
   }
+  return false;
 }
 
 // ─── SETUP ───
@@ -347,6 +368,8 @@ void setup() {
   }
 
   // Conectare WiFi
+  WiFi.persistent(true);
+  WiFi.setAutoReconnect(true);
   WiFi.begin(ssid, password);
   Serial.print("Conectare WiFi");
   while (WiFi.status() != WL_CONNECTED) { 
@@ -367,16 +390,36 @@ void setup() {
   mqttClient.setServer(mqttServer, mqttPort);
   mqttClient.setCallback(callback);
 
+  // Calibrare automata senzor curent (Zero Calibration la pornire)
+  Serial.println("Calibrare senzor curent (stabilire offset zero)...");
+  float sumCurr = 0;
+  for (int i = 0; i < 100; i++) {
+    float averageRaw = 0;
+    for (int j = 0; j < 10; j++) {
+      averageRaw += analogRead(pinCurr);
+      delay(1);
+    }
+    averageRaw /= 10.0;
+    float voltageAtPin = (averageRaw / 4095.0) * 3.3;
+    sumCurr += voltageAtPin * 1.44;
+    delay(5);
+  }
+  zeroCurrentVoltage = sumCurr / 100.0;
+  Serial.print("Gata! Tensiune offset determinata: ");
+  Serial.print(zeroCurrentVoltage, 4);
+  Serial.println(" V");
+
   Serial.println("Initializare completa. Sistem gata.");
 }
 
 // ─── LOOP PRINCIPAL ───
 void loop() {
-  // Gestionare conexiune MQTT
-  if (!mqttClient.connected()) {
-    reconnect();
+  // Gestionare conexiuni non-blocantă
+  if (WiFi.status() == WL_CONNECTED) {
+    if (reconnectNonBlocking()) {
+      mqttClient.loop();
+    }
   }
-  mqttClient.loop();
 
   // Gestionare loop WebSocket (keep-alive, mesaje administrative)
   webSocket.loop();
@@ -409,10 +452,17 @@ void loop() {
     if (samples_read > 0) {
       for (int i = 0; i < samples_read; i++) {
         // Conversie 32-bit la 16-bit PCM cu deplasare si amplificare
-        pcm16_buffer[i] = (int16_t)(i2s_raw_buffer[i] >> 14);
+        int16_t sample = (int16_t)(i2s_raw_buffer[i] >> 14);
+        
+        // Adaugam sample-ul in bufferul de trimitere
+        send_buffer[send_buffer_index++] = sample;
+        
+        // Daca bufferul s-a umplut, il transmitem prin WebSocket (reduce pachetele pe secunda de la 125 la 15)
+        if (send_buffer_index >= SEND_BUFFER_SIZE) {
+          webSocket.sendBIN((uint8_t*)send_buffer, SEND_BUFFER_SIZE * 2);
+          send_buffer_index = 0;
+        }
       }
-      // Transmitem calupul binar de audio catre serverul audio
-      webSocket.sendBIN((uint8_t*)pcm16_buffer, samples_read * 2);
     }
   }
 
