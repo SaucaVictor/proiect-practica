@@ -253,8 +253,8 @@ html:not(.dark) .schedule-page {
   color: #0f172a !important;
 }
 html:not(.dark) .day-card {
-  background-color: #e5e8ef !important;
-  border-color: #cdd1db !important;
+  background-color: #ffffff !important;
+  border-color: #e7e7e7 !important;
 }
 html:not(.dark) .day-header {
   border-color: #cdd1db !important;

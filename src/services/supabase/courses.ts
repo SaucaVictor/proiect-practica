@@ -1,4 +1,5 @@
 import { supabase } from './client'
+import { generateEmbedding, chunkText } from '@/services/ai/embeddings'
 
 export interface CourseSubject {
   name: string
@@ -129,3 +130,148 @@ export function getCourseFileUrl(
     .getPublicUrl(`${subject}/${date}/${filename}`)
   return data.publicUrl
 }
+
+/**
+ * Uploads a course file (PDF or TXT) to Supabase storage courses bucket
+ * under the path: `${subject}/${date}/${file.name}`.
+ */
+export async function uploadCourseFile(
+  subject: string,
+  date: string,
+  file: File
+): Promise<CourseFile> {
+  const isPdf = file.type === 'application/pdf' || file.name.toLowerCase().endsWith('.pdf')
+  const isTxt = file.type === 'text/plain' || file.name.toLowerCase().endsWith('.txt')
+  if (!isPdf && !isTxt) {
+    throw new Error('Only PDF and TXT files are supported.')
+  }
+
+  const storagePath = `${subject}/${date}/${file.name}`
+
+  // Upload file to storage courses bucket
+  const { error: uploadError } = await supabase.storage
+    .from('courses')
+    .upload(storagePath, file, {
+      cacheControl: '3600',
+      upsert: true
+    })
+
+  if (uploadError) {
+    console.error('Failed to upload file to courses bucket:', uploadError)
+    throw new Error(`Storage upload failed: ${uploadError.message}`)
+  }
+
+  let type: CourseFile['type'] = 'other'
+  if (isTxt) type = 'transcript'
+  else if (isPdf) type = 'pdf'
+
+  return {
+    name: file.name,
+    subject,
+    date,
+    type,
+    size: file.size
+  }
+}
+
+/**
+ * Deletes a course file from Supabase storage and its indexed document chunks.
+ */
+export async function deleteCourseFile(
+  subject: string,
+  date: string,
+  filename: string
+): Promise<void> {
+  const storagePath = `${subject}/${date}/${filename}`
+
+  // 1. Delete from storage courses bucket
+  const { error: storageError } = await supabase.storage
+    .from('courses')
+    .remove([storagePath])
+
+  if (storageError) {
+    console.error('Failed to delete course file from storage:', storageError)
+    throw new Error(`Failed to delete course file: ${storageError.message}`)
+  }
+
+  // 2. Delete document chunks (RAG index) for this specific file path
+  // Since resource_id is NULL for course materials, we query by metadata->>file_path
+  const { error: dbError } = await supabase
+    .from('document_chunks')
+    .delete()
+    .eq('metadata->>file_path', storagePath)
+
+  if (dbError) {
+    console.error('Failed to delete document chunks:', dbError)
+  }
+}
+
+/**
+ * Ingests a course file content into the RAG second brain vector table.
+ */
+export async function ingestCourseFile(
+  subject: string,
+  date: string,
+  filename: string,
+  fullText: string,
+  userId: string,
+  onProgress?: (progress: number) => void
+): Promise<void> {
+  const chunks = chunkText(fullText)
+  if (chunks.length === 0) return
+
+  const file_path = `${subject}/${date}/${filename}`
+
+  // Clear previous chunks for safety
+  await supabase
+    .from('document_chunks')
+    .delete()
+    .eq('metadata->>file_path', file_path)
+
+  for (let i = 0; i < chunks.length; i++) {
+    const chunk = chunks[i]
+    const embedding = await generateEmbedding(chunk, 'passage')
+
+    const { error } = await supabase.from('document_chunks').insert({
+      resource_id: null,
+      user_id: userId,
+      content: chunk,
+      embedding,
+      metadata: {
+        chunk_index: i,
+        total_chunks: chunks.length,
+        subject_name: subject,
+        session_date: date,
+        file_name: filename,
+        file_path: file_path
+      }
+    })
+
+    if (error) {
+      console.error(`[RAG] Failed to insert course chunk ${i}:`, error)
+    }
+
+    if (onProgress) {
+      onProgress(Math.round(((i + 1) / chunks.length) * 100))
+    }
+  }
+}
+
+/**
+ * Checks if a course file already has chunks indexed in the document_chunks table.
+ */
+export async function hasCourseFileChunks(
+  subject: string,
+  date: string,
+  filename: string
+): Promise<boolean> {
+  const file_path = `${subject}/${date}/${filename}`
+  const { count, error } = await supabase
+    .from('document_chunks')
+    .select('id', { count: 'exact', head: true })
+    .eq('metadata->>file_path', file_path)
+
+  if (error) return false
+  return (count ?? 0) > 0
+}
+

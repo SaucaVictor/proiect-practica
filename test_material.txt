@@ -1,0 +1,9 @@
+Introducere în Programare Funcțională:
+Programarea funcțională este o paradigmă de programare în care computația este tratată ca evaluarea funcțiilor matematice și evită starea schimbătoare și datele mutabile.
+Conceptele cheie ale programării funcționale includ:
+1. Funcții pure (Pure Functions): O funcție este pură dacă returnează întotdeauna aceeași valoare pentru aceleași argumente și nu are efecte secundare (side effects).
+2. Imutabilitate (Immutability): Datele nu pot fi modificate după ce au fost create. Modificarea stării se realizează prin crearea de noi date.
+3. Funcții de ordin superior (First-Class and Higher-Order Functions): Funcțiile pot fi pasate ca argumente altor funcții sau pot fi returnate ca rezultate.
+4. Recursivitate: Deoarece nu există bucle tradiționale cu variabile de stare mutabile (cum ar fi for sau while), programarea funcțională folosește recursivitatea pentru iterații.
+5. Compoziția funcțiilor (Function Composition): Combinarea a două sau mai multe funcții pentru a produce o nouă funcție.
+Această paradigmă face codul mai ușor de testat, de înțeles și de paralelizat, reducând apariția erorilor de sincronizare a stării.
