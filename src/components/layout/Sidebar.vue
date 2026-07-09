@@ -51,7 +51,7 @@ async function startNewChat() {
           <circle cx="12" cy="12" r="4.5" stroke="white" stroke-width="1.2" fill="none" />
           <circle cx="12" cy="12" r="1.8" fill="white" />
         </svg>
-        <span class="sidebar-logo-text">NeuralChat</span>
+        <span class="sidebar-logo-text">ClassMonitor</span>
       </div>
 
       <button

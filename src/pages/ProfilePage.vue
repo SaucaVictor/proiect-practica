@@ -8,9 +8,12 @@ import Input from '@/components/ui/Input.vue'
 import Button from '@/components/ui/Button.vue'
 import { useToast } from '@/composables/useToast'
 
+import { useRouter } from 'vue-router'
+
 const authStore = useAuthStore()
 const { user } = storeToRefs(authStore)
 const { success, error: toastError } = useToast()
+const router = useRouter()
 
 const displayName = ref(user.value?.displayName ?? '')
 const saving = ref(false)
@@ -32,6 +35,7 @@ async function save() {
 
 async function logout() {
   await authStore.logout()
+  router.push({ name: 'login' })
 }
 </script>
 

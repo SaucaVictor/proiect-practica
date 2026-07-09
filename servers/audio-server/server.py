@@ -453,7 +453,11 @@ class DeepgramRelayManager:
 
 
 # ─── Helper Functions for Recording ───
+# ─── ESP32 Active WebSocket reference ───
+active_esp32_ws = None
+
 async def start_recording_internal():
+    global active_esp32_ws
     if recording_state["active"]:
         print("Recording already active.")
         return {"status": "already_active"}
@@ -462,9 +466,18 @@ async def start_recording_internal():
     recording_state["buffer"] = bytearray()
     recording_state["start_time"] = datetime.datetime.now()
     print(f"Recording started at {recording_state['start_time']}")
+    
+    if active_esp32_ws:
+        try:
+            await active_esp32_ws.send_text("STATE;RECORDING:ACTIVE")
+            print("Notified ESP32: STATE;RECORDING:ACTIVE")
+        except Exception as e:
+            print(f"Failed to notify ESP32: {e}")
+            
     return {"status": "started"}
 
 async def stop_recording_internal():
+    global active_esp32_ws
     if not recording_state["active"]:
         print("No active recording to stop.")
         return {"status": "not_active"}
@@ -472,15 +485,35 @@ async def stop_recording_internal():
     recording_state["active"] = False
     print("Recording stopped. Saving file...")
     
+    if active_esp32_ws:
+        try:
+            await active_esp32_ws.send_text("STATE;RECORDING:INACTIVE")
+            print("Notified ESP32: STATE;RECORDING:INACTIVE")
+        except Exception as e:
+            print(f"Failed to notify ESP32: {e}")
+            
     filename = recording_state["filename"]
     start_time = recording_state.get("start_time") or datetime.datetime.now()
     try:
+        raw_data = recording_state["buffer"]
+        if len(raw_data) > 0:
+            print(f"Applying digital bandpass filter (100Hz - 7500Hz) using NumPy FFT on {len(raw_data)} bytes...")
+            samples = np.frombuffer(raw_data, dtype=np.int16)
+            fft_data = np.fft.rfft(samples)
+            freqs = np.fft.rfftfreq(len(samples), d=1.0/16000)
+            fft_data[(freqs < 100) | (freqs > 7500)] = 0
+            filtered_samples = np.fft.irfft(fft_data, n=len(samples))
+            filtered_samples = np.clip(filtered_samples, -32768, 32767).astype(np.int16)
+            processed_data = filtered_samples.tobytes()
+        else:
+            processed_data = raw_data
+
         # Save raw 16kHz mono PCM to a valid WAV file
         with wave.open(filename, "wb") as wav_file:
             wav_file.setnchannels(1)
             wav_file.setsampwidth(2)  # 16-bit
             wav_file.setframerate(16000)
-            wav_file.writeframes(recording_state["buffer"])
+            wav_file.writeframes(processed_data)
         print(f"Saved recording locally: {filename}")
         return {"status": "stopped", "file": filename, "start_time": start_time}
     except Exception as e:
@@ -805,8 +838,19 @@ async def transcribe(file: UploadFile = File(...)):
 # ─── ESP32 WebSocket Endpoint ───
 @app.websocket("/ws/audio")
 async def websocket_endpoint(websocket: WebSocket):
+    global active_esp32_ws
     await websocket.accept()
+    active_esp32_ws = websocket
     print("ESP32 microcontroler conectat la /ws/audio!")
+    
+    # Sincronizare stare la conectare
+    try:
+        state_cmd = "STATE;RECORDING:ACTIVE" if recording_state["active"] else "STATE;RECORDING:INACTIVE"
+        await websocket.send_text(state_cmd)
+        print(f"Sent initial state sync: {state_cmd}")
+    except Exception as e:
+        print(f"Failed to send initial sync: {e}")
+        
     if AUTO_TRANSCRIBE:
         print("[Deepgram] Auto-transcribe is enabled. Starting live transcription...")
         asyncio.create_task(start_live_transcription())
@@ -849,9 +893,12 @@ async def websocket_endpoint(websocket: WebSocket):
     except Exception as e:
         print(f"Eroare WebSocket ESP32: {e}")
     finally:
+        if active_esp32_ws == websocket:
+            active_esp32_ws = None
         if AUTO_TRANSCRIBE:
             print("[Deepgram] Auto-transcribe is stopping live transcription...")
             asyncio.create_task(stop_live_transcription())
+
 
 # ─── WebRTC Signaling Database Loop ───
 async def handle_offer(offer_row):

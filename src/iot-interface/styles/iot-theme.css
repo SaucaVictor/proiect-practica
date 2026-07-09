@@ -101,7 +101,7 @@ html:not(.dark) {
   --iot-toggle-bg:      #cdd1db;
 
   /* Audio page variables — light mode */
-  --audio-bg: #f0f2f7;
+  --audio-bg: #ffffff;
   --audio-text: #0f172a;
   --audio-text-muted: #64748b;
   --audio-text-dim: #94a3b8;
@@ -128,3 +128,26 @@ html:not(.dark) {
   --audio-grid-line: rgba(0, 0, 0, 0.035);
 }
 
+/* ── Ocean Theme Overrides ────────────────────────────────────────────── */
+html.ocean {
+  --iot-bg:             #021024;
+  --iot-bg-subtle:      #010916;
+  --iot-surface:        #010c1c;
+  --iot-surface-raised: #010916;
+  --iot-card-bg:        #010c1c;
+  --iot-border:         #081d3d;
+  --iot-border-hover:   #0a254a;
+  --iot-border-strong:  #103666;
+}
+
+/* ── Forest Theme Overrides ───────────────────────────────────────────── */
+html.forest {
+  --iot-bg:             #011f15;
+  --iot-bg-subtle:      #00120b;
+  --iot-surface:        #00170f;
+  --iot-surface-raised: #00120b;
+  --iot-card-bg:        #00170f;
+  --iot-border:         #022e20;
+  --iot-border-hover:   #04402a;
+  --iot-border-strong:  #0a5c3d;
+}

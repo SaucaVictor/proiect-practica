@@ -399,9 +399,9 @@ onUnmounted(() => {
   <div class="flex flex-col gap-6">
     
     <!-- Timeframe Selection & Sensor toggles -->
-    <div class="flex flex-wrap items-center justify-between gap-4 bg-[var(--iot-bg-subtle)] border border-[var(--iot-border)] rounded-2xl p-4">
+    <div class="flex flex-wrap items-center justify-between gap-4 bg-white dark:bg-transparent border border-[var(--iot-border)] rounded-2xl p-4">
       <!-- Period Selector -->
-      <div class="flex bg-white/5 border border-white/5 rounded-xl p-1">
+      <div class="flex bg-white dark:bg-transparent border border-white/5 rounded-xl p-1">
         <button
           v-for="p in periods"
           :key="p.value"
@@ -416,7 +416,7 @@ onUnmounted(() => {
       <!-- Action Buttons -->
       <div class="flex gap-2">
         <button
-          class="flex items-center gap-1.5 px-3.5 py-2 border border-white/5 rounded-xl text-xs font-semibold text-[var(--iot-text-muted)] hover:text-[var(--iot-text)] hover:border-white/10 bg-white/5 cursor-pointer transition-all duration-200"
+          class="flex items-center gap-1.5 px-3.5 py-2 border border-white/5 rounded-xl text-xs font-semibold text-[var(--iot-text-muted)] hover:text-[var(--iot-text)] hover:border-white/10 bg-white dark:bg-transparent cursor-pointer transition-all duration-200"
           :class="{ 'border-amber-500/30 text-amber-400 bg-amber-500/5': isPaused }"
           @click="togglePause"
         >
@@ -436,8 +436,8 @@ onUnmounted(() => {
         <label
           v-for="(cfg, key) in SENSORS_CFG"
           :key="key"
-          class="flex items-center gap-2 px-3.5 py-2 rounded-xl border border-white/5 bg-white/5 text-xs text-[var(--iot-text-muted)] cursor-pointer hover:border-white/10 select-none transition-all duration-200"
-          :class="{ 'border-white/20 bg-white/10 text-[var(--iot-text)]': activeSensors[key] }"
+          class="flex items-center gap-2 px-3.5 py-2 rounded-xl border border-white/5 bg-white dark:bg-transparent text-xs text-[var(--iot-text-muted)] cursor-pointer hover:border-white/10 select-none transition-all duration-200"
+          :class="{ 'border-white/20 bg-blue-100 dark:bg-blue-500 dark:text-white': activeSensors[key] }"
         >
           <input type="checkbox" v-model="activeSensors[key]" class="hidden" />
           <span class="w-1.5 h-1.5 rounded-full transition-all duration-200" :style="{ backgroundColor: activeSensors[key] ? cfg.color : '#4b5563', boxShadow: activeSensors[key] ? `0 0 8px ${cfg.color}` : 'none' }" />
@@ -504,7 +504,7 @@ onUnmounted(() => {
 
         <div class="flex items-center gap-2">
           <!-- Dropdown -->
-          <select v-model="selectedLogSensor" class="bg-[var(--iot-bg-subtle)] border border-white/10 rounded-xl px-3 py-2 text-xs text-[var(--iot-text)] font-semibold outline-none cursor-pointer focus:border-[var(--iot-accent)]/50">
+          <select v-model="selectedLogSensor" class="bg-white border border-white/10 rounded-xl px-3 py-2 text-xs text-[var(--iot-text)] font-semibold outline-none cursor-pointer focus:border-[var(--iot-accent)]/50">
             <option v-for="(cfg, key) in SENSORS_CFG" :key="key" :value="key">
               {{ cfg.label }}
             </option>
@@ -512,7 +512,7 @@ onUnmounted(() => {
           <!-- Search -->
           <input
             v-model="searchQuery"
-            class="bg-[var(--iot-bg-subtle)] border border-white/10 rounded-xl px-3 py-2 text-xs text-[var(--iot-text)] outline-none focus:border-[var(--iot-accent)]/50 placeholder-[var(--iot-text-muted)]/40"
+            class="bg-white border border-white/10 rounded-xl px-3 py-2 text-xs text-[var(--iot-text)] outline-none focus:border-[var(--iot-accent)]/50 placeholder-[var(--iot-text-muted)]/40"
             placeholder="Căutare..."
             spellcheck="false"
           />
@@ -522,14 +522,14 @@ onUnmounted(() => {
       <div class="overflow-x-auto">
         <table class="w-full text-left border-collapse">
           <thead>
-            <tr class="border-b border-white/5 text-[10px] font-bold tracking-wider uppercase text-[var(--iot-text-muted)] bg-white/5">
+            <tr class="border-b border-white/5 text-[10px] font-bold tracking-wider uppercase text-[var(--iot-text-muted)] bg-white dark:bg-transparent">
               <th class="px-5 py-3">Marca de Timp</th>
               <th class="px-5 py-3">Metric Senzor</th>
               <th class="px-5 py-3 text-right">Valoare Citită</th>
             </tr>
           </thead>
           <tbody class="text-xs divide-y divide-white/5">
-            <tr v-for="(log, idx) in paginatedLogs" :key="idx" class="hover:bg-white/5 transition-colors duration-150 text-[var(--iot-text)]">
+            <tr v-for="(log, idx) in paginatedLogs" :key="idx" class="hover:bg-white dark:bg-transparent transition-colors duration-150 text-[var(--iot-text)]">
               <td class="px-5 py-3">{{ log.timestamp?.toDate().toLocaleString() ?? "În așteptare…" }}</td>
               <td class="px-5 py-3">
                 <span
@@ -551,7 +551,7 @@ onUnmounted(() => {
       </div>
 
       <!-- Pagination Footer -->
-      <div class="flex items-center justify-between p-4 border-t border-white/5 bg-white/5 text-[10px] text-[var(--iot-text-muted)]" v-if="totalPages > 1">
+      <div class="flex items-center justify-between p-4 border-t border-white/5 bg-white dark:bg-transparent text-[10px] text-[var(--iot-text-muted)]" v-if="totalPages > 1">
         <span>{{ filteredLogs.length }} înregistrări</span>
         <div class="flex items-center gap-3">
           <button

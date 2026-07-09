@@ -204,8 +204,8 @@ function fileIcon(node: ResourceNode) {
             <span class="tree-label">{{ node.name }}</span>
           </button>
           
-          <!-- Actions on hover -->
-          <div class="row-actions opacity-0 group-hover:opacity-100 transition-opacity duration-150 flex items-center gap-0.5 px-2">
+          <!-- Actions -->
+          <div class="row-actions flex items-center gap-0.5 px-2">
             <!-- Teach AI Folder -->
             <button 
               class="action-btn text-accent-600 dark:text-accent-400 hover:text-accent-800" 
@@ -306,7 +306,7 @@ function fileIcon(node: ResourceNode) {
           </button>
 
           <!-- Actions -->
-          <div class="row-actions opacity-0 group-hover:opacity-100 transition-opacity duration-150 flex items-center gap-0.5 px-2">
+          <div class="row-actions flex items-center gap-0.5 px-2">
             <button 
               class="ref-whole-btn text-surface-400 hover:text-accent-500" 
               title="Reference this whole file in chat"
@@ -401,29 +401,35 @@ function fileIcon(node: ResourceNode) {
 }
 
 .tree-row {
-  @apply flex items-center w-full min-w-0 px-2 py-1.5 rounded-md
-         text-left text-sm text-surface-800 dark:text-surface-900
-         hover:bg-surface-200 dark:hover:bg-surface-200 transition-colors duration-100;
+  @apply flex items-center w-full min-w-0 px-2 py-1.5 rounded-md text-left text-sm transition-colors duration-100;
+  color: #9aa0b2; /* surface-800 = readable text */
 }
+.tree-row:hover { background: #212328; color: #c4c9d4; }
 
 .tree-row--folder {
   @apply font-medium;
+  color: #c4c9d4; /* surface-900 */
 }
 
 .tree-file-row {
-  @apply sticky top-0 z-10 bg-surface-100 dark:bg-surface-50;
+  @apply sticky top-0 z-10;
+  background: #1a1b1e; /* surface-100 */
 }
 
 .tree-row--file {
-  @apply pl-6 text-xs text-surface-600 dark:text-surface-600 ;
+  @apply pl-6 text-xs;
+  color: #737c8e; /* surface-700 */
 }
+.tree-row--file:hover { color: #9aa0b2; }
 
 .tree-row--file-active {
-  @apply bg-accent-500/10 dark:bg-accent-500/15 text-accent-700 dark:text-accent-400;
+  background: rgba(92, 114, 243, 0.12);
+  color: #7c97f8;
 }
 
 .tree-chevron {
-  @apply flex-shrink-0 text-surface-400 transition-transform duration-150 mr-1;
+  @apply flex-shrink-0 transition-transform duration-150 mr-1;
+  color: #464b55; /* surface-500 */
 }
 
 .tree-chevron--open {
@@ -446,30 +452,40 @@ function fileIcon(node: ResourceNode) {
   @apply font-mono text-xs;
 }
 
+/* Action buttons — default semi-visible, high visibility on hover */
 .action-btn {
-  @apply flex items-center justify-center w-5 h-5 rounded hover:bg-surface-300 dark:hover:bg-surface-200 transition-colors duration-100;
+  @apply flex items-center justify-center w-5 h-5 rounded transition-colors duration-100;
+  color: #464b55;
 }
+.action-btn:hover { background: #212328; color: #9aa0b2; }
 
 .ref-whole-btn {
-  @apply flex items-center justify-center w-5 h-5 rounded hover:bg-accent-500/10 transition-colors duration-100;
+  @apply flex items-center justify-center w-5 h-5 rounded transition-colors duration-100;
+  color: #464b55;
 }
+.ref-whole-btn:hover { color: #7c97f8; background: rgba(92, 114, 243, 0.1); }
 
 .tree-empty {
-  @apply text-xs text-surface-400 px-6 italic;
+  @apply text-xs px-6 italic;
+  color: #464b55;
 }
 
 /* Previews */
 .file-preview {
-  @apply mx-2 my-1 rounded-lg border border-surface-200 dark:border-surface-300
-         bg-surface-50 dark:bg-surface-0 overflow-hidden;
+  @apply mx-2 my-1 rounded-lg overflow-hidden;
+  border: 1px solid #2a2d33;
+  background: #141517;
 }
 
 .preview-loading {
-  @apply flex items-center gap-2 p-3 text-xs text-surface-500;
+  @apply flex items-center gap-2 p-3 text-xs;
+  color: #565d6b;
 }
 
 .panel-spinner {
-  @apply w-4 h-4 border-2 border-surface-300 border-t-accent-500 rounded-full animate-spin;
+  @apply w-4 h-4 border-2 rounded-full animate-spin;
+  border-color: #363a42;
+  border-top-color: #5c72f3;
 }
 
 .panel-spinner--sm {
@@ -481,15 +497,19 @@ function fileIcon(node: ResourceNode) {
 }
 
 .preview-text {
-  @apply text-xs font-mono whitespace-pre-wrap select-text leading-relaxed text-surface-700 dark:text-surface-800;
+  @apply text-xs font-mono whitespace-pre-wrap select-text leading-relaxed;
+  color: #9aa0b2;
 }
 
 .selection-tooltip {
-  @apply absolute z-50 bg-surface-900 text-surface-0 text-xs rounded px-2 py-1 shadow-lg flex items-center gap-1 border border-surface-800;
+  @apply absolute z-50 rounded px-2 py-1 shadow-lg flex items-center gap-1;
+  background: #e8eaf0;
+  color: #0e0f11;
+  border: 1px solid #cbd5e1;
 }
 
 .tooltip-btn {
-  @apply flex items-center gap-1 font-medium hover:text-accent-300 transition-colors;
+  @apply flex items-center gap-1 font-medium hover:text-accent-500 transition-colors;
 }
 
 .tooltip-fade-enter-active,
@@ -503,7 +523,7 @@ function fileIcon(node: ResourceNode) {
 }
 
 :deep(.transcript-highlight) {
-  @apply bg-amber-400/40 dark:bg-amber-500/30 rounded px-0.5;
+  @apply bg-amber-400/40 rounded px-0.5;
   transition: background 1.5s ease;
 }
 

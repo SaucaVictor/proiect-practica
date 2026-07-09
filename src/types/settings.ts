@@ -1,6 +1,6 @@
 import type { ProviderName } from './ai'
 
-export type Theme = 'dark' | 'light' | 'system'
+export type Theme = 'dark' | 'light' | 'system' | 'ocean' | 'forest'
 
 export type AccentColor = 'indigo' | 'violet' | 'sky' | 'emerald' | 'rose' | 'amber'
 

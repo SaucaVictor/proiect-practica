@@ -42,6 +42,32 @@ function stopResize() {
   document.removeEventListener('mouseup', stopResize)
 }
 
+// Touch support for mobile devices
+function startResizeTouch(e: TouchEvent) {
+  // Prevent scrolling behavior while dragging
+  if (e.cancelable) e.preventDefault()
+  isDragging.value = true
+  document.addEventListener('touchmove', handleResizeTouch, { passive: false })
+  document.addEventListener('touchend', stopResizeTouch)
+}
+
+function handleResizeTouch(e: TouchEvent) {
+  if (!containerRef.value || e.touches.length === 0) return
+  const rect = containerRef.value.getBoundingClientRect()
+  const touch = e.touches[0]
+  const relativeY = touch.clientY - rect.top
+  let percent = (relativeY / rect.height) * 100
+
+  percent = Math.max(15, Math.min(85, percent))
+  topHeight.value = percent
+}
+
+function stopResizeTouch() {
+  isDragging.value = false
+  document.removeEventListener('touchmove', handleResizeTouch)
+  document.removeEventListener('touchend', stopResizeTouch)
+}
+
 // Minimizing Toggles
 function toggleTop() {
   topMinimized.value = !topMinimized.value
@@ -96,12 +122,12 @@ watch(
       />
     </div>
 
-    <!-- RESIZE BAR -->
     <div 
       v-if="!topMinimized && !bottomMinimized"
       class="resize-bar" 
       :class="{ 'resize-bar--active': isDragging }"
       @mousedown="startResize"
+      @touchstart="startResizeTouch"
       aria-hidden="true"
     >
       <div class="resize-handle-line" />

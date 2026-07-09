@@ -34,10 +34,10 @@ async function save(updates: Parameters<typeof settingsStore.save>[0]) {
             </div>
             <div class="theme-buttons">
               <button
-                v-for="t in ['dark', 'light', 'system']"
+                v-for="t in ['dark', 'light', 'system', 'ocean', 'forest']"
                 :key="t"
                 :class="['theme-btn', { 'theme-btn--active': settings.theme === t }]"
-                @click="themeStore.setTheme(t as 'dark' | 'light' | 'system')"
+                @click="themeStore.setTheme(t as 'dark' | 'light' | 'system' | 'ocean' | 'forest')"
               >
                 {{ t.charAt(0).toUpperCase() + t.slice(1) }}
               </button>

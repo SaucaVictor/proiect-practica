@@ -600,7 +600,7 @@ function transcriptKey(subject: string, date: string, filename: string) {
             </button>
             
             <button 
-              class="action-btn text-surface-500 hover:text-accent-500 mr-2 flex-shrink-0 opacity-40 group-hover:opacity-100 transition-opacity duration-150"
+              class="action-btn text-surface-500 hover:text-accent-500 mr-2 flex-shrink-0"
               :title="isSubjectRecursivelyExpanded(subjectNode) ? 'Collapse recursively' : 'Expand recursively'"
               @click.stop="toggleSubjectRecursive(subjectNode)"
             >
@@ -767,24 +767,25 @@ function transcriptKey(subject: string, date: string, filename: string) {
 
 <style scoped>
 .course-panel {
-  @apply flex flex-col h-full bg-surface-100 dark:bg-surface-50
-         border-l border-surface-200 dark:border-surface-200 overflow-hidden;
+  @apply flex flex-col h-full overflow-hidden;
+  background: #1a1b1e; /* surface-100 = dark bg */
+  border-left: 1px solid #212328; /* surface-200 */
 }
 
 /* ─── Header ─────────────────────────────────────────────────────────────── */
 .panel-header {
-  @apply flex items-center justify-between px-3 py-2.5
-         border-b border-surface-200 dark:border-surface-200 flex-shrink-0;
+  @apply flex items-center justify-between px-3 py-2.5 flex-shrink-0;
+  border-bottom: 1px solid #212328;
 }
 
 .panel-header-left {
-  @apply flex items-center gap-2 text-xs font-semibold
-         text-surface-700 dark:text-surface-700 uppercase tracking-wider
-         hover:text-surface-950 dark:hover:text-surface-900;
+  @apply flex items-center gap-2 text-xs font-semibold uppercase tracking-wider;
+  color: #737c8e; /* surface-700 = medium on dark */
 }
+.panel-header-left:hover { color: #c4c9d4; }
 
 .header-chevron {
-  @apply text-surface-400 transition-transform duration-150;
+  @apply text-current transition-transform duration-150;
 }
 
 .chevron-closed {
@@ -792,31 +793,34 @@ function transcriptKey(subject: string, date: string, filename: string) {
 }
 
 .panel-refresh-btn {
-  @apply flex items-center justify-center w-6 h-6 rounded
-         text-surface-500 hover:text-surface-900 dark:hover:text-surface-900
-         hover:bg-surface-200 dark:hover:bg-surface-200 transition-colors;
+  @apply flex items-center justify-center w-6 h-6 rounded transition-colors;
+  color: #565d6b;
 }
+.panel-refresh-btn:hover { color: #c4c9d4; background: #212328; }
 
 .panel-header-actions {
   @apply flex items-center gap-1;
 }
 
 .panel-action-btn {
-  @apply flex items-center justify-center w-6 h-6 rounded
-         text-surface-500 hover:text-accent-600 dark:hover:text-accent-400
-         hover:bg-surface-200 dark:hover:bg-surface-200 transition-colors;
+  @apply flex items-center justify-center w-6 h-6 rounded transition-colors;
+  color: #565d6b;
 }
+.panel-action-btn:hover { color: #7c97f8; background: #212328; }
 
 /* ─── State ─────────────────────────────────────────────────────────────── */
 .panel-state {
   @apply flex flex-col items-center justify-center gap-3 flex-1
-         text-surface-500 dark:text-surface-600 text-sm px-4 text-center;
+         text-sm px-4 text-center;
+  color: #464b55; /* surface-500 */
 }
 
-.panel-state--error { @apply text-red-500; }
+.panel-state--error { color: #f87171; }
 
 .panel-spinner {
-  @apply w-5 h-5 border-2 border-surface-300 border-t-accent-500 rounded-full;
+  @apply w-5 h-5 border-2 rounded-full;
+  border-color: #363a42;
+  border-top-color: #5c72f3;
   animation: spin 1s linear infinite;
 }
 
@@ -828,52 +832,51 @@ function transcriptKey(subject: string, date: string, filename: string) {
 }
 
 .tree-subject { @apply mb-0.5; }
-
 .tree-children { @apply pl-3 mt-0.5; }
-
 .tree-date-group { @apply mb-1; }
-
-.tree-date-header {
-  @apply flex items-center gap-1;
-}
-
+.tree-date-header { @apply flex items-center gap-1; }
 .tree-date-header .tree-row--date { @apply flex-1; }
-
 .tree-files { @apply pl-2 mt-0.5; }
-
 .tree-file-group { @apply mb-0.5; }
 
 .tree-file-row {
-  @apply flex items-center gap-0.5 sticky top-0 z-10 bg-surface-100 dark:bg-surface-50;
+  @apply flex items-center gap-0.5 sticky top-0 z-10;
+  background: #1a1b1e; /* same as panel bg */
 }
-
-.tree-file-row .tree-row--file {
-  @apply flex-1;
-}
+.tree-file-row .tree-row--file { @apply flex-1; }
 
 .tree-row-container {
   @apply flex items-center justify-between w-full;
 }
 
+/* Action buttons — always visible, subtle default, clear on hover */
 .action-btn {
-  @apply flex items-center justify-center w-5 h-5 rounded hover:bg-surface-200 dark:hover:bg-surface-200 transition-colors duration-100;
+  @apply flex items-center justify-center w-5 h-5 rounded transition-colors duration-100;
+  color: #464b55;
 }
+.action-btn:hover { background: #212328; color: #9aa0b2; }
 
 .tree-row {
   @apply flex items-center gap-1.5 w-full min-w-0 px-2 py-1.5 rounded-md
-         text-left text-sm text-surface-800 dark:text-surface-900
-         hover:bg-surface-200 dark:hover:bg-surface-200 transition-colors duration-100;
+         text-left text-sm transition-colors duration-100;
+  color: #9aa0b2; /* surface-800 = readable on dark */
 }
+.tree-row:hover { background: #212328; color: #c4c9d4; }
 
-.tree-row--subject { @apply font-medium; }
-.tree-row--date { @apply text-xs text-surface-700 dark:text-surface-700; }
-.tree-row--file { @apply text-xs text-surface-600 dark:text-surface-600 pl-5; }
+.tree-row--subject { @apply font-medium; color: #c4c9d4; }
+.tree-row--date { @apply text-xs; color: #737c8e; }
+.tree-row--date:hover { color: #9aa0b2; }
+.tree-row--file { @apply text-xs pl-5; color: #737c8e; }
+.tree-row--file:hover { color: #9aa0b2; }
+
 .tree-row--file-active {
-  @apply bg-accent-500/10 dark:bg-accent-500/15 text-accent-700 dark:text-accent-400;
+  background: rgba(92, 114, 243, 0.12);
+  color: #7c97f8;
 }
 
 .tree-chevron {
-  @apply flex-shrink-0 text-surface-400 transition-transform duration-150;
+  @apply flex-shrink-0 transition-transform duration-150;
+  color: #464b55;
 }
 .tree-chevron--open { transform: rotate(0deg); }
 .tree-chevron:not(.tree-chevron--open) { transform: rotate(-90deg); }
@@ -881,58 +884,54 @@ function transcriptKey(subject: string, date: string, filename: string) {
 .tree-label { @apply flex-1 min-w-0 truncate; }
 .file-icon { @apply flex-shrink-0; }
 .file-name { @apply font-mono text-xs; }
-.file-size { @apply flex-shrink-0 text-xs text-surface-400 font-mono; }
-.tree-empty { @apply text-xs text-surface-400 px-3 py-1.5 italic; }
+.file-size { @apply flex-shrink-0 text-xs font-mono; color: #464b55; }
+.tree-empty { @apply text-xs px-3 py-1.5 italic; color: #464b55; }
 
 /* ─── Teach AI ───────────────────────────────────────────────────────────── */
 .teach-btn {
   @apply flex items-center gap-1 px-1.5 py-0.5 rounded text-xs font-medium flex-shrink-0
-         text-accent-600 dark:text-accent-400
-         hover:bg-accent-500/10 dark:hover:bg-accent-500/20 transition-colors duration-100;
+         transition-colors duration-100;
+  color: #7c97f8;
 }
+.teach-btn:hover { background: rgba(92, 114, 243, 0.15); }
 
 /* ─── Ref whole file button ──────────────────────────────────────────────── */
 .ref-whole-btn {
   @apply flex items-center justify-center w-6 h-6 rounded flex-shrink-0
-         text-surface-400 hover:text-accent-500 dark:hover:text-accent-400
-         hover:bg-accent-500/10 transition-colors duration-100;
+         transition-colors duration-100;
+  color: #464b55;
 }
+.ref-whole-btn:hover { color: #7c97f8; background: rgba(92, 114, 243, 0.1); }
 
 /* ─── File previews ──────────────────────────────────────────────────────── */
 .file-preview {
-  @apply mx-2 mb-2 rounded-lg border border-surface-200 dark:border-surface-300
-         bg-surface-50 dark:bg-surface-0 overflow-hidden;
+  @apply mx-2 mb-2 rounded-lg overflow-hidden;
+  border: 1px solid #2a2d33;
+  background: #141517;
 }
 
-.file-preview--pdf {
-  @apply min-h-80;
-}
-
+.file-preview--pdf { @apply min-h-80; }
 .file-preview--audio { @apply p-2; }
 
 .preview-loading {
-  @apply flex items-center gap-2 p-3 text-xs text-surface-500;
+  @apply flex items-center gap-2 p-3 text-xs;
+  color: #565d6b;
 }
 
 /* ─── Transcript ─────────────────────────────────────────────────────────── */
-.transcript-wrapper {
-  @apply relative;
-}
+.transcript-wrapper { @apply relative; }
 
 .preview-text {
   @apply text-xs p-3 whitespace-pre-wrap break-words font-mono
-         text-surface-700 dark:text-surface-800
          max-h-64 overflow-y-auto leading-relaxed select-text;
+  color: #9aa0b2; /* readable on dark bg */
 }
 
 :deep(.transcript-highlight) {
-  @apply bg-amber-400/40 dark:bg-amber-500/30 rounded px-0.5;
+  @apply bg-amber-400/40 rounded px-0.5;
   transition: background 1.5s ease;
 }
-
-:deep(.transcript-highlight--fade) {
-  background: transparent;
-}
+:deep(.transcript-highlight--fade) { background: transparent; }
 
 /* ─── Selection tooltip ──────────────────────────────────────────────────── */
 .selection-tooltip {
@@ -942,21 +941,16 @@ function transcriptKey(subject: string, date: string, filename: string) {
 
 .tooltip-btn {
   @apply flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-semibold
-         bg-surface-950 dark:bg-surface-50
-         text-surface-50 dark:text-surface-950
-         shadow-lg border border-surface-800 dark:border-surface-300
-         whitespace-nowrap;
+         shadow-lg whitespace-nowrap;
+  background: #e8eaf0;
+  color: #0e0f11;
+  border: 1px solid #c4c9d4;
 }
 
 .tooltip-fade-enter-active,
-.tooltip-fade-leave-active {
-  transition: opacity 0.12s ease, transform 0.12s ease;
-}
+.tooltip-fade-leave-active { transition: opacity 0.12s ease, transform 0.12s ease; }
 .tooltip-fade-enter-from,
-.tooltip-fade-leave-to {
-  opacity: 0;
-  transform: translateY(4px);
-}
+.tooltip-fade-leave-to { opacity: 0; transform: translateY(4px); }
 
 /* ─── Audio ──────────────────────────────────────────────────────────────── */
 .audio-player {
@@ -967,6 +961,6 @@ function transcriptKey(subject: string, date: string, filename: string) {
 /* ─── Spinner ────────────────────────────────────────────────────────────── */
 @keyframes spin {
   from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
+  to   { transform: rotate(360deg); }
 }
 </style>

@@ -9,6 +9,7 @@ const props = defineProps<{
   subject: string
   date: string
   filename: string
+  hideReference?: boolean
 }>()
 
 const emit = defineEmits<{
@@ -123,6 +124,7 @@ defineExpose({ scrollToPage })
 
 // ─── Text selection tooltip ────────────────────────────────────────────────
 function onMouseUp(e: MouseEvent, pageNum: number) {
+  if (props.hideReference) return
   const sel = window.getSelection()
   if (!sel || sel.isCollapsed) {
     tooltipVisible.value = false
@@ -201,6 +203,7 @@ watch(() => props.url, loadPdf)
         <div class="pdf-page-toolbar">
           <span class="pdf-page-num">Page {{ n }}</span>
           <button
+            v-if="!hideReference"
             class="pdf-ref-btn"
             :title="`Reference page ${n}`"
             @click.stop="addPageReference(n)"
@@ -321,7 +324,7 @@ watch(() => props.url, loadPdf)
 
 .tooltip-btn {
   @apply flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-semibold
-         bg-surface-950 dark:bg-surface-50
+         bg-white dark:bg-surface-50
          text-surface-50 dark:text-surface-950
          shadow-lg border border-surface-800 dark:border-surface-300
          whitespace-nowrap;

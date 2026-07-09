@@ -1,8 +1,14 @@
 <script setup lang="ts">
+import ThemeToggle from '@/components/ThemeToggle.vue'
 </script>
 
 <template>
   <div class="auth-layout">
+    <!-- Theme Toggle -->
+    <div class="auth-theme-toggle">
+      <ThemeToggle />
+    </div>
+
     <!-- Background gradient blobs -->
     <div class="auth-blob auth-blob-1" aria-hidden="true" />
     <div class="auth-blob auth-blob-2" aria-hidden="true" />
@@ -16,7 +22,7 @@
           <circle cx="16" cy="16" r="2.5" fill="white" />
           <path d="M16 10V12M16 20V22M10 16H12M20 16H22" stroke="white" stroke-width="1.5" stroke-linecap="round" />
         </svg>
-        <span class="auth-logo-text">NeuralChat</span>
+        <span class="auth-logo-text">ClassMonitor</span>
       </div>
 
       <!-- Card -->
@@ -30,6 +36,10 @@
 <style scoped>
 .auth-layout {
   @apply min-h-screen bg-surface-50 dark:bg-surface-0 flex items-center justify-center p-4 relative overflow-hidden;
+}
+
+.auth-theme-toggle {
+  @apply absolute top-4 right-4 z-20;
 }
 
 .auth-blob {
