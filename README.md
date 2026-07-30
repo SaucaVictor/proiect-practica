@@ -393,12 +393,12 @@ proiect-practica/
 
 ## 👥 Echipă
 
-| Membru                | Rol                                                |
-| --------------------- | -------------------------------------------------- |
-| **Săuca Victor**      | Full-stack development, AI/RAG, arhitectură sistem |
-| **Tuțu Cristian**     | Hardware, embedded, firmware ESP32                 |
-| **Bucura Ion-Bogdan** | Hardware, electronică de putere, testare senzori   |
-
+| Membru                   | Rol                                                |
+| ------------------------ | -------------------------------------------------- |
+| **Săuca Victor**         | Full-stack development, AI/RAG, arhitectură sistem |
+| **Tuțu Cristian**        | Hardware, embedded, firmware ESP32                 |
+| **Bucura Ion-Bogdan**    | Hardware, electronică de putere, testare senzori   |
+| **Vîrnav Ștefan-Adrian** | Arhitectură sistem,UI                              |
 ---
 
 ## 📄 Licență
